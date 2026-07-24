@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        O parent herda: BOM com ~300 versões compatíveis, configurações de plugins
+        (compiler, surefire, resources), encoding UTF-8, e o spring-boot-maven-plugin
+        pré-configurado para gerar o fat JAR executável.
+        <relativePath/> instrui o Maven a sempre buscar do repositório remoto,
+        nunca de um pom.xml pai local em disco.
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.15</version>
+        <relativePath />
+    </parent>
+
+    <groupId>dev.emit</groupId>
+    <artifactId>emit</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>emit</name>
+    <description>Multi-tenant Document and Invoice Processing Engine</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <!--
+            JJWT não está no BOM do Spring Boot — versão declarada aqui
+            para gestão centralizada. Se precisar atualizar, muda em um lugar.
+        -->
+        <jjwt.version>0.12.5</jjwt.version>
+    </properties>
+
+    <dependencies>
+
+        <!--
+            Lombok gera getters, setters, construtores e mais em tempo de
+            compilação via annotation processor. optional=true significa que
+            não vai no .jar final — é só uma ferramenta de build.
+        -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- ==================================================
+             WEB & VALIDATION
+             spring-boot-starter-web traz: Spring MVC, Tomcat embedded,
+             Jackson (JSON), spring-web, spring-webmvc.
+             starter-validation traz: Hibernate Validator (implementação
+             do Jakarta Bean Validation — as anotações @NotNull, @Valid, etc.)
+             ================================================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- ==================================================
+             DATA PERSISTENCE
+             starter-data-jpa traz: Hibernate ORM, Spring Data JPA,
+             HikariCP (connection pool padrão do Spring Boot 2+),
+             spring-tx (gerenciamento de transações).
+             ================================================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!--
+            SCOPE RUNTIME: seu código compila contra javax.sql.Connection
+            (interface do JDK). O driver PostgreSQL é uma implementação
+            carregada em runtime pelo DriverManager via ServiceLoader.
+            Declarar como compile funcionaria, mas seria impreciso sobre
+            a intenção arquitetural: o domínio não depende do PostgreSQL.
+        -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--
+            Liquibase gerencia o schema do banco via changesets versionados.
+            Nunca use ddl-auto=create/update em produção — use Liquibase.
+            O Spring Boot auto-configura o Liquibase se esse jar estiver
+            no classpath e spring.liquibase.change-log estiver configurado.
+        -->
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+
+        <!-- ==================================================
+             SECURITY
+             starter-security traz: Spring Security core, filtros HTTP,
+             BCryptPasswordEncoder, SecurityContextHolder.
+             ================================================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!--
+            JJWT usa o padrão SPI (Service Provider Interface).
+            jjwt-api: interfaces públicas — seu código só importa daqui.
+            jjwt-impl: implementação — RUNTIME porque seu código não importa
+                       classes desta lib diretamente. ServiceLoader a descobre.
+            jjwt-jackson: serialização JSON para claims — RUNTIME pelo mesmo motivo.
+            Declarar impl como compile permitiria importar internals acidentalmente.
+        -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ==================================================
+             ASYNC & RETRY
+             spring-retry: anotações @Retryable, @Recover, @Backoff.
+             spring-boot-starter-aop: Spring AOP via AspectJ — obrigatório
+             para que @Retryable funcione (é implementado como um aspecto).
+             Sem o AOP, @Retryable não faz nada silenciosamente.
+             ================================================== -->
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!-- ==================================================
+             OBSERVABILITY
+             Actuator expõe endpoints: /actuator/health, /actuator/metrics,
+             /actuator/hikaricp (pool stats em tempo real).
+             Essencial para monitoramento em produção.
+             ================================================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- ==================================================
+             PDF GENERATION — adicionado na Semana 4
+             Thymeleaf + biblioteca PDF serão incluídos quando
+             implementarmos o pipeline de geração de documentos.
+             ================================================== -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.xhtmlrenderer</groupId>
+            <artifactId>flying-saucer-pdf-openpdf</artifactId>
+            <version>9.1.22</version>
+        </dependency>
+
+        <!-- ==================================================
+             TEST
+             spring-boot-starter-test traz: JUnit 5, Mockito, AssertJ,
+             Hamcrest, MockMvc, @SpringBootTest.
+             spring-security-test: @WithMockUser, SecurityMockMvcRequestPostProcessors.
+             spring-boot-testcontainers: integração automática Testcontainers + Spring Boot 3.
+             testcontainers/junit-jupiter: anotação @Testcontainers, @Container.
+             testcontainers/postgresql: imagem Docker do PostgreSQL gerenciada pelo TC.
+             ================================================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                spring-boot-maven-plugin empacota o projeto como fat JAR:
+                um JAR com todas as dependências embutidas, executável via
+                `java -jar emit-0.0.1-SNAPSHOT.jar` sem instalação de servidor.
+                O plugin usa um classloader customizado (LaunchedURLClassLoader)
+                para carregar classes de JARs aninhados — não é um uber-jar flat,
+                é uma estrutura BOOT-INF/lib/ dentro do JAR.
+            -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

@@ -1,0 +1,56 @@
+version: '3.8'
+
+# ================================================================
+# docker-compose.yml — Infraestrutura local de desenvolvimento
+#
+# Sobe: PostgreSQL 16 + pgAdmin 4
+#
+# Comandos:
+#   docker compose up -d          → sobe em background
+#   docker compose down           → para e remove containers
+#   docker compose down -v        → para, remove containers E volumes (reset total)
+#   docker compose logs -f postgres → acompanha logs do postgres
+# ================================================================
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: emit-postgres
+    environment:
+      POSTGRES_DB: emit_db
+      POSTGRES_USER: emit_user
+      POSTGRES_PASSWORD: emit_pass
+      # Configurações de performance para dev local
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - emit-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U emit_user -d emit_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: emit-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@emit.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  # Volume nomeado: dados persistem entre `docker compose down`.
+  # Use `docker compose down -v` para destruir completamente (reset do banco).
+  emit-pg-data:
+    driver: local

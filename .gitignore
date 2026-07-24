@@ -1,0 +1,26 @@
+# Maven
+target/
+*.jar
+*.war
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# VS Code
+.vscode/
+
+# Spring Boot
+*.log
+logs/
+
+# Ambiente
+.env
+*.env
+application-prod.properties
+application-local.properties
+
+# OS
+.DS_Store
+Thumbs.db

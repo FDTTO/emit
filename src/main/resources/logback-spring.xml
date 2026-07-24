@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    logback-spring.xml — Configuração do Logback com Spring Boot integration.
+    Use este arquivo em vez de logback.xml para aproveitar <springProfile>
+    e <springProperty> (acesso a application.properties no Logback).
+
+    MDC (Mapped Diagnostic Context): permite injetar contexto em CADA linha
+    de log sem passar parâmetros pelo código. O filtro de autenticação fará:
+        MDC.put("tenantSchema", tenant);
+        MDC.put("requestId", UUID.randomUUID().toString());
+    E cada log line no request incluirá esses valores automaticamente.
+-->
+<configuration>
+
+    <!-- Padrão de console com MDC — dev only -->
+    <springProfile name="dev">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>
+                    %d{HH:mm:ss.SSS} %highlight(%-5level) [%cyan(%X{tenantSchema:-system})] [%magenta(%X{requestId:-no-req})] %logger{36} — %msg%n
+                </pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- Padrão estruturado para produção (JSON seria ideal, mas isso é suficiente) -->
+    <springProfile name="!dev">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>
+                    %d{ISO8601} %-5level [%X{tenantSchema:-system}] [%X{requestId:-no-req}] %logger{36} — %msg%n
+                </pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+</configuration>

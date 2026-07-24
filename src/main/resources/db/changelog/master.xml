@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        master.xml — ponto de entrada do Liquibase.
+
+        Este arquivo NÃO contém changeSets diretamente.
+        Ele inclui outros arquivos na ordem correta.
+
+        ESTRATÉGIA DE MIGRAÇÃO DO EMIT:
+          - Schema public: tabela de tenants (criada aqui, uma vez)
+          - Schemas por tenant: provisionados programaticamente em
+            TenantSchemaProvisioner.java quando um novo tenant é criado.
+
+        Por que não usar ddl-auto=create?
+          1. Irreversível: uma reinicialização apaga dados de produção.
+          2. Não versionado: impossível saber o estado exato do schema.
+          3. Liquibase gera um log de alterações auditável (DATABASECHANGELOG).
+          4. Liquibase pode ser revertido (rollback) e aplicado em CI/CD.
+    -->
+
+    <include file="db/changelog/changes/001-create-tenants-table.xml"/>
+
+</databaseChangeLog>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+        changeSet id="001": cria a tabela de tenants no schema público.
+
+        CONCEITO: cada changeSet é executado EXATAMENTE UMA VEZ por banco.
+        Liquibase registra o hash do changeSet em DATABASECHANGELOG.
+        Se o changeSet for modificado após execução, Liquibase falha na
+        startup com "checksum mismatch" — proteção contra alterações
+        retroativas em migrações já aplicadas.
+
+        Se precisar alterar a tabela: crie um NOVO changeSet (002, 003...).
+        Nunca modifique um changeSet já executado em produção.
+    -->
+    <changeSet id="001" author="emit-dev">
+        <createTable tableName="tenants" schemaName="public">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <!-- schema_name deve ser um identificador PostgreSQL válido: lowercase, sem espaços -->
+            <column name="schema_name" type="VARCHAR(63)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <!-- Armazenamos HASH do API key, nunca o valor em texto claro -->
+            <column name="api_key_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMPTZ" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Index para lookup por schema_name — operação crítica no path de autenticação -->
+        <createIndex indexName="idx_tenants_schema_name" tableName="tenants" schemaName="public">
+            <column name="schema_name"/>
+        </createIndex>
+
+        <!-- Index para lookup por api_key_hash — executado em CADA request autenticado -->
+        <createIndex indexName="idx_tenants_api_key_hash" tableName="tenants" schemaName="public">
+            <column name="api_key_hash"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
