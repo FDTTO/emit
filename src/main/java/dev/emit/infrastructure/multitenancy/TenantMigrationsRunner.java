@@ -18,12 +18,12 @@ public class TenantMigrationsRunner implements ApplicationListener<ApplicationRe
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        log.info("Executando migrations pendentes em todos os schemas de Tenant...");
+        log.info("Running pending migrations on all tenant schemas...");
         tenantRepository.findAll().forEach(tenant -> {
-            log.info("Migrando schema: {}", tenant.getSchemaName());
+            log.info("Migrating schema: {}", tenant.getSchemaName());
             tenantProvisioner.runMigrations(tenant.getSchemaName());
         });
-        log.info("Migrations de Tenant concluídas!");
+        log.info("Tenant migrations completed.");
     }
 
 }

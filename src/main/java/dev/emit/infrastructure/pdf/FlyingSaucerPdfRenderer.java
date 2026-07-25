@@ -17,7 +17,7 @@ public class FlyingSaucerPdfRenderer implements PdfRenderer {
     @Override
     @Retryable(retryFor = RuntimeException.class, maxAttempts = 3, backoff = @Backoff(delay = 500, multiplier = 2))
     public byte[] render(String html) {
-        log.debug("Renderizando PDF...");
+        log.debug("Rendering PDF...");
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ITextRenderer renderer = new ITextRenderer();
@@ -27,13 +27,13 @@ public class FlyingSaucerPdfRenderer implements PdfRenderer {
             return byteArrayOutputStream.toByteArray();
 
         } catch (Exception exception) {
-            throw new RuntimeException("Erro ao renderizar PDF", exception);
+            throw new RuntimeException("Failed to render PDF", exception);
         }
     }
 
     @Recover
     public byte[] recover(RuntimeException exception, String html) {
-        log.error("Falha ao renderizar PDF após todas as tentativas: {}", exception.getMessage());
-        throw new RuntimeException("PDF não pôde ser gerado após 3 tentativas", exception);
+        log.error("Failed to render PDF after all attempts: {}", exception.getMessage());
+        throw new RuntimeException("PDF could not be generated after 3 attempts", exception);
     }
 }

@@ -1,28 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <!--
-        master.xml — ponto de entrada do Liquibase.
+  <!--
+        master.xml - Liquibase entry point.
 
-        Este arquivo NÃO contém changeSets diretamente.
-        Ele inclui outros arquivos na ordem correta.
+        This file does NOT contain changeSets directly.
+        It includes other files in the correct order.
 
-        ESTRATÉGIA DE MIGRAÇÃO DO EMIT:
-          - Schema public: tabela de tenants (criada aqui, uma vez)
-          - Schemas por tenant: provisionados programaticamente em
-            TenantSchemaProvisioner.java quando um novo tenant é criado.
+        EMIT MIGRATION STRATEGY:
+          - Public schema: tenants table (created here, once)
+          - Per-tenant schemas: provisioned programmatically in
+            TenantSchemaProvisioner.java when a new tenant is created.
 
-        Por que não usar ddl-auto=create?
-          1. Irreversível: uma reinicialização apaga dados de produção.
-          2. Não versionado: impossível saber o estado exato do schema.
-          3. Liquibase gera um log de alterações auditável (DATABASECHANGELOG).
-          4. Liquibase pode ser revertido (rollback) e aplicado em CI/CD.
+        Why not use ddl-auto=create?
+          1. Irreversible: a restart wipes production data.
+          2. Unversioned: impossible to know the exact schema state.
+          3. Liquibase produces an auditable change log (DATABASECHANGELOG).
+          4. Liquibase supports rollback and can be applied in CI/CD.
     -->
 
-    <include file="db/changelog/changes/001-create-tenants-table.xml"/>
+  <include file="db/changelog/changes/001-create-tenants-table.xml" />
 
 </databaseChangeLog>

@@ -18,7 +18,7 @@ public class ApiKeyHasher {
 
             return stringBuilder.toString();
         } catch (NoSuchAlgorithmException exception) {
-            throw new RuntimeException(" SHA-256  |  Não disponível! ");
+            throw new RuntimeException("SHA-256 algorithm not available");
         }
     }
 

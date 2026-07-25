@@ -1,54 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
     <!--
-        changeSet id="001": cria a tabela de tenants no schema público.
+        changeSet id="001": creates the tenants table in the public schema.
 
-        CONCEITO: cada changeSet é executado EXATAMENTE UMA VEZ por banco.
-        Liquibase registra o hash do changeSet em DATABASECHANGELOG.
-        Se o changeSet for modificado após execução, Liquibase falha na
-        startup com "checksum mismatch" — proteção contra alterações
-        retroativas em migrações já aplicadas.
+        Each changeSet is executed EXACTLY ONCE per database.
+        Liquibase records the changeSet hash in DATABASECHANGELOG.
+        If a changeSet is modified after execution, Liquibase fails at
+        startup with "checksum mismatch" - protecting against retroactive
+        edits to already-applied migrations.
 
-        Se precisar alterar a tabela: crie um NOVO changeSet (002, 003...).
-        Nunca modifique um changeSet já executado em produção.
+        To alter the table: create a NEW changeSet (002, 003...).
+        Never modify a changeSet that has already been executed in production.
     -->
     <changeSet id="001" author="emit-dev">
         <createTable tableName="tenants" schemaName="public">
             <column name="id" type="UUID">
-                <constraints primaryKey="true" nullable="false"/>
+                <constraints primaryKey="true" nullable="false" />
             </column>
             <column name="name" type="VARCHAR(255)">
-                <constraints nullable="false" unique="true"/>
+                <constraints nullable="false" unique="true" />
             </column>
-            <!-- schema_name deve ser um identificador PostgreSQL válido: lowercase, sem espaços -->
+            <!-- schema_name must be a valid PostgreSQL identifier: lowercase, no spaces -->
             <column name="schema_name" type="VARCHAR(63)">
-                <constraints nullable="false" unique="true"/>
+                <constraints nullable="false" unique="true" />
             </column>
-            <!-- Armazenamos HASH do API key, nunca o valor em texto claro -->
+            <!-- Store the HASH of the API key, never the plaintext value -->
             <column name="api_key_hash" type="VARCHAR(255)">
-                <constraints nullable="false"/>
+                <constraints nullable="false" />
             </column>
             <column name="active" type="BOOLEAN" defaultValueBoolean="true">
-                <constraints nullable="false"/>
+                <constraints nullable="false" />
             </column>
             <column name="created_at" type="TIMESTAMPTZ" defaultValueComputed="NOW()">
-                <constraints nullable="false"/>
+                <constraints nullable="false" />
             </column>
         </createTable>
 
-        <!-- Index para lookup por schema_name — operação crítica no path de autenticação -->
+        <!-- Index for schema_name lookup - critical path on every authenticated request -->
         <createIndex indexName="idx_tenants_schema_name" tableName="tenants" schemaName="public">
-            <column name="schema_name"/>
+            <column name="schema_name" />
         </createIndex>
 
-        <!-- Index para lookup por api_key_hash — executado em CADA request autenticado -->
+        <!-- Index for api_key_hash lookup - executed on EVERY authenticated request -->
         <createIndex indexName="idx_tenants_api_key_hash" tableName="tenants" schemaName="public">
-            <column name="api_key_hash"/>
+            <column name="api_key_hash" />
         </createIndex>
     </changeSet>
 

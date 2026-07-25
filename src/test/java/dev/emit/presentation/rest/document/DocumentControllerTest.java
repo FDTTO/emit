@@ -30,10 +30,8 @@ import dev.emit.domain.document.Document;
 import dev.emit.domain.tenant.TenantRepository;
 import dev.emit.infrastructure.security.JwtService;
 
-@WebMvcTest(
-        value = DocumentController.class,
-        excludeAutoConfiguration = {SecurityAutoConfiguration.class, SecurityFilterAutoConfiguration.class}
-)
+@WebMvcTest(value = DocumentController.class, excludeAutoConfiguration = { SecurityAutoConfiguration.class,
+        SecurityFilterAutoConfiguration.class })
 class DocumentControllerTest {
 
     @Autowired
@@ -56,8 +54,8 @@ class DocumentControllerTest {
 
     private Document buildDocument() {
         Document document = new Document();
-        document.setTitle("Contrato");
-        document.setContent("Conteúdo do contrato");
+        document.setTitle("Contract");
+        document.setContent("Contract content");
         document.setStatus("PENDING");
         document.setCreatedAt(OffsetDateTime.now());
         return document;
@@ -78,13 +76,13 @@ class DocumentControllerTest {
         when(documentService.create(anyString(), anyString())).thenReturn(document);
 
         String body = objectMapper.writeValueAsString(
-                new CreateDocumentRequest("Contrato", "Conteúdo do contrato"));
+                new CreateDocumentRequest("Contract", "Contract content"));
 
         mockMvc.perform(post("/v1/documents")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value("Contrato"))
+                .andExpect(jsonPath("$.title").value("Contract"))
                 .andExpect(jsonPath("$.status").value("PENDING"));
     }
 

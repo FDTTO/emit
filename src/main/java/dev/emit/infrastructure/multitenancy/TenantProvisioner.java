@@ -29,7 +29,7 @@ public class TenantProvisioner {
             statement.execute("CREATE SCHEMA IF NOT EXISTS " + schemaName);
             statement.execute("GRANT ALL ON SCHEMA " + schemaName + " TO emit_user");
         } catch (SQLException exception) {
-            throw new RuntimeException("Erro ao criar schema: " + schemaName, exception);
+            throw new RuntimeException("Failed to create schema: " + schemaName, exception);
         }
     }
 
@@ -42,7 +42,7 @@ public class TenantProvisioner {
             liquibase.setLiquibaseSchema(schemaName);
             liquibase.afterPropertiesSet();
         } catch (LiquibaseException exception) {
-            throw new RuntimeException("Erro ao migrar schema: " + schemaName, exception);
+            throw new RuntimeException("Failed to migrate schema: " + schemaName, exception);
         }
     }
 }

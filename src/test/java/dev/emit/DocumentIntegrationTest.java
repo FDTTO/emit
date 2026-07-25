@@ -66,7 +66,7 @@ class DocumentIntegrationTest {
         ResponseEntity<TenantCreatedResponse> response = restTemplate.exchange(
                 "/v1/tenants",
                 HttpMethod.POST,
-                new HttpEntity<>(new CreateTenantRequest("Empresa Teste", "empresa_teste"), headers),
+                new HttpEntity<>(new CreateTenantRequest("Test Company", "test_company"), headers),
                 TenantCreatedResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -80,7 +80,7 @@ class DocumentIntegrationTest {
         ResponseEntity<DocumentResponse> response = restTemplate.exchange(
                 "/v1/documents",
                 HttpMethod.POST,
-                new HttpEntity<>(new CreateDocumentRequest("Contrato de Teste", "Conteúdo do contrato."), headers),
+                new HttpEntity<>(new CreateDocumentRequest("Test Contract", "Contract content."), headers),
                 DocumentResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);

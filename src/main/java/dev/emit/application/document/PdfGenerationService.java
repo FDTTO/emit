@@ -52,7 +52,7 @@ public class PdfGenerationService {
             document.setStatus("FAILED");
             documentRepository.save(document);
 
-            throw new RuntimeException("Erro ao gerar PDF!");
+            throw new RuntimeException("Failed to generate PDF");
         }
     }
 }
