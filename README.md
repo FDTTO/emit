@@ -88,8 +88,7 @@ Configuration: 3 attempts, exponential backoff starting at 500ms with multiplier
 
 - Java 21+
 - Maven 3.9+
-- PostgreSQL 16 running on `localhost:5432`
-- Docker Desktop (required for Testcontainers in tests)
+- Docker Desktop
 
 ### Setup
 
@@ -98,16 +97,20 @@ Configuration: 3 attempts, exponential backoff starting at 500ms with multiplier
 git clone https://github.com/FDTTO/emit.git
 cd emit
 
-# Create the database
-psql -U postgres -c "CREATE DATABASE emit_db;"
-psql -U postgres -c "CREATE USER emit_user WITH PASSWORD 'emit_pass';"
-psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE emit_db TO emit_user;"
+# Start PostgreSQL (requires port 5432 to be free)
+docker compose up -d postgres
 
 # Run (dev profile is configured as default)
 mvn spring-boot:run
 ```
 
-The application starts on `http://localhost:8080`. Default admin credentials are configured in `application-dev.properties`: username `admin`, password `admin123`.
+The application starts on `http://localhost:8080`. Default admin credentials: username `admin`, password `admin123`.
+
+Optionally, start pgAdmin at `http://localhost:5050` (email `admin@emit.dev`, password `admin`):
+
+```bash
+docker compose up -d
+```
 
 ### Running tests
 

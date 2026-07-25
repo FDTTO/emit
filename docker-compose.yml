@@ -1,17 +1,3 @@
-version: '3.8'
-
-# ================================================================
-# docker-compose.yml — Infraestrutura local de desenvolvimento
-#
-# Sobe: PostgreSQL 16 + pgAdmin 4
-#
-# Comandos:
-#   docker compose up -d          → sobe em background
-#   docker compose down           → para e remove containers
-#   docker compose down -v        → para, remove containers E volumes (reset total)
-#   docker compose logs -f postgres → acompanha logs do postgres
-# ================================================================
-
 services:
 
   postgres:
@@ -21,7 +7,6 @@ services:
       POSTGRES_DB: emit_db
       POSTGRES_USER: emit_user
       POSTGRES_PASSWORD: emit_pass
-      # Configurações de performance para dev local
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
     ports:
       - "5432:5432"
@@ -50,7 +35,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  # Volume nomeado: dados persistem entre `docker compose down`.
-  # Use `docker compose down -v` para destruir completamente (reset do banco).
   emit-pg-data:
     driver: local
