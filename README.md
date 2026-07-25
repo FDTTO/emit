@@ -142,6 +142,8 @@ mvn test
 
 Use the token as `Authorization: Bearer <token>` for all tenant management endpoints.
 
+---
+
 ### Tenants
 
 Requires `Authorization: Bearer <token>`.
@@ -176,6 +178,8 @@ Requires `Authorization: Bearer <token>`.
 |---|---|---|
 | `GET` | `/v1/tenants` | List all tenants |
 | `GET` | `/v1/tenants/{id}` | Get tenant by ID |
+
+---
 
 ### Documents
 
