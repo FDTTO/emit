@@ -3,7 +3,7 @@
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Tests](https://img.shields.io/badge/tests-7_passing-2EA043?style=flat-square)](#getting-started)
+[![CI](https://github.com/FDTTO/emit/actions/workflows/ci.yml/badge.svg)](https://github.com/FDTTO/emit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
 Multi-tenant document processing engine. Each client operates in full data isolation via PostgreSQL schema separation. Authenticated requests trigger async PDF generation with tenant context propagated across thread boundaries.
