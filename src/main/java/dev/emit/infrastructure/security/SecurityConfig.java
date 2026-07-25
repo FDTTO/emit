@@ -20,9 +20,11 @@ public class SecurityConfig {
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                http.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/login").permitAll()
-                                .requestMatchers("/v1/tenants/**").authenticated().anyRequest()
-                                .permitAll()).csrf(csrf -> csrf.disable())
+                http.authorizeHttpRequests(auth -> auth
+                                .requestMatchers("/auth/login").permitAll()
+                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                                .requestMatchers("/v1/tenants/**").authenticated()
+                                .anyRequest().permitAll()).csrf(csrf -> csrf.disable())
                                 .sessionManagement(session -> session.sessionCreationPolicy(
                                                 SessionCreationPolicy.STATELESS))
                                 .exceptionHandling(exception -> exception.authenticationEntryPoint((

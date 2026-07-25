@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.emit.application.tenant.TenantService;
 import dev.emit.domain.tenant.Tenant;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +37,7 @@ public class TenantController {
     }
 
     @PostMapping
+    @ApiResponse(responseCode = "201", description = "Tenant created successfully")
     public ResponseEntity<TenantCreatedResponse> create(@Valid @RequestBody CreateTenantRequest request) {
         TenantService.TenantCreated result = tenantService.create(request.name(), request.schemaName());
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -42,6 +45,8 @@ public class TenantController {
     }
 
     @GetMapping("/{id}")
+    @ApiResponse(responseCode = "200", description = "Tenant found")
+    @ApiResponse(responseCode = "404", description = "Tenant not found", content = @Content)
     public ResponseEntity<TenantResponse> findById(@PathVariable UUID id) {
         Optional<Tenant> tenantOptional = tenantService.findById(id);
 

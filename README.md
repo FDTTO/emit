@@ -221,9 +221,9 @@ Document status lifecycle: `PENDING` → `PROCESSING` → `DONE` / `FAILED`
 
 ## Roadmap
 
-- [ ] GitHub Actions CI
-- [ ] Docker Compose
-- [ ] Swagger / OpenAPI
+- [x] GitHub Actions CI
+- [x] Docker Compose
+- [x] Swagger / OpenAPI
 - [ ] Rate limiting per tenant (Bucket4j)
 - [ ] Pagination on `GET /v1/documents`
 

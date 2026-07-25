@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!--
-        O parent herda: BOM com ~300 versões compatíveis, configurações de plugins
-        (compiler, surefire, resources), encoding UTF-8, e o spring-boot-maven-plugin
-        pré-configurado para gerar o fat JAR executável.
-        <relativePath/> instrui o Maven a sempre buscar do repositório remoto,
-        nunca de um pom.xml pai local em disco.
+        Inherits: BOM with ~300 compatible versions, plugin configurations
+        (compiler, surefire, resources), UTF-8 encoding, and spring-boot-maven-plugin
+        pre-configured to produce an executable fat JAR.
+        <relativePath/> tells Maven to always resolve from the remote repository,
+        never from a local parent pom.xml on disk.
     -->
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -27,8 +27,8 @@
     <properties>
         <java.version>21</java.version>
         <!--
-            JJWT não está no BOM do Spring Boot — versão declarada aqui
-            para gestão centralizada. Se precisar atualizar, muda em um lugar.
+            JJWT is not in the Spring Boot BOM - version declared here
+            for centralized management. Update in one place if needed.
         -->
         <jjwt.version>0.12.5</jjwt.version>
     </properties>
@@ -36,9 +36,9 @@
     <dependencies>
 
         <!--
-            Lombok gera getters, setters, construtores e mais em tempo de
-            compilação via annotation processor. optional=true significa que
-            não vai no .jar final — é só uma ferramenta de build.
+            Lombok generates getters, setters, constructors, and more at compile time
+            via annotation processor. optional=true means it is excluded from the final
+            .jar - it is a build-time tool only.
         -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -48,10 +48,10 @@
 
         <!-- ==================================================
              WEB & VALIDATION
-             spring-boot-starter-web traz: Spring MVC, Tomcat embedded,
+             spring-boot-starter-web includes: Spring MVC, embedded Tomcat,
              Jackson (JSON), spring-web, spring-webmvc.
-             starter-validation traz: Hibernate Validator (implementação
-             do Jakarta Bean Validation — as anotações @NotNull, @Valid, etc.)
+             starter-validation includes: Hibernate Validator (the Jakarta Bean
+             Validation implementation - annotations @NotNull, @Valid, etc.)
              ================================================== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -64,9 +64,9 @@
 
         <!-- ==================================================
              DATA PERSISTENCE
-             starter-data-jpa traz: Hibernate ORM, Spring Data JPA,
-             HikariCP (connection pool padrão do Spring Boot 2+),
-             spring-tx (gerenciamento de transações).
+             starter-data-jpa includes: Hibernate ORM, Spring Data JPA,
+             HikariCP (default connection pool since Spring Boot 2+),
+             spring-tx (transaction management).
              ================================================== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -74,11 +74,11 @@
         </dependency>
 
         <!--
-            SCOPE RUNTIME: seu código compila contra javax.sql.Connection
-            (interface do JDK). O driver PostgreSQL é uma implementação
-            carregada em runtime pelo DriverManager via ServiceLoader.
-            Declarar como compile funcionaria, mas seria impreciso sobre
-            a intenção arquitetural: o domínio não depende do PostgreSQL.
+            SCOPE RUNTIME: application code compiles against javax.sql.Connection
+            (JDK interface). The PostgreSQL driver is an implementation loaded at
+            runtime by DriverManager via ServiceLoader.
+            Declaring it as compile would work but misrepresents the intent:
+            the domain layer does not depend on PostgreSQL.
         -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -87,10 +87,10 @@
         </dependency>
 
         <!--
-            Liquibase gerencia o schema do banco via changesets versionados.
-            Nunca use ddl-auto=create/update em produção — use Liquibase.
-            O Spring Boot auto-configura o Liquibase se esse jar estiver
-            no classpath e spring.liquibase.change-log estiver configurado.
+            Liquibase manages the database schema via versioned changesets.
+            Never use ddl-auto=create/update in production - use Liquibase.
+            Spring Boot auto-configures Liquibase when this jar is on the classpath
+            and spring.liquibase.change-log is set.
         -->
         <dependency>
             <groupId>org.liquibase</groupId>
@@ -99,7 +99,7 @@
 
         <!-- ==================================================
              SECURITY
-             starter-security traz: Spring Security core, filtros HTTP,
+             starter-security includes: Spring Security core, HTTP filters,
              BCryptPasswordEncoder, SecurityContextHolder.
              ================================================== -->
         <dependency>
@@ -108,12 +108,12 @@
         </dependency>
 
         <!--
-            JJWT usa o padrão SPI (Service Provider Interface).
-            jjwt-api: interfaces públicas — seu código só importa daqui.
-            jjwt-impl: implementação — RUNTIME porque seu código não importa
-                       classes desta lib diretamente. ServiceLoader a descobre.
-            jjwt-jackson: serialização JSON para claims — RUNTIME pelo mesmo motivo.
-            Declarar impl como compile permitiria importar internals acidentalmente.
+            JJWT follows the SPI (Service Provider Interface) pattern.
+            jjwt-api: public interfaces - application code only imports from here.
+            jjwt-impl: implementation - RUNTIME because application code does not
+                       import its classes directly. ServiceLoader discovers it.
+            jjwt-jackson: JSON serialization for claims - RUNTIME for the same reason.
+            Declaring impl as compile would allow accidentally importing internals.
         -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -135,10 +135,10 @@
 
         <!-- ==================================================
              ASYNC & RETRY
-             spring-retry: anotações @Retryable, @Recover, @Backoff.
-             spring-boot-starter-aop: Spring AOP via AspectJ — obrigatório
-             para que @Retryable funcione (é implementado como um aspecto).
-             Sem o AOP, @Retryable não faz nada silenciosamente.
+             spring-retry: @Retryable, @Recover, @Backoff annotations.
+             spring-boot-starter-aop: Spring AOP via AspectJ - required for
+             @Retryable to work (it is implemented as an aspect).
+             Without AOP, @Retryable silently does nothing.
              ================================================== -->
         <dependency>
             <groupId>org.springframework.retry</groupId>
@@ -151,9 +151,9 @@
 
         <!-- ==================================================
              OBSERVABILITY
-             Actuator expõe endpoints: /actuator/health, /actuator/metrics,
-             /actuator/hikaricp (pool stats em tempo real).
-             Essencial para monitoramento em produção.
+             Actuator exposes endpoints: /actuator/health, /actuator/metrics,
+             /actuator/hikaricp (live pool stats).
+             Essential for production monitoring.
              ================================================== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -161,11 +161,9 @@
         </dependency>
 
         <!-- ==================================================
-             PDF GENERATION — adicionado na Semana 4
-             Thymeleaf + biblioteca PDF serão incluídos quando
-             implementarmos o pipeline de geração de documentos.
+             PDF GENERATION
+             Thymeleaf template engine + Flying Saucer HTML-to-PDF renderer.
              ================================================== -->
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -177,13 +175,25 @@
         </dependency>
 
         <!-- ==================================================
+             API DOCS
+             springdoc-openapi generates the OpenAPI 3 specification automatically
+             from Spring MVC annotations and serves Swagger UI at
+             /swagger-ui/index.html - no extra configuration needed.
+             ================================================== -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.9</version>
+        </dependency>
+
+        <!-- ==================================================
              TEST
-             spring-boot-starter-test traz: JUnit 5, Mockito, AssertJ,
+             spring-boot-starter-test includes: JUnit 5, Mockito, AssertJ,
              Hamcrest, MockMvc, @SpringBootTest.
              spring-security-test: @WithMockUser, SecurityMockMvcRequestPostProcessors.
-             spring-boot-testcontainers: integração automática Testcontainers + Spring Boot 3.
-             testcontainers/junit-jupiter: anotação @Testcontainers, @Container.
-             testcontainers/postgresql: imagem Docker do PostgreSQL gerenciada pelo TC.
+             spring-boot-testcontainers: automatic Testcontainers + Spring Boot 3 integration.
+             testcontainers/junit-jupiter: @Testcontainers, @Container annotations.
+             testcontainers/postgresql: Docker-managed PostgreSQL image for tests.
              ================================================== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -216,12 +226,12 @@
     <build>
         <plugins>
             <!--
-                spring-boot-maven-plugin empacota o projeto como fat JAR:
-                um JAR com todas as dependências embutidas, executável via
-                `java -jar emit-0.0.1-SNAPSHOT.jar` sem instalação de servidor.
-                O plugin usa um classloader customizado (LaunchedURLClassLoader)
-                para carregar classes de JARs aninhados — não é um uber-jar flat,
-                é uma estrutura BOOT-INF/lib/ dentro do JAR.
+                spring-boot-maven-plugin packages the project as a fat JAR:
+                a single JAR with all dependencies embedded, executable via
+                `java -jar emit-0.0.1-SNAPSHOT.jar` with no server installation.
+                Uses a custom classloader (LaunchedURLClassLoader) to load classes
+                from nested JARs - not a flat uber-jar, but a BOOT-INF/lib/
+                structure inside the JAR.
             -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
