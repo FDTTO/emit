@@ -1,10 +1,11 @@
 package dev.emit.application.document;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import dev.emit.domain.document.Document;
@@ -18,8 +19,8 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
 
-    public List<Document> listAll() {
-        return documentRepository.findAll();
+    public Page<Document> listAll(Pageable pageable) {
+        return documentRepository.findAll(pageable);
     }
 
     @Transactional

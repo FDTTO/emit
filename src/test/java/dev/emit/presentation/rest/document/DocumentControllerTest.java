@@ -1,10 +1,10 @@
 package dev.emit.presentation.rest.document;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -18,6 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -66,12 +70,32 @@ class DocumentControllerTest {
     }
 
     @Test
-    void shouldReturnEmptyListWhenNoDocuments() throws Exception {
-        when(documentService.listAll()).thenReturn(List.of());
+    void shouldReturnEmptyPageWhenNoDocuments() throws Exception {
+        when(documentService.listAll(any(Pageable.class))).thenReturn(Page.empty());
 
         mockMvc.perform(get("/v1/documents"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("[]"));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    void shouldReturnPageWithDocumentsAndCorrectMetadata() throws Exception {
+        Document document = buildDocument();
+        Page<Document> page = new PageImpl<>(
+                List.of(document),
+                PageRequest.of(0, 20),
+                1);
+        when(documentService.listAll(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/v1/documents"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].title").value("Contract"))
+                .andExpect(jsonPath("$.content[0].status").value("PENDING"))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.first").value(true))
+                .andExpect(jsonPath("$.last").value(true));
     }
 
     @Test

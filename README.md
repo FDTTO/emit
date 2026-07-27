@@ -212,11 +212,36 @@ Requires `X-API-Key: <key>`.
 
 | Method | Route | Description |
 |---|---|---|
-| `GET` | `/v1/documents` | List documents for the tenant |
+| `GET` | `/v1/documents` | List documents for the tenant (paginated) |
 | `GET` | `/v1/documents/{id}` | Get document by ID |
 | `POST` | `/v1/documents/{id}/generate` | Generate PDF (returns `application/pdf`) |
 
 Document status lifecycle: `PENDING` → `PROCESSING` → `DONE` / `FAILED`
+
+#### Pagination
+
+`GET /v1/documents` supports the following query parameters:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `page` | `0` | Page number (zero-indexed) |
+| `size` | `20` | Items per page |
+| `sort` | `createdAt,desc` | Sort field and direction |
+
+**Example:** `GET /v1/documents?page=1&size=10&sort=createdAt,asc`
+
+**Response**
+```json
+{
+  "content": [ { "id": "...", "title": "...", "status": "DONE", "createdAt": "..." } ],
+  "page": 1,
+  "size": 10,
+  "totalElements": 47,
+  "totalPages": 5,
+  "first": false,
+  "last": false
+}
+```
 
 ---
 
@@ -226,7 +251,7 @@ Document status lifecycle: `PENDING` → `PROCESSING` → `DONE` / `FAILED`
 - [x] Docker Compose
 - [x] Swagger / OpenAPI
 - [x] Rate limiting per tenant (Bucket4j)
-- [ ] Pagination on `GET /v1/documents`
+- [x] Pagination on `GET /v1/documents`
 
 ---
 

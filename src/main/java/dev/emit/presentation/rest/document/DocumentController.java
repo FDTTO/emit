@@ -1,10 +1,12 @@
 package dev.emit.presentation.rest.document;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.emit.application.document.DocumentService;
 import dev.emit.application.document.PdfGenerationService;
 import dev.emit.domain.document.Document;
+import dev.emit.presentation.rest.PageResponse;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -33,12 +36,11 @@ public class DocumentController {
     @GetMapping
     @ApiResponse(responseCode = "200", description = "Document list returned")
     @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
-    public ResponseEntity<List<DocumentResponse>> listAll() {
-        List<DocumentResponse> documents = documentService.listAll()
-                .stream()
-                .map(DocumentResponse::from)
-                .toList();
-        return ResponseEntity.ok(documents);
+    public ResponseEntity<PageResponse<DocumentResponse>> listAll(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        PageResponse<DocumentResponse> page = PageResponse.from(
+                documentService.listAll(pageable).map(DocumentResponse::from));
+        return ResponseEntity.ok(page);
     }
 
     @GetMapping("/{id}")
