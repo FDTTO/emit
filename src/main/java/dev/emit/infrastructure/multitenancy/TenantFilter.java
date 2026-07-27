@@ -3,6 +3,7 @@ package dev.emit.infrastructure.multitenancy;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Component
+@Order(1)
 @RequiredArgsConstructor
 public class TenantFilter extends OncePerRequestFilter {
 

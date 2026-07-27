@@ -31,6 +31,8 @@ public class DocumentController {
     private final PdfGenerationService pdfGenerationService;
 
     @GetMapping
+    @ApiResponse(responseCode = "200", description = "Document list returned")
+    @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
     public ResponseEntity<List<DocumentResponse>> listAll() {
         List<DocumentResponse> documents = documentService.listAll()
                 .stream()
@@ -42,6 +44,7 @@ public class DocumentController {
     @GetMapping("/{id}")
     @ApiResponse(responseCode = "200", description = "Document found")
     @ApiResponse(responseCode = "404", description = "Document not found", content = @Content)
+    @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
     public ResponseEntity<DocumentResponse> findById(@PathVariable UUID id) {
         Optional<Document> document = documentService.findById(id);
 
@@ -54,6 +57,7 @@ public class DocumentController {
 
     @PostMapping
     @ApiResponse(responseCode = "201", description = "Document created successfully")
+    @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
     public ResponseEntity<DocumentResponse> create(@Valid @RequestBody CreateDocumentRequest request) {
         Document saved = documentService.create(request.title(), request.content());
         return ResponseEntity.status(HttpStatus.CREATED).body(DocumentResponse.from(saved));
@@ -63,6 +67,7 @@ public class DocumentController {
     @PostMapping("/{id}/generate")
     @ApiResponse(responseCode = "200", description = "PDF generated successfully", content = @Content(mediaType = "application/pdf"))
     @ApiResponse(responseCode = "404", description = "Document not found", content = @Content)
+    @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
     public CompletableFuture<ResponseEntity<byte[]>> generate(@PathVariable UUID id) {
         return pdfGenerationService.generate(id)
                 .thenApply(pdf -> ResponseEntity.ok()

@@ -187,6 +187,19 @@
         </dependency>
 
         <!-- ==================================================
+             RATE LIMITING
+             Bucket4j implements the Token Bucket algorithm in-process.
+             bucket4j-core is the pure Java module - no external store.
+             For distributed rate limiting (multiple instances), swap to
+             bucket4j-redis or bucket4j-hazelcast with a shared backend.
+             ================================================== -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j-core</artifactId>
+            <version>8.10.1</version>
+        </dependency>
+
+        <!-- ==================================================
              TEST
              spring-boot-starter-test includes: JUnit 5, Mockito, AssertJ,
              Hamcrest, MockMvc, @SpringBootTest.

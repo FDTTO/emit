@@ -28,6 +28,7 @@ public class TenantController {
     private final TenantService tenantService;
 
     @GetMapping
+    @ApiResponse(responseCode = "200", description = "Tenant list returned")
     public ResponseEntity<List<TenantResponse>> listAll() {
         List<TenantResponse> tenants = tenantService.listAll()
                 .stream()

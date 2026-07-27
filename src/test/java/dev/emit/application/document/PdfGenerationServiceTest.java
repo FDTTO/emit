@@ -41,7 +41,7 @@ class PdfGenerationServiceTest {
 
     private Document buildDocument() {
         Document document = new Document();
-        document.setTitle("Documento de teste");
+        document.setTitle("Test Document");
         document.setStatus("PENDING");
         document.setCreatedAt(OffsetDateTime.now());
         return document;

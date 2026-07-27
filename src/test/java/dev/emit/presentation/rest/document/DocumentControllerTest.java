@@ -28,6 +28,7 @@ import dev.emit.application.document.DocumentService;
 import dev.emit.application.document.PdfGenerationService;
 import dev.emit.domain.document.Document;
 import dev.emit.domain.tenant.TenantRepository;
+import dev.emit.infrastructure.ratelimit.RateLimiterService;
 import dev.emit.infrastructure.security.JwtService;
 
 @WebMvcTest(value = DocumentController.class, excludeAutoConfiguration = { SecurityAutoConfiguration.class,
@@ -51,6 +52,9 @@ class DocumentControllerTest {
 
     @MockitoBean
     private TenantRepository tenantRepository;
+
+    @MockitoBean
+    private RateLimiterService rateLimiterService;
 
     private Document buildDocument() {
         Document document = new Document();

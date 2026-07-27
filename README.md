@@ -77,6 +77,7 @@ Configuration: 3 attempts, exponential backoff starting at 500ms with multiplier
 | Liquibase | Versioned schema migrations (`ddl-auto=none`) |
 | JJWT 0.12.5 | JWT generation and validation (HMAC-SHA256) |
 | Flying Saucer 9.1.22 | HTML-to-PDF rendering via Thymeleaf templates |
+| Bucket4j 8.10.1 | In-memory token bucket rate limiting per tenant |
 | Testcontainers | Ephemeral PostgreSQL for integration tests |
 | Lombok | Boilerplate reduction |
 
@@ -224,7 +225,7 @@ Document status lifecycle: `PENDING` → `PROCESSING` → `DONE` / `FAILED`
 - [x] GitHub Actions CI
 - [x] Docker Compose
 - [x] Swagger / OpenAPI
-- [ ] Rate limiting per tenant (Bucket4j)
+- [x] Rate limiting per tenant (Bucket4j)
 - [ ] Pagination on `GET /v1/documents`
 
 ---
