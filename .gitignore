@@ -18,7 +18,6 @@ logs/
 # Ambiente
 .env
 *.env
-application-prod.properties
 application-local.properties
 
 # OS
