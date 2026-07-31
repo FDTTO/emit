@@ -1,0 +1,29 @@
+{
+  "properties": [
+    {
+      "name": "app.openapi.server-url",
+      "type": "java.lang.String",
+      "description": "Explicit server URL injected into the OpenAPI spec. When set, overrides Springdoc's auto-detected URL. In production, resolved from https://${RAILWAY_PUBLIC_DOMAIN}."
+    },
+    {
+      "name": "emit.security.jwt.secret",
+      "type": "java.lang.String",
+      "description": "HMAC-SHA256 secret for signing and verifying JWT tokens. Must be at least 32 characters."
+    },
+    {
+      "name": "emit.security.jwt.expiration-ms",
+      "type": "java.lang.Long",
+      "description": "JWT token validity window in milliseconds. Dev default: 86400000 (24 h)."
+    },
+    {
+      "name": "emit.admin.username",
+      "type": "java.lang.String",
+      "description": "Username for the built-in admin account seeded on startup."
+    },
+    {
+      "name": "emit.admin.password",
+      "type": "java.lang.String",
+      "description": "Password for the built-in admin account seeded on startup."
+    }
+  ]
+}

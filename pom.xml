@@ -46,6 +46,19 @@
             <optional>true</optional>
         </dependency>
 
+        <!--
+            Reads @ConfigurationProperties classes at compile time and generates
+            META-INF/spring-configuration-metadata.json. IDEs merge this with
+            additional-spring-configuration-metadata.json to provide validation,
+            documentation, and autocompletion for all custom properties.
+            optional=true excludes it from the runtime classpath - build-time tool only.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- ==================================================
              WEB & VALIDATION
              spring-boot-starter-web includes: Spring MVC, embedded Tomcat,
@@ -246,9 +259,27 @@
                 from nested JARs - not a flat uber-jar, but a BOOT-INF/lib/
                 structure inside the JAR.
             -->
+            <!--
+                Lombok and the configuration processor are build-time tools only:
+                they generate code and metadata at compile time and have no runtime role.
+                Without explicit exclusion, the Spring Boot repackaging goal includes ALL
+                compile-scope dependencies - even optional ones - in the fat JAR.
+            -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                        <exclude>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -258,6 +289,10 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                        </path>
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

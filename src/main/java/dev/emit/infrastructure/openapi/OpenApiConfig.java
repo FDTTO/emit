@@ -1,5 +1,8 @@
 package dev.emit.infrastructure.openapi;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,13 +13,17 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
 public class OpenApiConfig {
 
+        @Value("${app.openapi.server-url:}")
+        private String serverUrl;
+
         @Bean
         OpenAPI openAPI() {
-                return new OpenAPI()
+                var api = new OpenAPI()
                                 .info(new Info()
                                                 .title("EMIT API")
                                                 .description("""
@@ -44,5 +51,11 @@ public class OpenApiConfig {
                                                                 .in(SecurityScheme.In.HEADER)
                                                                 .name("X-API-Key")
                                                                 .description("API key do tenant (retornada no cadastro)")));
+
+                if (!serverUrl.isBlank()) {
+                        api.servers(List.of(new Server().url(serverUrl)));
+                }
+
+                return api;
         }
 }
