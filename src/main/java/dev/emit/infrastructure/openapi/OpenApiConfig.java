@@ -27,10 +27,27 @@ public class OpenApiConfig {
                                 .info(new Info()
                                                 .title("EMIT API")
                                                 .description("""
-                                                                Multi-tenant document processing engine. \
-                                                                Each tenant operates in full data isolation via PostgreSQL schema separation. \
-                                                                Authenticated requests trigger async PDF generation with tenant context \
-                                                                propagated across thread boundaries.""")
+                                                                Multi-tenant document processing engine. Each tenant operates in full \
+                                                                data isolation via PostgreSQL schema separation. Authenticated requests \
+                                                                trigger async PDF generation with tenant context propagated across \
+                                                                thread boundaries.
+
+                                                                ## Authentication
+
+                                                                EMIT uses two independent mechanisms, one for administration and one for tenants:
+
+                                                                | Mechanism | Header | Scope |
+                                                                |---|---|---|
+                                                                | Bearer JWT | `Authorization: Bearer <token>` | Admin: create and manage tenants |
+                                                                | API Key | `X-API-Key: <key>` | Tenant: submit and retrieve documents |
+
+                                                                ## Quick start
+
+                                                                1. `POST /auth/login` with `admin` / `admin123` → copy the `token`
+                                                                2. Click **Authorize** → paste the token under **bearerAuth**
+                                                                3. `POST /v1/tenants` → copy the `apiKey` from the response *(returned once only)*
+                                                                4. Click **Authorize** → paste the key under **apiKeyAuth**
+                                                                5. `POST /v1/documents` → document enters the async PDF pipeline""")
                                                 .version("v1")
                                                 .contact(new Contact()
                                                                 .name("Matheus Fedatto")

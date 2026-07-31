@@ -5,19 +5,57 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![CI](https://github.com/FDTTO/emit/actions/workflows/ci.yml/badge.svg)](https://github.com/FDTTO/emit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/live_demo-Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white)](https://emit-production-eccf.up.railway.app/swagger-ui/index.html)
 
-Multi-tenant document processing engine. Each client operates in full data isolation via PostgreSQL schema separation. Authenticated requests trigger async PDF generation with tenant context propagated across thread boundaries.
+Multi-tenant document processing engine built as a B2B backend service. Each client operates in full data isolation via PostgreSQL schema separation. Authenticated requests trigger async PDF generation with tenant context propagated across thread boundaries.
+
+**[Open live API →](https://emit-production-eccf.up.railway.app/swagger-ui/index.html)**
 
 ---
 
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
 - [API Reference](#api-reference)
 - [Roadmap](#roadmap)
+
+---
+
+## Quick Start
+
+The API is live at `https://emit-production-eccf.up.railway.app`. Open Swagger UI and follow these steps:
+
+**1. Authenticate as admin**
+
+`POST /auth/login` with the demo credentials below → copy the `token` from the response.
+
+```json
+{ "username": "admin", "password": "admin123" }
+```
+
+**2. Authorize in Swagger**
+
+Click **Authorize** at the top right → paste the token under `bearerAuth` → **Authorize**.
+
+**3. Create a tenant**
+
+`POST /v1/tenants` → copy the `apiKey` from the response. This key is returned **once only**, treat it as a secret.
+
+```json
+{ "name": "Acme Corp", "schemaName": "acme_corp" }
+```
+
+**4. Switch to tenant auth**
+
+Click **Authorize** again → paste the key under `apiKeyAuth` → **Authorize**.
+
+**5. Submit a document**
+
+`POST /v1/documents` → the document enters the async PDF pipeline immediately and the HTTP thread is released. Poll `GET /v1/documents/{id}` to track `PENDING → PROCESSING → DONE`.
 
 ---
 
@@ -247,11 +285,16 @@ Document status lifecycle: `PENDING` → `PROCESSING` → `DONE` / `FAILED`
 
 ## Roadmap
 
-- [x] GitHub Actions CI
-- [x] Docker Compose
-- [x] Swagger / OpenAPI
-- [x] Rate limiting per tenant (Bucket4j)
-- [x] Pagination on `GET /v1/documents`
+- [x] CI pipeline (GitHub Actions: tests on every push and PR)
+- [x] Local dev stack (Docker Compose: PostgreSQL 16 + pgAdmin)
+- [x] API docs (Swagger UI via springdoc-openapi)
+- [x] Per-tenant rate limiting (Bucket4j in-memory token bucket)
+- [x] Paginated document listing (`page`, `size`, `sort`)
+- [x] Testing pyramid: @WebMvcTest slice, Mockito unit, Testcontainers integration
+- [x] Production deployment (Railway)
+- [ ] Distributed rate limiting: Redis-backed Bucket4j for horizontal scaling
+- [ ] Webhooks on document status change (`DONE` / `FAILED`)
+- [ ] Custom domain
 
 ---
 
