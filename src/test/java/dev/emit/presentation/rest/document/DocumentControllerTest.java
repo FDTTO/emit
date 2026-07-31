@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.emit.application.document.DocumentService;
 import dev.emit.application.document.PdfGenerationService;
 import dev.emit.domain.document.Document;
+import dev.emit.domain.document.DocumentStatus;
 import dev.emit.domain.tenant.TenantRepository;
 import dev.emit.infrastructure.ratelimit.RateLimiterService;
 import dev.emit.infrastructure.security.JwtService;
@@ -64,7 +65,7 @@ class DocumentControllerTest {
         Document document = new Document();
         document.setTitle("Contract");
         document.setContent("Contract content");
-        document.setStatus("PENDING");
+        document.setStatus(DocumentStatus.PENDING);
         document.setCreatedAt(OffsetDateTime.now());
         return document;
     }

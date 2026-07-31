@@ -22,6 +22,7 @@ import org.thymeleaf.TemplateEngine;
 import dev.emit.domain.document.Document;
 import dev.emit.domain.document.DocumentNotFoundException;
 import dev.emit.domain.document.DocumentRepository;
+import dev.emit.domain.document.DocumentStatus;
 import dev.emit.infrastructure.pdf.PdfRenderer;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,7 +43,7 @@ class PdfGenerationServiceTest {
     private Document buildDocument() {
         Document document = new Document();
         document.setTitle("Test Document");
-        document.setStatus("PENDING");
+        document.setStatus(DocumentStatus.PENDING);
         document.setCreatedAt(OffsetDateTime.now());
         return document;
     }
@@ -71,7 +72,7 @@ class PdfGenerationServiceTest {
         assertThatThrownBy(() -> pdfGenerationService.generate(id))
                 .isInstanceOf(RuntimeException.class);
 
-        assertThat(document.getStatus()).isEqualTo("FAILED");
+        assertThat(document.getStatus()).isEqualTo(DocumentStatus.FAILED);
     }
 
     @Test
@@ -87,6 +88,6 @@ class PdfGenerationServiceTest {
         byte[] result = pdfGenerationService.generate(id).join();
 
         assertThat(result).isEqualTo(new byte[] { 1, 2, 3 });
-        assertThat(document.getStatus()).isEqualTo("DONE");
+        assertThat(document.getStatus()).isEqualTo(DocumentStatus.DONE);
     }
 }

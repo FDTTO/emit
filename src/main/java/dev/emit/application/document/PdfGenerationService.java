@@ -13,6 +13,7 @@ import org.thymeleaf.context.Context;
 import dev.emit.domain.document.Document;
 import dev.emit.domain.document.DocumentNotFoundException;
 import dev.emit.domain.document.DocumentRepository;
+import dev.emit.domain.document.DocumentStatus;
 import dev.emit.infrastructure.pdf.PdfRenderer;
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +31,7 @@ public class PdfGenerationService {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocumentNotFoundException(documentId));
 
-        document.setStatus("PROCESSING");
+        document.setStatus(DocumentStatus.PROCESSING);
         documentRepository.save(document);
 
         Context context = new Context();
@@ -43,16 +44,16 @@ public class PdfGenerationService {
         try {
             byte[] pdf = pdfRenderer.render(html);
 
-            document.setStatus("DONE");
+            document.setStatus(DocumentStatus.DONE);
             documentRepository.save(document);
 
             return CompletableFuture.completedFuture(pdf);
 
         } catch (Exception exception) {
-            document.setStatus("FAILED");
+            document.setStatus(DocumentStatus.FAILED);
             documentRepository.save(document);
 
-            throw new RuntimeException("Failed to generate PDF");
+            throw new RuntimeException("Failed to generate PDF", exception);
         }
     }
 }

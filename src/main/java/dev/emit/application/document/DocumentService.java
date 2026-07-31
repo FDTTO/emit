@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import dev.emit.domain.document.Document;
 import dev.emit.domain.document.DocumentRepository;
+import dev.emit.domain.document.DocumentStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -28,7 +29,7 @@ public class DocumentService {
         Document document = new Document();
         document.setTitle(title);
         document.setContent(content);
-        document.setStatus("PENDING");
+        document.setStatus(DocumentStatus.PENDING);
         document.setCreatedAt(OffsetDateTime.now());
         return documentRepository.save(document);
     }

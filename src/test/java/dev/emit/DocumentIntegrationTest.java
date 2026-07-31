@@ -20,6 +20,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import dev.emit.domain.document.DocumentStatus;
 import dev.emit.presentation.rest.auth.LoginRequest;
 import dev.emit.presentation.rest.auth.LoginResponse;
 import dev.emit.presentation.rest.document.CreateDocumentRequest;
@@ -111,7 +112,7 @@ class DocumentIntegrationTest {
                 new HttpEntity<>(headers),
                 DocumentResponse.class);
 
-        assertThat(response.getBody().status()).isEqualTo("DONE");
+        assertThat(response.getBody().status()).isEqualTo(DocumentStatus.DONE);
     }
 
     @Test
