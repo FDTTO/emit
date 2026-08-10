@@ -1,6 +1,5 @@
 package dev.emit.presentation.rest.document;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -48,13 +47,7 @@ public class DocumentController {
     @ApiResponse(responseCode = "404", description = "Document not found", content = @Content)
     @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
     public ResponseEntity<DocumentResponse> findById(@PathVariable UUID id) {
-        Optional<Document> document = documentService.findById(id);
-
-        if (document.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(DocumentResponse.from(document.get()));
+        return ResponseEntity.ok(DocumentResponse.from(documentService.findById(id)));
     }
 
     @PostMapping

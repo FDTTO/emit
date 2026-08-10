@@ -3,12 +3,12 @@ package dev.emit.application.tenant;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import dev.emit.domain.tenant.Tenant;
+import dev.emit.domain.tenant.TenantNotFoundException;
 import dev.emit.domain.tenant.TenantRepository;
 import dev.emit.infrastructure.multitenancy.ApiKeyHasher;
 import dev.emit.infrastructure.multitenancy.TenantProvisioner;
@@ -53,8 +53,9 @@ public class TenantService {
         return stringBuilder.toString();
     }
 
-    public Optional<Tenant> findById(UUID id) {
-        return tenantRepository.findById(id);
+    public Tenant findById(UUID id) {
+        return tenantRepository.findById(id)
+                .orElseThrow(() -> new TenantNotFoundException(id));
     }
 
     public record TenantCreated(Tenant tenant, String apikey) {

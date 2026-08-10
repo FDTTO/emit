@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -30,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.emit.application.document.DocumentService;
 import dev.emit.application.document.PdfGenerationService;
 import dev.emit.domain.document.Document;
+import dev.emit.domain.document.DocumentNotFoundException;
 import dev.emit.domain.tenant.TenantRepository;
 import dev.emit.infrastructure.ratelimit.RateLimiterService;
 import dev.emit.infrastructure.security.JwtService;
@@ -111,7 +111,7 @@ class DocumentControllerTest {
         @Test
         void shouldReturn404WhenDocumentNotFound() throws Exception {
                 UUID id = UUID.randomUUID();
-                when(documentService.findById(id)).thenReturn(Optional.empty());
+                when(documentService.findById(id)).thenThrow(new DocumentNotFoundException(id));
 
                 mockMvc.perform(get("/v1/documents/" + id))
                                 .andExpect(status().isNotFound());

@@ -1,7 +1,6 @@
 package dev.emit.presentation.rest.tenant;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.emit.application.tenant.TenantService;
-import dev.emit.domain.tenant.Tenant;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -49,13 +47,7 @@ public class TenantController {
     @ApiResponse(responseCode = "200", description = "Tenant found")
     @ApiResponse(responseCode = "404", description = "Tenant not found", content = @Content)
     public ResponseEntity<TenantResponse> findById(@PathVariable UUID id) {
-        Optional<Tenant> tenantOptional = tenantService.findById(id);
-
-        if (tenantOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(TenantResponse.from(tenantOptional.get()));
+        return ResponseEntity.ok(TenantResponse.from(tenantService.findById(id)));
     }
 
 }

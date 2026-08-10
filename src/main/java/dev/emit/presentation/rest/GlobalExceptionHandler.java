@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import dev.emit.domain.document.DocumentNotFoundException;
+import dev.emit.domain.tenant.TenantNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -27,8 +28,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(new ErrorResponse(400, message, OffsetDateTime.now()));
     }
 
-    @ExceptionHandler(DocumentNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(DocumentNotFoundException exception) {
+    @ExceptionHandler({ DocumentNotFoundException.class, TenantNotFoundException.class })
+    public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(404, exception.getMessage(), OffsetDateTime.now()));
     }
