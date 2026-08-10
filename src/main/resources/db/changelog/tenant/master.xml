@@ -6,4 +6,5 @@
 
     <include file="db/changelog/tenant/001-create-documents.xml" />
     <include file="db/changelog/tenant/002-add-content-to-documents.xml" />
+    <include file="db/changelog/tenant/003-add-updated-at-to-documents.xml" />
 </databaseChangeLog>

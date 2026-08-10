@@ -1,6 +1,5 @@
 package dev.emit.application.document;
 
-import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import dev.emit.domain.document.Document;
 import dev.emit.domain.document.DocumentRepository;
-import dev.emit.domain.document.DocumentStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -26,12 +24,7 @@ public class DocumentService {
 
     @Transactional
     public Document create(String title, String content) {
-        Document document = new Document();
-        document.setTitle(title);
-        document.setContent(content);
-        document.setStatus(DocumentStatus.PENDING);
-        document.setCreatedAt(OffsetDateTime.now());
-        return documentRepository.save(document);
+        return documentRepository.save(Document.create(title, content));
     }
 
     public Optional<Document> findById(UUID id) {

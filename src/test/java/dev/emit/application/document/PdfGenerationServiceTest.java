@@ -8,7 +8,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,11 +40,7 @@ class PdfGenerationServiceTest {
     private PdfGenerationService pdfGenerationService;
 
     private Document buildDocument() {
-        Document document = new Document();
-        document.setTitle("Test Document");
-        document.setStatus(DocumentStatus.PENDING);
-        document.setCreatedAt(OffsetDateTime.now());
-        return document;
+        return Document.create("Test Document", "Test content");
     }
 
     @Test

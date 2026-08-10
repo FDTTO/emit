@@ -11,15 +11,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
-@Setter
 @Entity
 @Table(name = "documents")
 public class Document {
@@ -41,4 +37,32 @@ public class Document {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private OffsetDateTime updatedAt;
+
+    public static Document create(String title, String content) {
+        Document doc = new Document();
+        doc.title = title;
+        doc.content = content;
+        doc.status = DocumentStatus.PENDING;
+        doc.createdAt = OffsetDateTime.now();
+        doc.updatedAt = doc.createdAt;
+        return doc;
+    }
+
+    public void markAsProcessing() {
+        this.status = DocumentStatus.PROCESSING;
+        this.updatedAt = OffsetDateTime.now();
+    }
+
+    public void markAsDone() {
+        this.status = DocumentStatus.DONE;
+        this.updatedAt = OffsetDateTime.now();
+    }
+
+    public void markAsFailed() {
+        this.status = DocumentStatus.FAILED;
+        this.updatedAt = OffsetDateTime.now();
+    }
 }
