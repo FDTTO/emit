@@ -3,7 +3,9 @@ package dev.emit.infrastructure.multitenancy;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -34,16 +36,20 @@ public class TenantFilter extends OncePerRequestFilter {
             Optional<Tenant> tenant = tenantRepository.findByApiKeyHash(hash);
             tenant.ifPresent(t -> {
                 TenantContext.setTenant(t.getSchemaName());
+                MDC.put("tenantSchema", t.getSchemaName());
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         t.getSchemaName(), null, List.of());
                 SecurityContextHolder.getContext().setAuthentication(auth);
             });
         }
 
+        MDC.put("requestId", UUID.randomUUID().toString());
+
         try {
             filterChain.doFilter(request, response);
         } finally {
             TenantContext.clear();
+            MDC.clear();
         }
     }
 }

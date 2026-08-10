@@ -3,6 +3,7 @@ package dev.emit.infrastructure.security;
 import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -35,6 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         null, List.of());
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                MDC.put("tenantSchema", subject);
             }
         }
 
