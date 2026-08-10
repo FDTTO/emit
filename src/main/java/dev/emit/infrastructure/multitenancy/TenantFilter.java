@@ -1,9 +1,11 @@
 package dev.emit.infrastructure.multitenancy;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
-import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -16,7 +18,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Component
-@Order(1)
 @RequiredArgsConstructor
 public class TenantFilter extends OncePerRequestFilter {
 
@@ -31,7 +32,12 @@ public class TenantFilter extends OncePerRequestFilter {
         if (apiKey != null) {
             String hash = ApiKeyHasher.hash(apiKey);
             Optional<Tenant> tenant = tenantRepository.findByApiKeyHash(hash);
-            tenant.map(Tenant::getSchemaName).ifPresent(TenantContext::setTenant);
+            tenant.ifPresent(t -> {
+                TenantContext.setTenant(t.getSchemaName());
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                        t.getSchemaName(), null, List.of());
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            });
         }
 
         try {

@@ -3,7 +3,6 @@ package dev.emit.infrastructure.ratelimit;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -20,7 +19,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Component
-@Order(2)
 @RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
