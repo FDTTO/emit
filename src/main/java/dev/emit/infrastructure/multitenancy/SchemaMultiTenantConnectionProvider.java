@@ -29,13 +29,17 @@ public class SchemaMultiTenantConnectionProvider implements MultiTenantConnectio
     @Override
     public Connection getConnection(String tenantIdentifier) throws SQLException {
         Connection connection = dataSource.getConnection();
-        connection.createStatement().execute("SET search_path TO " + tenantIdentifier);
+        try (var statement = connection.createStatement()) {
+            statement.execute("SET search_path TO " + tenantIdentifier);
+        }
         return connection;
     }
 
     @Override
     public void releaseConnection(String tenantIdentifier, Connection connection) throws SQLException {
-        connection.createStatement().execute("SET search_path TO public");
+        try (var statement = connection.createStatement()) {
+            statement.execute("SET search_path TO public");
+        }
         connection.close();
     }
 
