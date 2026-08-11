@@ -200,16 +200,16 @@
         </dependency>
 
         <!-- ==================================================
-             RATE LIMITING
-             Bucket4j implements the Token Bucket algorithm in-process.
-             bucket4j-core is the pure Java module - no external store.
-             For distributed rate limiting (multiple instances), swap to
-             bucket4j-redis or bucket4j-hazelcast with a shared backend.
+             CACHE / RATE LIMITING
+             spring-data-redis + Lettuce (the default client) provide the
+             RedisTemplate and StringRedisTemplate used by RateLimiterService.
+             Rate limiting uses a Lua script executed atomically on Redis so
+             the sliding-window check-and-increment is race-free across every
+             application instance sharing the same Redis cluster.
              ================================================== -->
         <dependency>
-            <groupId>com.bucket4j</groupId>
-            <artifactId>bucket4j-core</artifactId>
-            <version>8.10.1</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
         <!-- ==================================================
