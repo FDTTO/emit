@@ -1,7 +1,6 @@
 package dev.emit.presentation.rest.document;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.emit.application.document.DocumentService;
-import dev.emit.application.document.PdfGenerationService;
 import dev.emit.domain.document.Document;
+import dev.emit.domain.document.DocumentGenerationRequestedEvent;
+import dev.emit.infrastructure.messaging.DocumentEventPublisher;
+import dev.emit.infrastructure.multitenancy.TenantContext;
 import dev.emit.presentation.rest.PageResponse;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -30,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class DocumentController {
 
     private final DocumentService documentService;
-    private final PdfGenerationService pdfGenerationService;
+    private final DocumentEventPublisher eventPublisher;
 
     @GetMapping
     @ApiResponse(responseCode = "200", description = "Document list returned")
@@ -60,15 +61,14 @@ public class DocumentController {
     }
 
     @PostMapping("/{id}/generate")
-    @ApiResponse(responseCode = "200", description = "PDF generated successfully", content = @Content(mediaType = "application/pdf"))
+    @ApiResponse(responseCode = "202", description = "PDF generation accepted")
     @ApiResponse(responseCode = "404", description = "Document not found", content = @Content)
     @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
-    public CompletableFuture<ResponseEntity<byte[]>> generate(@PathVariable UUID id) {
-        return pdfGenerationService.generate(id)
-                .thenApply(pdf -> ResponseEntity.ok()
-                        .header("Content-Type", "application/pdf")
-                        .header("Content-Disposition", "attachment; filename=\"document-" + id + ".pdf\"")
-                        .body(pdf));
+    public ResponseEntity<Void> generate(@PathVariable UUID id) {
+        documentService.findById(id);
+        eventPublisher.publishGenerationRequested(
+                new DocumentGenerationRequestedEvent(id, TenantContext.getTenant()));
+        return ResponseEntity.accepted().build();
     }
 
 }

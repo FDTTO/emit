@@ -3,9 +3,7 @@ package dev.emit.application.document;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -24,9 +22,7 @@ public class PdfGenerationService {
     private final TemplateEngine templateEngine;
     private final PdfRenderer pdfRenderer;
 
-    @Async("docProcessorExecutor")
-    public CompletableFuture<byte[]> generate(UUID documentId) {
-
+    public void generateSync(UUID documentId) {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new DocumentNotFoundException(documentId));
 
@@ -41,17 +37,12 @@ public class PdfGenerationService {
         String html = templateEngine.process("document-pdf", context);
 
         try {
-            byte[] pdf = pdfRenderer.render(html);
-
+            pdfRenderer.render(html);
             document.markAsDone();
             documentRepository.save(document);
-
-            return CompletableFuture.completedFuture(pdf);
-
         } catch (Exception exception) {
             document.markAsFailed();
             documentRepository.save(document);
-
             throw new RuntimeException("Failed to generate PDF", exception);
         }
     }

@@ -48,7 +48,7 @@ class PdfGenerationServiceTest {
         UUID id = UUID.randomUUID();
         when(documentRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> pdfGenerationService.generate(id))
+        assertThatThrownBy(() -> pdfGenerationService.generateSync(id))
                 .isInstanceOf(DocumentNotFoundException.class);
 
         verify(documentRepository, never()).save(any());
@@ -64,14 +64,14 @@ class PdfGenerationServiceTest {
         when(pdfRenderer.render(anyString())).thenThrow(new RuntimeException("render failed"));
         when(documentRepository.save(any())).thenReturn(document);
 
-        assertThatThrownBy(() -> pdfGenerationService.generate(id))
+        assertThatThrownBy(() -> pdfGenerationService.generateSync(id))
                 .isInstanceOf(RuntimeException.class);
 
         assertThat(document.getStatus()).isEqualTo(DocumentStatus.FAILED);
     }
 
     @Test
-    void shouldReturnPdfAndSetStatusToDoneOnSuccess() {
+    void shouldSetStatusToDoneOnSuccess() {
         UUID id = UUID.randomUUID();
         Document document = buildDocument();
 
@@ -80,9 +80,8 @@ class PdfGenerationServiceTest {
         when(pdfRenderer.render(anyString())).thenReturn(new byte[] { 1, 2, 3 });
         when(documentRepository.save(any())).thenReturn(document);
 
-        byte[] result = pdfGenerationService.generate(id).join();
+        pdfGenerationService.generateSync(id);
 
-        assertThat(result).isEqualTo(new byte[] { 1, 2, 3 });
         assertThat(document.getStatus()).isEqualTo(DocumentStatus.DONE);
     }
 }

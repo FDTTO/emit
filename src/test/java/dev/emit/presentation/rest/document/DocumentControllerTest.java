@@ -2,6 +2,7 @@ package dev.emit.presentation.rest.document;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,10 +28,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dev.emit.application.document.DocumentService;
-import dev.emit.application.document.PdfGenerationService;
 import dev.emit.domain.document.Document;
 import dev.emit.domain.document.DocumentNotFoundException;
 import dev.emit.domain.tenant.TenantRepository;
+import dev.emit.infrastructure.messaging.DocumentEventPublisher;
 import dev.emit.infrastructure.ratelimit.RateLimiterService;
 import dev.emit.infrastructure.security.JwtService;
 
@@ -48,7 +49,7 @@ class DocumentControllerTest {
         private DocumentService documentService;
 
         @MockitoBean
-        private PdfGenerationService pdfGenerationService;
+        private DocumentEventPublisher documentEventPublisher;
 
         @MockitoBean
         private JwtService jwtService;
@@ -115,5 +116,50 @@ class DocumentControllerTest {
 
                 mockMvc.perform(get("/v1/documents/" + id))
                                 .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void shouldReturn400WhenTitleIsBlank() throws Exception {
+                String body = objectMapper.writeValueAsString(
+                                new CreateDocumentRequest("", "Some content"));
+
+                mockMvc.perform(post("/v1/documents")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldReturn400WhenTitleExceedsMaxLength() throws Exception {
+                String longTitle = "a".repeat(256);
+                String body = objectMapper.writeValueAsString(
+                                new CreateDocumentRequest(longTitle, "Some content"));
+
+                mockMvc.perform(post("/v1/documents")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldReturn400WhenContentExceedsMaxLength() throws Exception {
+                String longContent = "a".repeat(50001);
+                String body = objectMapper.writeValueAsString(
+                                new CreateDocumentRequest("Title", longContent));
+
+                mockMvc.perform(post("/v1/documents")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldReturn202WhenGenerationRequestAccepted() throws Exception {
+                UUID id = UUID.randomUUID();
+                when(documentService.findById(id)).thenReturn(buildDocument());
+                doNothing().when(documentEventPublisher).publishGenerationRequested(any());
+
+                mockMvc.perform(post("/v1/documents/" + id + "/generate"))
+                                .andExpect(status().isAccepted());
         }
 }

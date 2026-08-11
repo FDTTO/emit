@@ -2,8 +2,10 @@ package dev.emit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.util.UUID;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +21,8 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import dev.emit.domain.document.DocumentStatus;
 import dev.emit.presentation.rest.auth.LoginRequest;
@@ -40,11 +44,17 @@ class DocumentIntegrationTest {
             .withUsername("emit_user")
             .withPassword("emit_pass");
 
+    @SuppressWarnings("resource")
+    @Container
+    static ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(
+            DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
+
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
     }
 
     @Autowired
@@ -88,31 +98,34 @@ class DocumentIntegrationTest {
         return response.getBody().id();
     }
 
-    private void generatePdf(String apiKey, UUID documentId) {
+    private void requestGeneration(String apiKey, UUID documentId) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-API-Key", apiKey);
 
-        ResponseEntity<byte[]> response = restTemplate.exchange(
+        ResponseEntity<Void> response = restTemplate.exchange(
                 "/v1/documents/" + documentId + "/generate",
                 HttpMethod.POST,
                 new HttpEntity<>(headers),
-                byte[].class);
+                Void.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotEmpty();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
     }
 
-    private void verifyStatusIsDone(String apiKey, UUID documentId) {
+    private void awaitStatusDone(String apiKey, UUID documentId) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-API-Key", apiKey);
 
-        ResponseEntity<DocumentResponse> response = restTemplate.exchange(
-                "/v1/documents/" + documentId,
-                HttpMethod.GET,
-                new HttpEntity<>(headers),
-                DocumentResponse.class);
-
-        assertThat(response.getBody().status()).isEqualTo(DocumentStatus.DONE);
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(30))
+                .pollInterval(Duration.ofMillis(500))
+                .untilAsserted(() -> {
+                    ResponseEntity<DocumentResponse> response = restTemplate.exchange(
+                            "/v1/documents/" + documentId,
+                            HttpMethod.GET,
+                            new HttpEntity<>(headers),
+                            DocumentResponse.class);
+                    assertThat(response.getBody().status()).isEqualTo(DocumentStatus.DONE);
+                });
     }
 
     @Test
@@ -120,7 +133,7 @@ class DocumentIntegrationTest {
         String token = login();
         String apiKey = createTenant(token);
         UUID documentId = createDocument(apiKey);
-        generatePdf(apiKey, documentId);
-        verifyStatusIsDone(apiKey, documentId);
+        requestGeneration(apiKey, documentId);
+        awaitStatusDone(apiKey, documentId);
     }
 }
