@@ -1,6 +1,8 @@
 package dev.emit.presentation.rest.tenant;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -151,5 +153,41 @@ class TenantControllerTest {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$[0].name").value("Acme Corp"))
                                 .andExpect(jsonPath("$[0].schemaName").value("acme_corp"));
+        }
+
+        @Test
+        void shouldReturn204WhenTenantDeactivated() throws Exception {
+                UUID id = UUID.randomUUID();
+                doNothing().when(tenantService).deactivate(id);
+
+                mockMvc.perform(post("/v1/tenants/" + id + "/deactivate"))
+                                .andExpect(status().isNoContent());
+        }
+
+        @Test
+        void shouldReturn404WhenDeactivatingNonExistentTenant() throws Exception {
+                UUID id = UUID.randomUUID();
+                doThrow(new TenantNotFoundException(id)).when(tenantService).deactivate(id);
+
+                mockMvc.perform(post("/v1/tenants/" + id + "/deactivate"))
+                                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void shouldReturn204WhenTenantReactivated() throws Exception {
+                UUID id = UUID.randomUUID();
+                doNothing().when(tenantService).reactivate(id);
+
+                mockMvc.perform(post("/v1/tenants/" + id + "/reactivate"))
+                                .andExpect(status().isNoContent());
+        }
+
+        @Test
+        void shouldReturn404WhenReactivatingNonExistentTenant() throws Exception {
+                UUID id = UUID.randomUUID();
+                doThrow(new TenantNotFoundException(id)).when(tenantService).reactivate(id);
+
+                mockMvc.perform(post("/v1/tenants/" + id + "/reactivate"))
+                                .andExpect(status().isNotFound());
         }
 }

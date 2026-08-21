@@ -29,27 +29,45 @@ public class TenantFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-        String apiKey = request.getHeader("X-API-Key");
-
-        if (apiKey != null) {
-            String hash = ApiKeyHasher.hash(apiKey);
-            Optional<Tenant> tenant = tenantRepository.findByApiKeyHash(hash);
-            tenant.ifPresent(t -> {
-                TenantContext.setTenant(t.getSchemaName());
-                MDC.put("tenantSchema", t.getSchemaName());
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        t.getSchemaName(), null, List.of());
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            });
-        }
 
         MDC.put("requestId", UUID.randomUUID().toString());
 
         try {
+            String apiKey = request.getHeader("X-API-Key");
+
+            if (apiKey != null) {
+                String hash = ApiKeyHasher.hash(apiKey);
+                Optional<Tenant> found = tenantRepository.findByApiKeyHash(hash);
+
+                if (found.isEmpty()) {
+                    sendError(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key.");
+                    return;
+                }
+
+                Tenant tenant = found.get();
+
+                if (!tenant.isActive()) {
+                    sendError(response, HttpServletResponse.SC_FORBIDDEN, "Tenant is inactive.");
+                    return;
+                }
+
+                TenantContext.setTenant(tenant.getSchemaName());
+                MDC.put("tenantSchema", tenant.getSchemaName());
+                SecurityContextHolder.getContext().setAuthentication(
+                        new UsernamePasswordAuthenticationToken(tenant.getSchemaName(), null, List.of()));
+            }
+
             filterChain.doFilter(request, response);
         } finally {
             TenantContext.clear();
             MDC.clear();
         }
+    }
+
+    private void sendError(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.getWriter().write(
+                "{\"status\":" + status + ",\"message\":\"" + message + "\"}");
     }
 }

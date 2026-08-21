@@ -37,8 +37,8 @@ public class PdfGenerationService {
         String html = templateEngine.process("document-pdf", context);
 
         try {
-            pdfRenderer.render(html);
-            document.markAsDone();
+            byte[] pdfBytes = pdfRenderer.render(html);
+            document.markAsDone(pdfBytes);
             documentRepository.save(document);
         } catch (Exception exception) {
             document.markAsFailed();

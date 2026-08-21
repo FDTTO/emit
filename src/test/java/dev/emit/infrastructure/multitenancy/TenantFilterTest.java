@@ -1,6 +1,7 @@
 package dev.emit.infrastructure.multitenancy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -23,6 +24,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import dev.emit.domain.tenant.Tenant;
 import dev.emit.domain.tenant.TenantRepository;
 import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 class TenantFilterTest {
@@ -93,7 +96,7 @@ class TenantFilterTest {
     }
 
     @Test
-    void shouldNotSetTenantContextWhenApiKeyIsInvalid() throws Exception {
+    void shouldReturn401WhenApiKeyIsInvalid() throws Exception {
         String apiKey = "invalid-key";
         String hash = ApiKeyHasher.hash(apiKey);
 
@@ -101,11 +104,36 @@ class TenantFilterTest {
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("X-API-Key", apiKey);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
 
-        tenantFilter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
+        tenantFilter.doFilterInternal(request, response, chain);
 
+        assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
         assertThat(TenantContext.getTenant()).isNull();
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        verify(chain, never()).doFilter(any(), any());
+    }
+
+    @Test
+    void shouldReturn403WhenTenantIsInactive() throws Exception {
+        String apiKey = "valid-but-inactive";
+        String hash = ApiKeyHasher.hash(apiKey);
+        Tenant tenant = buildTenant("inactive_tenant");
+        tenant.setActive(false);
+
+        when(tenantRepository.findByApiKeyHash(hash)).thenReturn(Optional.of(tenant));
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("X-API-Key", apiKey);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        tenantFilter.doFilterInternal(request, response, chain);
+
+        assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_FORBIDDEN);
+        assertThat(TenantContext.getTenant()).isNull();
+        verify(chain, never()).doFilter(any(), any());
     }
 
     @Test

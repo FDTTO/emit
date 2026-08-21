@@ -6,6 +6,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.emit.application.document.DocumentService;
 import dev.emit.domain.document.Document;
 import dev.emit.domain.document.DocumentNotFoundException;
+import dev.emit.domain.document.DocumentPdfNotReadyException;
 import dev.emit.domain.tenant.TenantRepository;
 import dev.emit.infrastructure.messaging.DocumentEventPublisher;
 import dev.emit.infrastructure.ratelimit.RateLimiterService;
@@ -161,5 +164,48 @@ class DocumentControllerTest {
 
                 mockMvc.perform(post("/v1/documents/" + id + "/generate"))
                                 .andExpect(status().isAccepted());
+        }
+
+        @Test
+        void shouldReturn400WhenBodyIsMissing() throws Exception {
+                mockMvc.perform(post("/v1/documents")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.status").value(400));
+        }
+
+        @Test
+        void shouldReturn400WhenContentIsBlank() throws Exception {
+                String body = objectMapper.writeValueAsString(
+                                new CreateDocumentRequest("Valid Title", ""));
+
+                mockMvc.perform(post("/v1/documents")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldReturnPdfWhenDocumentIsDone() throws Exception {
+                UUID id = UUID.randomUUID();
+                byte[] pdfBytes = new byte[] { 1, 2, 3 };
+                when(documentService.getPdf(id)).thenReturn(pdfBytes);
+
+                mockMvc.perform(get("/v1/documents/" + id + "/pdf"))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                                .andExpect(header().string("Content-Disposition",
+                                                "attachment; filename=\"document-" + id + ".pdf\""))
+                                .andExpect(content().bytes(pdfBytes));
+        }
+
+        @Test
+        void shouldReturn404WhenPdfNotReady() throws Exception {
+                UUID id = UUID.randomUUID();
+                when(documentService.getPdf(id)).thenThrow(new DocumentPdfNotReadyException(id));
+
+                mockMvc.perform(get("/v1/documents/" + id + "/pdf"))
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.status").value(404));
         }
 }

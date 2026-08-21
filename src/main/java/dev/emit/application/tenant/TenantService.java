@@ -58,6 +58,20 @@ public class TenantService {
                 .orElseThrow(() -> new TenantNotFoundException(id));
     }
 
+    @Transactional
+    public void deactivate(UUID id) {
+        Tenant tenant = findById(id);
+        tenant.setActive(false);
+        tenantRepository.save(tenant);
+    }
+
+    @Transactional
+    public void reactivate(UUID id) {
+        Tenant tenant = findById(id);
+        tenant.setActive(true);
+        tenantRepository.save(tenant);
+    }
+
     public record TenantCreated(Tenant tenant, String apikey) {
     }
 }

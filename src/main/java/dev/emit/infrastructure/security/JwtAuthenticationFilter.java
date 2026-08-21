@@ -25,19 +25,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
+
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            if (jwtService.isValid(token)) {
-                String subject = jwtService.extractSubject(token);
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(subject,
-                        null, List.of());
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                MDC.put("tenantSchema", subject);
+            if (!jwtService.isValid(token)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"status\":401,\"message\":\"Invalid or expired token.\"}");
+                return;
             }
+
+            String subject = jwtService.extractSubject(token);
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(subject, null, List.of()));
+            MDC.put("tenantSchema", subject);
         }
 
         filterChain.doFilter(request, response);

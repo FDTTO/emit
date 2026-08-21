@@ -33,6 +33,8 @@ import dev.emit.presentation.rest.document.DocumentResponse;
 import dev.emit.presentation.rest.tenant.CreateTenantRequest;
 import dev.emit.presentation.rest.tenant.TenantCreatedResponse;
 
+import org.springframework.http.MediaType;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @ActiveProfiles("test")
@@ -136,6 +138,21 @@ class DocumentIntegrationTest {
                 });
     }
 
+    private void downloadPdf(String apiKey, UUID documentId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-API-Key", apiKey);
+
+        ResponseEntity<byte[]> response = restTemplate.exchange(
+                "/v1/documents/" + documentId + "/pdf",
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                byte[].class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_PDF);
+        assertThat(response.getBody()).isNotEmpty();
+    }
+
     @Test
     void fullDocumentLifecycle() {
         String token = login();
@@ -143,5 +160,6 @@ class DocumentIntegrationTest {
         UUID documentId = createDocument(apiKey);
         requestGeneration(apiKey, documentId);
         awaitStatusDone(apiKey, documentId);
+        downloadPdf(apiKey, documentId);
     }
 }

@@ -28,13 +28,15 @@ class DocumentTest {
     }
 
     @Test
-    void markAsDoneShouldUpdateStatusAndTimestamp() {
+    void markAsDoneShouldUpdateStatusAndTimestampAndStorePdf() {
         Document doc = Document.create("Contract", "Content");
+        byte[] pdfBytes = new byte[] { 1, 2, 3 };
 
-        doc.markAsDone();
+        doc.markAsDone(pdfBytes);
 
         assertThat(doc.getStatus()).isEqualTo(DocumentStatus.DONE);
         assertThat(doc.getUpdatedAt()).isNotNull();
+        assertThat(doc.getPdfContent()).isEqualTo(pdfBytes);
     }
 
     @Test

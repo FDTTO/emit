@@ -41,6 +41,9 @@ public class Document {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
+    @Column(name = "pdf_content")
+    private byte[] pdfContent;
+
     public static Document create(String title, String content) {
         Document doc = new Document();
         doc.title = title;
@@ -56,7 +59,8 @@ public class Document {
         this.updatedAt = OffsetDateTime.now();
     }
 
-    public void markAsDone() {
+    public void markAsDone(byte[] pdfContent) {
+        this.pdfContent = pdfContent;
         this.status = DocumentStatus.DONE;
         this.updatedAt = OffsetDateTime.now();
     }

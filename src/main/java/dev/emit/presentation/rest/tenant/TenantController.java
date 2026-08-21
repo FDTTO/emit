@@ -50,4 +50,20 @@ public class TenantController {
         return ResponseEntity.ok(TenantResponse.from(tenantService.findById(id)));
     }
 
+    @PostMapping("/{id}/deactivate")
+    @ApiResponse(responseCode = "204", description = "Tenant deactivated")
+    @ApiResponse(responseCode = "404", description = "Tenant not found", content = @Content)
+    public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
+        tenantService.deactivate(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/reactivate")
+    @ApiResponse(responseCode = "204", description = "Tenant reactivated")
+    @ApiResponse(responseCode = "404", description = "Tenant not found", content = @Content)
+    public ResponseEntity<Void> reactivate(@PathVariable UUID id) {
+        tenantService.reactivate(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

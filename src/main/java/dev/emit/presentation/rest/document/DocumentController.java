@@ -5,7 +5,10 @@ import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,6 +72,19 @@ public class DocumentController {
         eventPublisher.publishGenerationRequested(
                 new DocumentGenerationRequestedEvent(id, TenantContext.getTenant()));
         return ResponseEntity.accepted().build();
+    }
+
+    @GetMapping("/{id}/pdf")
+    @ApiResponse(responseCode = "200", description = "PDF file returned")
+    @ApiResponse(responseCode = "404", description = "Document not found or PDF not yet available", content = @Content)
+    @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
+    public ResponseEntity<byte[]> downloadPdf(@PathVariable UUID id) {
+        byte[] pdf = documentService.getPdf(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(
+                ContentDisposition.attachment().filename("document-" + id + ".pdf").build());
+        return ResponseEntity.ok().headers(headers).body(pdf);
     }
 
 }
