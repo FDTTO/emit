@@ -25,6 +25,9 @@ public class OpenApiConfig {
     @Value("${app.openapi.server-url:}")
     private String serverUrl;
 
+    @Value("${app.openapi.server-description:}")
+    private String serverDescription;
+
     @Bean
     public OpenAPI openAPI() {
         var api = new OpenAPI()
@@ -73,8 +76,10 @@ public class OpenApiConfig {
                                 .name("X-API-Key")
                                 .description("Tenant API key returned at registration. Displayed exactly once; store it securely. Required for all /v1/documents endpoints.")));
 
+        // Declared rather than left to springdoc, whose generated entry is
+        // labelled "Generated server url" in the Servers select.
         if (!serverUrl.isBlank()) {
-            api.servers(List.of(new Server().url(serverUrl)));
+            api.servers(List.of(new Server().url(serverUrl).description(serverDescription)));
         }
 
         return api;
