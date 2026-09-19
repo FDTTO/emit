@@ -553,9 +553,30 @@
     if (!start || source.method !== start.method || source.path !== start.path) return null;
     var id = idFromUrl(start.path, response.get('url'));
     if (!id) return null;
-    var follow = { id: id, state: LIFECYCLE.run[0].state, phase: 'following', reads: 0, run: 0 };
+    var follow = { id: id, state: LIFECYCLE.run[0].state, phase: 'following', reads: 0, run: 0,
+                   acceptedAt: serverTime(response) };
     restartFollow(follow);
     return follow;
+  }
+
+  /* The server's clock when it answered, from the Date header: the run is
+     timed on the server's clock at both ends, never against the reads'
+     backoff. Whole seconds only. Swagger splits header values on commas,
+     so "Sat, 19 Sep 2026 12:00:00 GMT" arrives as two parts. */
+  function serverTime(response) {
+    var headers = response.get('headers');
+    var date = headers && (headers.get ? headers.get('date') : headers.date);
+    if (date && typeof date.toArray === 'function') date = date.toArray();
+    if (Array.isArray(date)) date = date.join(', ');
+    var time = date ? Date.parse(date) : NaN;
+    return isNaN(time) ? null : time;
+  }
+
+  /* The Date header truncates to the second, so the run took between
+     (end - start - 1s) and (end - start); the midpoint is what is shown. */
+  function runSeconds(follow) {
+    if (follow.acceptedAt === null || !follow.finishedAt) return null;
+    return Math.max(1, Math.round((follow.finishedAt - follow.acceptedAt) / 1000 - 0.5));
   }
 
   /* One document at a time: reads still pending for an older run are ignored. */
@@ -622,6 +643,8 @@
           if (typeof state === 'string' && lifecycleStep(state)) follow.state = state;
           if (isTerminal(follow.state)) {
             follow.phase = 'ended';
+            var finished = Date.parse(result.body.updatedAt);
+            follow.finishedAt = isNaN(finished) ? null : finished;
           } else if (result.budget.remaining !== null && result.budget.remaining <= FOLLOW_RESERVE) {
             follow.phase = 'saving-budget';
             follow.remaining = result.budget.remaining;
@@ -706,11 +729,14 @@
     if (follow.phase === 'following') {
       said = 'checking';
     } else if (follow.phase === 'ended' && follow.state === 'DONE' && followOperation('result')) {
-      said = 'PDF ready.';
+      var took = runSeconds(follow);
+      said = took ? 'PDF ready about ' + took + 's after generate.' : 'PDF ready.';
       action = el('button', 'emit-note__action', 'Download PDF');
       action.addEventListener('click', function () { openFollowed('result', follow.id); });
     } else if (follow.phase === 'ended') {
-      said = follow.state === 'FAILED' ? 'Generation failed.' : null;
+      var failedAfter = runSeconds(follow);
+      said = follow.state !== 'FAILED' ? null
+        : failedAfter ? 'Generation failed after about ' + failedAfter + 's.' : 'Generation failed.';
     } else if (follow.phase === 'paused') {
       said = 'Still ' + follow.state + ' after ' + follow.reads + ' checks.';
     } else if (follow.phase === 'rate-limited') {

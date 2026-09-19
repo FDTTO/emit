@@ -100,12 +100,12 @@
     /* A response as if Execute had run, without touching the backend: the
        request is set too, both plain and mutated, because Swagger's live
        response block reads the mutated one and crashes without it. */
-    fakeResponse: function (path, method, status, body, url) {
+    fakeResponse: function (path, method, status, body, url, headers) {
       var request = { url: url, method: method.toUpperCase(), headers: {} };
       ui().specActions.setRequest(path, method, request);
       ui().specActions.setMutatedRequest(path, method, request);
       ui().specActions.setResponse(path, method, {
-        ok: status >= 200 && status < 300, status: status, url: url, headers: {},
+        ok: status >= 200 && status < 300, status: status, url: url, headers: headers || {},
         text: body === null || body === undefined ? '' : JSON.stringify(body)
       });
     },
