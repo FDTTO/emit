@@ -46,11 +46,13 @@
 
   window.V = {
     /* Waits for a condition instead of a fixed time, then continues either
-       way: on timeout the checks that follow fail with what they saw. */
+       way: on timeout the checks that follow fail with what they saw. A
+       condition that throws (the page still booting) counts as not yet. */
     until: function (ready, then, timeoutMs) {
       var deadline = Date.now() + (timeoutMs || 10000);
+      var met = function () { try { return ready(); } catch (ignored) { return false; } };
       (function poll() {
-        if (ready() || Date.now() > deadline) then();
+        if (met() || Date.now() > deadline) then();
         else setTimeout(poll, 100);
       })();
     },
