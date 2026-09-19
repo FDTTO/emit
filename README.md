@@ -10,7 +10,7 @@
 
 Accepts an HTTP request to generate a PDF, returns `202 Accepted` immediately, and processes asynchronously through Kafka. Each tenant runs in an isolated PostgreSQL schema. Rate limiting is distributed and atomic across any number of instances.
 
-Three production failure modes. Three structural solutions. 40 tests that prove the contract holds.
+Five structural decisions. 127 tests that prove the contract holds.
 
 </div>
 
@@ -20,7 +20,7 @@ Three production failure modes. Three structural solutions. 40 tests that prove 
 
 - [The Problem](#the-problem)
 - [Architecture](#architecture)
-- [Four Structural Decisions](#four-structural-decisions)
+- [Five Structural Decisions](#five-structural-decisions)
 - [Tech Stack](#tech-stack)
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
@@ -60,7 +60,7 @@ flowchart TD
     crud("POST /documents  201\nGET  /documents  200")
     gen("POST /generate\n202 Accepted")
     kafka[("Apache Kafka\ndocument.generation\n.requested\n3 partitions")]:::mq
-    consumer("Generation Consumer\n@RetryableTopic\n3 attempts: 1s / 2s / 4s\nTenantContext restored")
+    consumer("Generation Consumer\n@RetryableTopic\n3 attempts · 1s + 2s backoff\nTenantContext restored")
     done(["status: DONE"]):::ok
     dlq(["dead-letter queue\ninspect · replay"]):::err
 
@@ -75,7 +75,7 @@ flowchart TD
 
 ---
 
-## Four Structural Decisions
+## Five Structural Decisions
 
 | Concern | Chosen | Rejected | Root reason |
 |:---|:---|:---|:---|
@@ -83,10 +83,15 @@ flowchart TD
 | Async processing | Kafka + DLQ | @Async + ThreadPool | Durable before response, retries explicit |
 | Rate limiting | Redis Lua sliding window | Bucket4j ConcurrentHashMap | Distributed correctness across instances |
 | Filter execution | SecurityFilterChain | @Order servlet filters | SecurityContext initialized, ASYNC dispatch handled |
+| Code organization | Package by Feature + Hexagonal | Layered (controller/service/repository) | Feature cohesion, domain free of framework dependencies |
+
+Each section below names a failure mode, the structural choice that eliminates it, and the trade-off accepted in return.
 
 ---
 
-### Schema Isolation: a boundary the database enforces, not the application
+### Schema Isolation
+
+*The boundary lives in the database, not the application.*
 
 Row-level security enforces boundaries through policies on shared tables. A missing policy on a new table returns cross-tenant data with no error. The application has no indication anything is wrong. This failure mode requires active vigilance across every migration and every repository method.
 
@@ -107,8 +112,11 @@ Application startup: TenantMigrationRunner
   └── for each: liquibase.update()    (idempotent, schema drift is impossible)
 ```
 
+> [!NOTE]
+> Schema isolation adds provisioning overhead and increases the object count in `pg_catalog`. The right trade for a B2B service with a bounded, known tenant set. For a consumer product with millions of users, row-level filtering scales better.
+
 <details>
-<summary>Side-by-side: column isolation vs. schema isolation</summary>
+<summary>Side-by-side: what the repository layer looks like with and without schema isolation</summary>
 
 ```java
 // Column-based: tenant_id on every table, filter on every query.
@@ -132,22 +140,23 @@ List<Document> findAll(Pageable pageable);
 
 </details>
 
-> [!NOTE]
-> Schema isolation adds provisioning overhead and increases the object count in `pg_catalog`. For a B2B service with a bounded, known tenant set this is the right trade. For a consumer product with millions of users, row-level filtering scales better.
-
 ---
 
-### Kafka: the event is durable before the HTTP response returns
+### Kafka + Dead-Letter Queue
+
+*The event is durable before the HTTP response returns.*
 
 `@Async` has two failure modes that matter in production.
 
 Thread pool exhaustion under burst traffic causes callers to receive `RejectedExecutionException` or block indefinitely. The request is gone. No record, no retry, no alert. Process restarts silently drop everything in-flight. Again: no record, no retry, no alert. Both failures are undetectable from the outside.
 
-Kafka shifts the durability boundary. The event is on broker disk before the HTTP response leaves the server. Consumer lag is a metric. Retry policy is a configuration, not a catch block. Messages that exhaust three attempts with 1s / 2s / 4s exponential backoff route to `document.generation.requested.dlq` for inspection and replay. The HTTP caller always receives `202 Accepted` immediately, regardless of consumer state.
+Kafka shifts the durability boundary. The event is on broker disk before the HTTP response leaves the server. Consumer lag is a metric. Retry policy is a configuration, not a catch block. Messages that exhaust three attempts with 1s + 2s exponential backoff route to `document.generation.requested.dlq` for inspection and replay. The HTTP caller always receives `202 Accepted` immediately, regardless of consumer state.
 
-Tenant context crosses the thread boundary via `TenantContextDecorator`, which snapshots the schema name and full MDC map from the HTTP thread before the event is dispatched, and restores both inside the consumer thread before any JDBC connection is checked out.
+Tenant context crosses the thread boundary via `TenantContextDecorator`, which sets schema name and MDC entries from the deserialized event before any JDBC connection is checked out, then clears both in a `finally` block. This isolates the restore-and-clear pattern as a single responsibility in `shared/multitenancy`, so any number of consumers propagate tenant context without duplicating the try/finally logic.
 
-`TenantFilter` writes `tenantSchema` and a per-request `requestId` (UUID) into the MDC on every request. Every log line, including those emitted inside Kafka consumer threads after the context is restored, carries these two fields automatically. HTTP request logs and the corresponding consumer processing logs share the same `requestId`, making production correlation trivial without any tracing infrastructure.
+`generateSync` is idempotent for `@RetryableTopic` retries: if a prior attempt failed after `PROCESSING` was committed to the database, the next attempt recognizes the state and proceeds directly to rendering. Without this, a second attempt throws `IllegalStateException` on a `PROCESSING` document, logs a misleading error, and retries the wrong failure mode all the way to the dead-letter queue.
+
+`TenantFilter` writes `tenantSchema` and a per-request `requestId` into the MDC on every request. Every log line emitted inside Kafka consumer threads, after the context is restored from the event, carries these fields automatically. HTTP request logs and consumer processing logs share the same `requestId`, making production correlation trivial without any tracing infrastructure.
 
 ```mermaid
 %%{init: {'theme': 'dark', 'themeVariables': {'fontFamily': '"Segoe UI", system-ui, sans-serif', 'actorBkg': '#1e293b', 'actorBorder': '#334155', 'actorTextColor': '#f1f5f9', 'signalColor': '#64748b', 'signalTextColor': '#cbd5e1', 'noteBkgColor': '#0f172a', 'noteBorderColor': '#3b5279', 'noteTextColor': '#93c5fd'}}}%%
@@ -165,7 +174,7 @@ sequenceDiagram
     H-->>CL: 202 Accepted
 
     K->>C: deliver message
-    note over C: TenantContextDecorator.restore()
+    note over C: TenantContextDecorator.run()
     C->>DB: checkout connection
     DB-->>C: SET search_path TO acme_corp
     note over C: PdfGenerationService.generateSync()
@@ -173,7 +182,7 @@ sequenceDiagram
 ```
 
 <details>
-<summary>Side-by-side: @Async vs. Kafka</summary>
+<summary>Side-by-side: what changes when you swap @Async for Kafka</summary>
 
 ```java
 // @Async: fast to write, invisible failure modes
@@ -193,9 +202,7 @@ public CompletableFuture<Void> generatePdf(UUID documentId) {
 
 @PostMapping("/{id}/generate")
 public ResponseEntity<Void> generate(@PathVariable UUID id) {
-    documentService.findById(id);
-    eventPublisher.publishGenerationRequested(
-            new DocumentGenerationRequestedEvent(id, TenantContext.getTenant()));
+    documentService.requestGeneration(id);
     return ResponseEntity.accepted().build();
     // Event is on disk before this line executes.
 }
@@ -204,24 +211,22 @@ public ResponseEntity<Void> generate(@PathVariable UUID id) {
                 backoff = @Backoff(delay = 1000, multiplier = 2),
                 dltTopicSuffix = ".dlq")
 @KafkaListener(topics = TOPIC, groupId = "emit-pdf-processor")
-public void consume(ConsumerRecord<String, DocumentGenerationRequestedEvent> record) {
-    TenantContext.setTenant(record.value().tenantSchema());
-    try {
-        pdfGenerationService.generateSync(record.value().documentId());
-    } finally {
-        TenantContext.clear();
-    }
+void consume(ConsumerRecord<String, DocumentGenerationRequestedEvent> record) {
+    DocumentGenerationRequestedEvent event = record.value();
+    tenantContextDecorator.run(
+            event.tenantSchema(),
+            Map.of("tenantSchema", event.tenantSchema(), "documentId", event.documentId().toString()),
+            () -> pdfGenerationService.generateSync(event.documentId()));
 }
 ```
 
 </details>
 
-> [!IMPORTANT]
-> `DispatcherType.ASYNC` must be `permitAll()` in `SecurityConfig`. Kafka consumer threads re-enter the servlet container when dispatching async responses. Without this, `JwtAuthFilter` intercepts them and rejects them. This is the class of subtle breakage that `@Order` filters never expose because they execute outside the security context entirely.
-
 ---
 
-### Redis Lua: one atomic operation, any number of instances
+### Redis Lua Rate Limiting
+
+*One atomic operation, any number of instances.*
 
 Bucket4j is a well-engineered library. The limitation is not in the library: it is in where the state lives.
 
@@ -243,7 +248,7 @@ return 0                                    -- rejected: 429 Too Many Requests
 ```
 
 <details>
-<summary>Side-by-side: in-memory vs. distributed</summary>
+<summary>Side-by-side: what the rate limiter looks like in-memory vs. distributed</summary>
 
 ```java
 // Bucket4j in-memory: correct on one JVM, wrong on N
@@ -280,24 +285,82 @@ public boolean tryConsume(String tenantSchema) {
 
 </details>
 
-> [!NOTE]
-> Every rate-limit check is a Redis round-trip. At intra-datacenter latencies this is sub-millisecond and acceptable. Tenant keys expire automatically after one full window: idle tenants leave no residue in Redis without any eviction job.
-
 ---
 
-### SecurityFilterChain: initialization order that @Order cannot guarantee
+### SecurityFilterChain
+
+*Initialization order that `@Order` cannot guarantee.*
 
 Servlet filters registered with `@Order` execute as independent filters before `SecurityFilterChain` runs. `SecurityContextHolder` is not initialized at that point.
 
 `TenantFilter` writes a `TenantAuthentication` object to `SecurityContextHolder`. With `@Order`, the write happens before the context exists and is overwritten when the chain initializes. `RateLimitFilter` reads the tenant identity that `TenantFilter` established: with `@Order`, that identity is not there.
 
-Registering inside `SecurityFilterChain` via `addFilterBefore` / `addFilterAfter` gives initialized `SecurityContext`, explicit ordering, and correct handling of `DispatcherType.ASYNC` requests from a single configuration point.
+Registering inside `SecurityFilterChain` via `addFilterBefore` / `addFilterAfter` gives initialized `SecurityContext`, explicit ordering, and correct handling of `DispatcherType.ASYNC` requests: all from a single configuration point.
 
 ```java
 http
     .addFilterBefore(tenantFilter,     UsernamePasswordAuthenticationFilter.class)
-    .addFilterAfter(rateLimitFilter,   TenantFilter.class);
+    .addFilterAfter(rateLimitFilter,   TenantFilter.class)
+    .addFilterBefore(jwtFilter,        UsernamePasswordAuthenticationFilter.class);
 ```
+
+> [!IMPORTANT]
+> `DispatcherType.ASYNC` must be `permitAll()` in `SecurityConfig`. Kafka consumer threads re-enter the servlet container when dispatching async responses. Without this, `JwtAuthFilter` intercepts them and rejects them. This is exactly the class of subtle breakage that `@Order` filters never expose: they execute outside the security context entirely.
+
+---
+
+### Package by Feature + Hexagonal
+
+*Each feature owns its complete vertical slice.*
+
+Layered architecture organizes code by technical concern: `controller/`, `service/`, `repository/`. One feature spans three packages. A change in document processing touches files across all three. Import boundaries are invisible: nothing prevents `TenantService` from importing `DocumentRepository`.
+
+Package by Feature inverts that axis.
+
+```
+document/
+├── domain/         Document, DocumentRepository (port), DocumentStatus
+├── application/    DocumentService, PdfGenerationService, PdfRenderer (port)
+└── adapter/
+    ├── in/rest/          DocumentController
+    ├── in/messaging/     DocumentGenerationConsumer
+    ├── out/persistence/  DocumentRepositoryAdapter
+    ├── out/pdf/          FlyingSaucerPdfRenderer
+    └── out/template/     ThymeleafDocumentTemplateRenderer
+```
+
+Hexagonal Architecture (Ports & Adapters) enforces the dependency direction inside each feature. The domain has no framework imports. Ports are plain Java interfaces. Adapters are package-private: `FlyingSaucerPdfRenderer` is not accessible outside `adapter/out/pdf/`, only through the `PdfRenderer` port. Framework leaks into the domain are structurally impossible (compile-time, not discipline).
+
+<details>
+<summary>Side-by-side: what TenantRepository looks like layered vs. hexagonal</summary>
+
+```java
+// Layered: TenantRepository leaks Spring Data and JPA into the domain.
+// Replacing the persistence layer requires touching the domain interface.
+
+public interface TenantRepository extends JpaRepository<Tenant, UUID> {
+    Optional<Tenant> findByApiKeyHash(String hash);
+}
+```
+
+```java
+// EMIT: TenantRepository is a plain Java interface: no framework imports.
+
+public interface TenantRepository {
+    Optional<Tenant> findById(UUID id);
+    Optional<Tenant> findByApiKeyHash(String apiKeyHash);
+    Tenant save(Tenant tenant);
+    List<Tenant> findAll();
+}
+
+// The adapter lives in adapter/out/persistence/ and is package-private.
+// Spring Data generates the full implementation automatically.
+interface TenantRepositoryAdapter
+        extends JpaRepository<Tenant, UUID>, TenantRepository {
+}
+```
+
+</details>
 
 ---
 
@@ -334,7 +397,7 @@ Open `http://localhost:8080/swagger-ui/index.html`.
 **1. Authenticate as admin**
 
 ```http
-POST /auth/login
+POST /v1/auth/login
 Content-Type: application/json
 
 { "username": "admin", "password": "admin123" }
@@ -357,175 +420,161 @@ Copy the `apiKey`. Returned exactly once, stored as SHA-256. Click **Authorize**
 **3. Process a document**
 
 ```http
-POST /v1/documents                   # 201 Created,  status: PENDING
-POST /v1/documents/{id}/generate     # 202 Accepted, event published to Kafka
-GET  /v1/documents/{id}              # poll until    status: DONE
+POST /v1/documents
+X-API-Key: <key>
+Content-Type: application/json
+
+{ "title": "Q3 Invoice", "content": "<h1>Invoice</h1>..." }
+```
+
+Then request generation and track status:
+
+```http
+POST /v1/documents/{id}/generate    # 202 Accepted, event published to Kafka
+GET  /v1/documents/{id}             # poll until status: DONE
+GET  /v1/documents/{id}/pdf         # download the generated PDF
 ```
 
 ---
 
 ## API Reference
 
-### Authentication
+> Full interactive docs: `http://localhost:8080/swagger-ui/index.html`
 
-#### POST /auth/login
+### Authentication Model
 
-```json
-{ "username": "admin", "password": "admin123" }
-```
+EMIT uses two mechanisms with distinct scopes:
 
-Response `200 OK`:
+| Scope | Mechanism | Header |
+|:---|:---|:---|
+| Tenant management | JWT Bearer | `Authorization: Bearer <token>` |
+| Document operations | API Key | `X-API-Key: <key>` |
 
-```json
-{ "token": "eyJhbGci..." }
-```
+Authenticate at `POST /v1/auth/login` with admin credentials to receive a JWT. Use that JWT to create a tenant; the response includes a raw API key, returned **exactly once**. Use the API key on all document routes.
 
-Use as `Authorization: Bearer <token>` on all tenant management routes.
-
----
-
-### Tenants `Authorization: Bearer <token>`
-
-#### POST /v1/tenants — Create tenant `201 Created`
+The two are not interchangeable. An admin token on a document route, or an API key on a tenant route, is refused with `403` in the same error shape as every other error:
 
 ```json
-{ "name": "Acme Corp", "schemaName": "acme_corp" }
+{ "status": 403, "message": "This credential cannot access this route. ...", "timestamp": "..." }
 ```
 
-Response:
+### Rate Limit Headers
 
-```json
-{
-  "id": "f1e2d3c4-b5a6-4c3d-8e9f-a0b1c2d3e4f5",
-  "name": "Acme Corp",
-  "schemaName": "acme_corp",
-  "apiKey": "a3f8c2e1d4b796f0e5d3c2b1a0f9e8d7",
-  "createdAt": "2026-08-15T10:30:00Z"
-}
-```
+Every document response tells the client where its budget stands, so it can pace itself instead of discovering the limit by hitting it:
 
-`schemaName` constraint: `[a-z][a-z0-9_]{1,62}`. Lowercase, starts with a letter, no hyphens, max 63 chars.
+| Header | Meaning |
+|:---|:---|
+| `RateLimit-Limit` | requests allowed per sliding window (per tenant, per minute) |
+| `RateLimit-Remaining` | requests left in the current window |
+| `RateLimit-Reset` | seconds until the oldest request leaves the window |
+| `Retry-After` | on `429` only: seconds until a slot frees |
 
-> [!IMPORTANT]
-> `apiKey` is returned exactly once and cannot be recovered. Store it securely immediately.
+### Endpoints
 
-#### GET /v1/tenants — List all tenants `200 OK`
+| Method | Path | Auth | Success |
+|:---|:---|:---|:---|
+| POST | `/v1/auth/login` | none | 200 |
+| POST | `/v1/tenants` | JWT | 201 |
+| GET | `/v1/tenants` | JWT | 200 |
+| GET | `/v1/tenants/{id}` | JWT | 200 |
+| POST | `/v1/tenants/{id}/deactivate` | JWT | 204 |
+| POST | `/v1/tenants/{id}/reactivate` | JWT | 204 |
+| POST | `/v1/documents` | API Key | 201 |
+| GET | `/v1/documents` | API Key | 200 |
+| GET | `/v1/documents/{id}` | API Key | 200 |
+| POST | `/v1/documents/{id}/generate` | API Key | 202 |
+| GET | `/v1/documents/{id}/pdf` | API Key | 200 |
 
-```json
-[
-  { "id": "f1e2d3c4-b5a6-4c3d-8e9f-a0b1c2d3e4f5", "name": "Acme Corp", "schemaName": "acme_corp", "createdAt": "2026-08-15T10:30:00Z" },
-  { "id": "a2b3c4d5-e6f7-8a9b-0c1d-2e3f4a5b6c7d", "name": "Globex",    "schemaName": "globex",    "createdAt": "2026-08-15T11:00:00Z" }
-]
-```
-
-#### GET /v1/tenants/{id} — Get tenant by ID `200 OK` / `404 Not Found`
-
----
-
-### Documents `X-API-Key: <key>`
-
-#### POST /v1/documents — Create document `201 Created`
-
-```json
-{ "title": "Q3 Invoice", "content": "<h1>Invoice</h1>..." }
-```
-
-Response `201 Created`:
-
-```json
-{
-  "id": "9a8b7c6d-e5f4-3a2b-1c0d-e9f8a7b6c5d4",
-  "title": "Q3 Invoice",
-  "status": "PENDING",
-  "createdAt": "2026-08-15T10:31:00Z",
-  "updatedAt": "2026-08-15T10:31:00Z"
-}
-```
-
-Constraints: `title` max 255 chars, `content` max 50,000 chars.
-
-Response `400 Bad Request` (validation failure):
-
-```json
-{
-  "status": 400,
-  "error": "Bad Request",
-  "violations": {
-    "title": "must not be blank",
-    "content": "size must be between 0 and 50000"
-  }
-}
-```
-
-#### POST /v1/documents/{id}/generate — Request generation `202 Accepted`
-
-No request body. Returns immediately. Publishes a `DocumentGenerationRequestedEvent` to Kafka. Poll `GET /v1/documents/{id}` to track progress.
-
-**Status lifecycle:**
+### Document Status Lifecycle
 
 ```
 PENDING → PROCESSING → DONE
-                    └── FAILED → .dlq  (after 3 retry attempts, exponential backoff)
+                    └── FAILED
+
+Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.generation.requested.dlq
 ```
 
-#### GET /v1/documents/{id} — Get document `200 OK`
-
-```json
-{
-  "id": "9a8b7c6d-e5f4-3a2b-1c0d-e9f8a7b6c5d4",
-  "title": "Q3 Invoice",
-  "status": "DONE",
-  "createdAt": "2026-08-15T10:31:00Z",
-  "updatedAt": "2026-08-15T10:31:45Z"
-}
-```
-
-#### GET /v1/documents — List documents `200 OK`
-
-Paginated. Query params: `page` (default `0`), `size` (default `20`), `sort` (default `createdAt,desc`).
-
-```json
-{
-  "content": [ { "id": "...", "title": "...", "status": "DONE", "createdAt": "..." } ],
-  "totalElements": 42,
-  "totalPages": 3,
-  "number": 0,
-  "size": 20
-}
-```
+`schemaName` validation: `[a-z][a-z0-9_]{1,62}` (lowercase, starts with a letter, no hyphens, max 63 chars).
 
 ---
 
 ## Testing
 
-40 tests. No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
+**127 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
+
+**Unit** (Mockito + JUnit 5) · 87 tests
 
 ```
-Unit  (Mockito + JUnit 5)
-├── DocumentTest                       domain factory, state machine transitions     [4]
-├── PdfGenerationServiceTest           generateSync: success, exception, state       [3]
-├── TenantFilterTest                   valid key, absent key, invalid key,
-│                                      requestId in MDC, finally cleanup             [5]
-├── TenantContextDecoratorTest         tenant propagation, MDC propagation,
-│                                      cleanup on success, cleanup on exception,
-│                                      null MDC handled safely                       [5]
-└── DocumentGenerationConsumerTest     generateSync called with correct id,
-                                       TenantContext cleared on success,
-                                       TenantContext cleared on exception            [3]
+├── DocumentTest                       [13]  factory method, state machine transitions,
+│                                            invariants (null PDF, wrong state)
+├── DocumentServiceTest                [9]   create, find, requestGeneration, getPdf,
+│                                            all not-found and status-conflict paths
+├── PdfGenerationServiceTest           [9]   generateSync: success, pdf failure, template
+│                                            failure, retry idempotency (PROCESSING state),
+│                                            terminal state guard; abandonGeneration
+├── DocumentGenerationConsumerTest     [5]   generateSync called with correct id,
+│                                            context cleared on success and on exception,
+│                                            DLT handler abandons and clears context
+├── TenantServiceTest                  [9]   create, findById, deactivate, reactivate,
+│                                            not-found paths, API key generation
+├── TenantContextDecoratorTest         [5]   context set before action, MDC populated,
+│                                            both cleared on success and on exception
+├── TenantFilterTest                   [6]   valid key, absent key, invalid key,
+│                                            inactive tenant, requestId always in MDC,
+│                                            finally cleanup on downstream exception
+├── TenantIdentifierResolverTest       [3]   resolves from context, falls back to public
+├── TenantSchemaValidatorTest          [7]   valid, public, null, single-char,
+│                                            digit-start, uppercase, hyphen
+├── ApiKeyHasherTest                   [3]   hash determinism, hex format, length
+├── JwtServiceTest                     [4]   generate, validate, extract subject,
+│                                            reject expired token
+├── JwtAuthenticationFilterTest        [4]   valid token sets context, invalid token 401,
+│                                            absent header passes through, an earlier
+│                                            tenant role is kept alongside admin
+├── RateLimitFilterTest                [3]   tenant absent, budget headers within limit,
+│                                            429 with Retry-After
+├── ApiErrorWriterTest                 [2]   JSON declared as UTF-8, status and message
+│                                            in the body
+└── GlobalExceptionHandlerTest         [5]   unknown URL and removed static file are 404,
+                                             a missing internal resource stays 500,
+                                             generic 500 leaks no internal detail
+```
 
-Slice  (@WebMvcTest)
-├── DocumentControllerTest             list, paginate, create, three 400 validations
-│                                      (blank title, title over 255, content over 50k),
-│                                      404, 202 on generate                          [8]
-└── TenantControllerTest               create 201, schemaName validation failures
-                                       (digit-start, uppercase, hyphen, single char,
-                                       blank), 404 findById, list 200                [8]
+**Slice** (@WebMvcTest) · 32 tests
 
-Integration  (Testcontainers: real containers, no test doubles)
-├── RateLimiterServiceTest             within limit, exhausted, tenant isolation      [3]
+```
+├── DocumentControllerTest             [16]  list empty, list paginated, create 201,
+│                                            find by id, 404, 400 validations (blank title,
+│                                            title >255, blank content, content >50k,
+│                                            missing body), 202 generate, 409 status
+│                                            conflict, 404 on generate, PDF download,
+│                                            PDF 409, PDF 404
+├── TenantControllerTest               [13]  create 201 with API key, 409 duplicate schema,
+│                                            400 validations (digit-start, uppercase,
+│                                            hyphen, single-char, blank name), findById,
+│                                            404, listAll 200, deactivate 204, deactivate
+│                                            404, reactivate 204, reactivate 404
+└── AuthControllerTest                 [3]   valid credentials 200, wrong username 401,
+                                             wrong password 401
+```
+
+**Integration** (Testcontainers: real containers, no test doubles) · 8 tests
+
+```
+├── RateLimiterServiceTest             [4]   within limit, remaining counts down to zero,
+│                                            exhausted limit says when a slot frees,
+│                                            per-tenant isolation
 │   └── GenericContainer  redis:7-alpine
-└── DocumentIntegrationTest            full lifecycle PENDING to DONE                [1]
-    ├── PostgreSQLContainer  16-alpine
+├── TenantProvisionerConcurrencyTest   [1]   concurrent tenant schema migrations all
+│                                            complete (Liquibase scope is shared across
+│                                            threads, so runs are serialized)
+│   └── PostgreSQLContainer  16
+└── DocumentIntegrationTest            [3]   full lifecycle: login → create tenant →
+                                             create document → request generation →
+                                             await DONE → download PDF; admin token
+                                             refused on tenant routes, API key refused
+                                             on admin routes, both as 403
+    ├── PostgreSQLContainer  16
     ├── ConfluentKafkaContainer  7.6.1
     └── GenericContainer  redis:7-alpine
 ```
@@ -546,7 +595,7 @@ mvn test
 - [x] Redis distributed sliding-window rate limiting (atomic Lua script)
 - [x] Testcontainers integration tests for PostgreSQL, Kafka, and Redis
 - [x] GitHub Actions CI pipeline
-- [ ] Package by Feature + Hexagonal Architecture refactor
+- [x] Package by Feature + Hexagonal Architecture (Ports & Adapters)
 - [ ] Webhook notification on generation completion (eliminate polling)
 - [ ] Full cloud deployment with Kafka and Redis provisioned
 
@@ -554,7 +603,16 @@ mvn test
 
 ## Author
 
-**Matheus Fedatto** | [LinkedIn](https://www.linkedin.com/in/matheusfedatto) | [GitHub](https://github.com/FDTTO)
+```
+███████╗██████╗ ████████╗████████╗ ██████╗
+██╔════╝██╔══██╗╚══██╔══╝╚══██╔══╝██╔═══██╗
+█████╗  ██║  ██║   ██║      ██║   ██║   ██║
+██╔══╝  ██║  ██║   ██║      ██║   ██║   ██║
+██║     ██████╔╝   ██║      ██║   ╚██████╔╝
+╚═╝     ╚═════╝    ╚═╝      ╚═╝    ╚═════╝
+```
+
+[LinkedIn](https://www.linkedin.com/in/matheusfedatto) · [GitHub](https://github.com/FDTTO)
 
 ---
 
