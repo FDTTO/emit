@@ -10,7 +10,7 @@
 
 Accepts an HTTP request to generate a PDF, returns `202 Accepted` immediately, and processes asynchronously through Kafka. Each tenant runs in an isolated PostgreSQL schema. Rate limiting is distributed and atomic across any number of instances.
 
-Five structural decisions. 127 tests that prove the contract holds.
+Five structural decisions. 129 tests that prove the contract holds.
 
 </div>
 
@@ -500,9 +500,9 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 
 ## Testing
 
-**127 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
+**129 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
 
-**Unit** (Mockito + JUnit 5) · 87 tests
+**Unit** (Mockito + JUnit 5) · 89 tests
 
 ```
 ├── DocumentTest                       [13]  factory method, state machine transitions,
@@ -512,6 +512,8 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 ├── PdfGenerationServiceTest           [9]   generateSync: success, pdf failure, template
 │                                            failure, retry idempotency (PROCESSING state),
 │                                            terminal state guard; abandonGeneration
+├── FlyingSaucerPdfRendererTest        [2]   URLs in document content are never fetched,
+│                                            embedded data: images still render
 ├── DocumentGenerationConsumerTest     [5]   generateSync called with correct id,
 │                                            context cleared on success and on exception,
 │                                            DLT handler abandons and clears context
