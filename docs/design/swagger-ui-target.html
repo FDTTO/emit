@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EMIT API</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  /* ground */
+  --bg:#0d0f15;
+  --surface:rgba(255,255,255,.042);
+  --shine:linear-gradient(138deg,rgba(255,255,255,.072) 0%,rgba(255,255,255,.018) 100%);
+  --bar:rgba(0,0,0,.22);
+  --well:rgba(0,0,0,.30);
+
+  /* text */
+  --text:#dde6f0;
+  --body:#96a4b2;
+  --label:rgba(168,186,222,.55);
+  --dim:rgba(168,186,222,.38);
+  --faint:rgba(168,186,222,.26);
+
+  /* lines */
+  --hair:rgba(255,255,255,.055);
+  --line:rgba(255,255,255,.075);
+  --edge:rgba(255,255,255,.12);
+  --rim:rgba(255,255,255,.20);
+
+  /* STRUCTURE: method identity. One desaturated family, ranked by luminance.
+     Structure recedes so that result can advance. */
+  --m-get:rgba(150,178,215,.95);
+  --m-post:rgba(176,196,228,.95);
+  --m-put:rgba(150,178,215,.95);
+  --m-del:rgba(150,178,215,.95);
+  --m-fill:rgba(150,178,215,.07);
+  --m-edge:rgba(150,178,215,.22);
+
+  /* RESULT: the traffic light, spent only on outcome */
+  --ok:rgba(122,196,118,.95);   --ok-fill:rgba(90,170,86,.10);   --ok-edge:rgba(122,196,118,.26);
+  --warn:rgba(214,166,74,.95);  --warn-fill:rgba(180,130,30,.10); --warn-edge:rgba(214,166,74,.26);
+  --err:rgba(216,104,94,.95);   --err-fill:rgba(180,60,52,.10);   --err-edge:rgba(216,104,94,.26);
+
+  /* SCOPE: who may call */
+  --admin:rgba(186,150,228,.92); --admin-fill:rgba(150,110,210,.10); --admin-edge:rgba(186,150,228,.24);
+  --tenant:rgba(126,196,204,.92);--tenant-fill:rgba(80,160,170,.10); --tenant-edge:rgba(126,196,204,.24);
+
+  /* data pills */
+  --type-c:rgba(156,200,240,.90); --type-fill:rgba(120,170,230,.08); --type-edge:rgba(140,185,235,.20);
+  --fmt-c:rgba(206,170,120,.88);  --fmt-fill:rgba(190,150,90,.09);   --fmt-edge:rgba(206,170,120,.22);
+
+  --f-body:'Inter',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,monospace;
+
+  --t-3xs:.58rem; --t-2xs:.65rem; --t-xs:.72rem; --t-sm:.79rem; --t-md:.86rem;
+  --t-lg:.94rem; --t-xl:1.06rem; --t-2xl:1.30rem; --t-3xl:1.60rem; --t-4xl:2rem;
+
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:22px; --sp-6:28px; --sp-7:40px;
+  --r-xs:3px; --r-sm:4px; --r-code:8px; --r-panel:10px; --r-pill:100px;
+  --gutter:22px;
+
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+html{font-size:14px;}
+*{box-sizing:border-box;}
+body{
+  margin:0; min-height:100vh;
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(ellipse 90% 50% at 50% -5%,rgba(80,130,200,.13) 0%,transparent 65%),
+    radial-gradient(circle,rgba(175,198,235,.04) 1px,transparent 1px);
+  background-size:auto,34px 34px;
+  background-attachment:fixed,fixed;
+  font-family:var(--f-body);
+  color:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:0 var(--sp-6) 80px;}
+
+/* ---------- topbar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:40;
+  background:rgba(10,12,17,.82);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--hair);
+}
+.topbar-in{
+  max-width:1000px;margin:0 auto;padding:0 var(--sp-6);
+  height:52px;display:flex;align-items:center;gap:var(--sp-4);
+}
+.brand{font-size:var(--t-2xl);font-weight:800;letter-spacing:-.03em;color:var(--text);}
+.brand i{color:rgba(156,220,254,.6);font-style:normal;}
+.spacer{flex:1;}
+.btn-auth{
+  display:flex;align-items:center;gap:6px;
+  background:var(--m-fill);border:1px solid var(--m-edge);border-radius:var(--r-sm);
+  color:var(--m-post);font-size:var(--t-xs);font-weight:500;
+  padding:5px 11px;cursor:pointer;transition:background .14s var(--ease),border-color .14s var(--ease);
+}
+.btn-auth:hover{background:rgba(150,178,215,.12);border-color:rgba(150,178,215,.34);}
+
+/* ---------- info panel ---------- */
+.panel{
+  background:var(--shine),var(--surface);
+  border:1px solid var(--rim);border-radius:var(--r-panel);
+  box-shadow:0 8px 40px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.05);
+  margin:var(--sp-7) 0;padding:var(--sp-6) var(--sp-6) var(--sp-5);
+}
+.title{
+  display:flex;align-items:baseline;gap:var(--sp-3);flex-wrap:wrap;
+  font-size:var(--t-4xl);font-weight:800;letter-spacing:-.035em;line-height:1.2;
+  color:var(--text);margin:0;
+}
+.title .kind{font-weight:300;letter-spacing:-.015em;color:var(--label);}
+.stamps{display:inline-flex;align-items:baseline;gap:var(--sp-1);}
+.stamp{
+  font-family:var(--f-mono);font-size:var(--t-2xs);font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;padding:2px 6px;border-radius:var(--r-sm);
+  background:rgba(156,220,254,.07);color:rgba(156,220,254,.88);border:1px solid rgba(156,220,254,.18);
+}
+.stamp.sec{background:transparent;color:var(--dim);border-color:var(--line);font-weight:500;}
+.lede{
+  margin:var(--sp-5) 0 0;max-width:74ch;
+  font-size:var(--t-lg);line-height:1.75;color:var(--body);
+}
+.lede code{
+  font-family:var(--f-mono);font-size:.84em;padding:1px 5px;border-radius:var(--r-xs);
+  background:var(--type-fill);color:var(--type-c);border:1px solid var(--type-edge);
+}
+
+/* ---------- section label ---------- */
+.seclabel{
+  display:flex;align-items:center;gap:var(--sp-3);
+  margin:var(--sp-6) 0 var(--sp-3);
+  font-size:var(--t-2xs);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--label);
+}
+.seclabel::after{content:'';flex:1;height:1px;background:var(--line);}
+
+/* ---------- lifecycle ---------- */
+/* Lifecycle.
+
+   Every marker sits on one horizontal axis, and the axis is the vertical
+   centre of the figure. That is what keeps the whole run symmetric: each node
+   contributes only its 9px marker to layout, and its text is taken out of
+   flow, so nodes of different label lengths cannot push the axis around.
+
+   The two terminal states are mirrored across the axis, equidistant, with
+   their text thrown outward. They are exclusive outcomes, so a bracket says
+   what a caption would otherwise have to. */
+.flow{
+  display:flex;align-items:center;justify-content:center;
+  background:var(--well);border:1px solid var(--line);border-radius:var(--r-code);
+  padding:64px var(--sp-5);overflow-x:auto;
+}
+.node{
+  flex:0 0 auto;width:112px;height:9px;position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+.node .dot{
+  width:9px;height:9px;border-radius:50%;
+  border:1.5px solid currentColor;background:var(--well);flex:0 0 auto;
+}
+/* out of flow: label length can never shift the axis */
+.node .txt{
+  position:absolute;left:50%;transform:translateX(-50%);
+  width:112px;text-align:center;top:17px;
+}
+.node .st{
+  display:block;
+  font-family:var(--f-mono);font-size:var(--t-2xs);font-weight:700;letter-spacing:.09em;
+}
+.node .cap{
+  display:block;margin-top:3px;
+  font-size:var(--t-3xs);color:var(--faint);letter-spacing:.03em;line-height:1.55;
+}
+.node.pending{color:var(--warn);}
+.node.processing{color:var(--type-c);}
+.node.done{color:var(--ok);}
+.node.failed{color:var(--err);}
+
+.link{flex:1 1 auto;min-width:44px;max-width:132px;position:relative;height:9px;}
+.link .ln{position:absolute;left:0;right:0;top:4px;height:1px;background:var(--edge);}
+.link .ln::after{
+  content:'';position:absolute;right:0;top:-2.5px;
+  border-left:5px solid var(--edge);border-top:3px solid transparent;border-bottom:3px solid transparent;
+}
+.link .via{
+  position:absolute;left:0;right:0;top:11px;text-align:center;
+  font-family:var(--f-mono);font-size:var(--t-3xs);color:var(--faint);letter-spacing:.05em;
+}
+
+/* Mirrored outcomes. The arm span is fixed on both sides, so the trunk meets
+   the bracket exactly at the axis. */
+.fork{
+  position:relative;flex:0 0 auto;
+  display:flex;flex-direction:column;gap:76px;padding-left:22px;
+}
+.fork::before{
+  content:'';position:absolute;left:0;top:4px;bottom:4px;width:1px;background:var(--edge);
+}
+.fork .node::before{
+  content:'';position:absolute;left:-22px;top:4px;width:22px;height:1px;background:var(--edge);
+}
+/* text thrown outward, away from the axis */
+.fork .node.done .txt{top:auto;bottom:17px;}
+.fork .node.failed .txt{top:17px;}
+
+/* ---------- auth matrix ---------- */
+.matrix{width:100%;border-collapse:collapse;border:1px solid var(--line);border-radius:var(--r-code);overflow:hidden;}
+.matrix thead th{
+  background:var(--bar);text-align:left;padding:9px var(--sp-4);
+  font-size:var(--t-3xs);font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);
+  border-bottom:1px solid var(--line);
+}
+.matrix td{padding:11px var(--sp-4);border-bottom:1px solid var(--hair);font-size:var(--t-md);vertical-align:middle;}
+.matrix tbody tr:last-child td{border-bottom:0;}
+.matrix tbody tr{transition:background .12s var(--ease);}
+.matrix tbody tr:hover{background:rgba(255,255,255,.014);}
+.scope{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--f-mono);font-size:var(--t-2xs);font-weight:700;letter-spacing:.09em;
+  padding:2px 7px;border-radius:var(--r-pill);
+}
+.scope.admin{background:var(--admin-fill);color:var(--admin);border:1px solid var(--admin-edge);}
+.scope.tenant{background:var(--tenant-fill);color:var(--tenant);border:1px solid var(--tenant-edge);}
+.scope svg{width:11px;height:11px;}
+.hdrcode{
+  font-family:var(--f-mono);font-size:var(--t-sm);color:var(--type-c);
+  background:var(--type-fill);border:1px solid var(--type-edge);
+  padding:2px 7px;border-radius:var(--r-xs);white-space:nowrap;
+}
+
+/* ---------- tag group ---------- */
+.tag{
+  display:flex;align-items:center;gap:var(--sp-3);
+  margin:var(--sp-7) 0 var(--sp-2);padding:10px 2px;cursor:pointer;
+  font-size:var(--t-xs);font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--label);
+  transition:color .15s var(--ease);
+}
+.tag:hover{color:rgba(168,186,222,.82);}
+.tag::before{
+  content:'';width:7px;height:7px;border-radius:50%;
+  border:1.5px solid rgba(168,186,222,.3);flex:0 0 auto;
+}
+.tag .rule{flex:1;height:1px;background:var(--line);}
+.tag .cnt{font-family:var(--f-mono);font-size:var(--t-3xs);color:var(--faint);letter-spacing:.06em;}
+.tag .chev{width:16px;height:16px;color:var(--faint);transition:transform .22s var(--ease);}
+.tag.open .chev{transform:rotate(180deg);}
+
+/* ---------- operation rows ---------- */
+.op{
+  background:var(--shine),var(--surface);
+  border:1px solid var(--line);border-radius:var(--r-panel);
+  margin-bottom:var(--sp-2);overflow:hidden;
+  transition:border-color .16s var(--ease),box-shadow .16s var(--ease);
+}
+.op:hover{border-color:var(--edge);}
+.op.open{
+  border-color:var(--rim);
+  box-shadow:0 6px 28px rgba(0,0,0,.26);
+}
+.ophead{
+  display:flex;align-items:center;gap:var(--sp-3);
+  padding:11px var(--sp-4);cursor:pointer;position:relative;
+}
+/* structural accent: a hairline rail, desaturated, never competing with result colour */
+.op.open .ophead::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--m-edge);
+}
+.icon{
+  flex:0 0 auto;width:26px;height:26px;border-radius:var(--r-sm);
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.03);border:1px solid var(--hair);color:var(--dim);
+}
+.icon svg{width:14px;height:14px;}
+.verb{
+  flex:0 0 auto;min-width:52px;text-align:center;
+  font-family:var(--f-mono);font-size:var(--t-2xs);font-weight:700;letter-spacing:.09em;
+  padding:3px 8px;border-radius:var(--r-sm);
+  background:var(--m-fill);border:1px solid var(--m-edge);color:var(--m-post);
+}
+.path{font-family:var(--f-mono);font-size:var(--t-md);font-weight:500;color:var(--text);}
+.path .var{color:var(--fmt-c);}
+.sum{font-size:var(--t-sm);color:var(--dim);flex:1;}
+.ophead .chev{width:15px;height:15px;color:var(--faint);transition:transform .22s var(--ease);flex:0 0 auto;}
+.op.open .ophead .chev{transform:rotate(180deg);}
+
+/* ---------- operation body ---------- */
+.opbody{border-top:1px solid var(--line);}
+.desc{padding:var(--sp-4) var(--gutter);border-bottom:1px solid var(--hair);font-size:var(--t-md);line-height:1.78;max-width:74ch;}
+.desc code{font-family:var(--f-mono);font-size:.84em;padding:1px 5px;border-radius:var(--r-xs);background:var(--type-fill);color:var(--type-c);border:1px solid var(--type-edge);}
+.subhead{
+  display:flex;align-items:center;gap:var(--sp-2);
+  padding:9px var(--gutter);background:var(--bar);border-bottom:1px solid var(--hair);
+  font-size:var(--t-3xs);font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);
+}
+.subhead .req{
+  font-family:var(--f-mono);font-size:var(--t-3xs);font-weight:600;letter-spacing:.1em;
+  color:var(--dim);border:1px solid var(--line);border-radius:var(--r-xs);padding:1px 5px;
+}
+.empty{padding:var(--sp-2) var(--gutter);font-size:var(--t-sm);font-style:italic;color:var(--faint);}
+.codeblock{
+  margin:var(--sp-3) var(--gutter) var(--sp-4);
+  background:var(--well);border:1px solid var(--line);border-radius:var(--r-code);
+  padding:var(--sp-3) var(--sp-4);overflow-x:auto;
+  font-family:var(--f-mono);font-size:var(--t-sm);line-height:1.85;
+  white-space:pre;
+}
+.k{color:rgba(143,188,187,.95);}
+.s{color:rgba(163,190,140,.95);}
+.p{color:var(--faint);}
+
+/* ---------- responses: result colour lives here, and only here ---------- */
+.resp{width:100%;border-collapse:collapse;}
+.resp thead th{
+  text-align:left;padding:9px var(--gutter);
+  font-size:var(--t-3xs);font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);
+  border-bottom:1px solid var(--line);background:var(--bar);
+}
+.resp thead th:first-child{width:104px;}
+.resp td{padding:12px var(--gutter);border-bottom:1px solid var(--hair);vertical-align:top;}
+.resp tbody tr:last-child td{border-bottom:0;}
+.resp tbody tr{transition:background .12s var(--ease);}
+.resp tbody tr:hover{background:rgba(255,255,255,.012);}
+.code{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--f-mono);font-size:var(--t-md);font-weight:700;
+  font-variant-numeric:tabular-nums;
+}
+.code::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto;}
+.code.ok{color:var(--ok);}
+.code.warn{color:var(--warn);}
+.code.err{color:var(--err);}
+.rdesc{font-size:var(--t-md);color:var(--body);line-height:1.6;}
+
+/* ---------- schema block ---------- */
+.schema{
+  background:var(--shine),var(--surface);border:1px solid var(--rim);border-radius:var(--r-panel);
+  box-shadow:0 4px 20px rgba(0,0,0,.18);margin-bottom:var(--sp-3);overflow:hidden;
+}
+.schemahead{
+  display:flex;align-items:center;gap:var(--sp-2);
+  padding:11px var(--sp-4);background:var(--bar);border-bottom:1px solid var(--line);cursor:pointer;
+}
+.schemahead .nm{font-family:var(--f-mono);font-size:var(--t-md);font-weight:600;color:var(--text);flex:1;}
+.props{padding:var(--sp-1) 0;}
+.prow{
+  display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--sp-1) var(--sp-2);
+  padding:9px var(--sp-4);border-bottom:1px solid rgba(255,255,255,.035);
+  transition:background .12s var(--ease);
+}
+.prow:last-child{border-bottom:0;}
+.prow:hover{background:rgba(255,255,255,.012);}
+.pname{
+  font-family:var(--f-mono);font-size:var(--t-md);font-weight:600;color:var(--text);
+  min-width:132px;flex:0 0 auto;
+}
+.pname .star{color:var(--dim);font-weight:700;margin-left:2px;}
+/* grammar: rectangle = type, capsule = format, bare text with marker = constraint */
+.ptype{
+  font-family:var(--f-mono);font-size:var(--t-xs);font-weight:600;
+  padding:1px 6px;border-radius:var(--r-xs);
+  background:var(--type-fill);color:var(--type-c);border:1px solid var(--type-edge);
+}
+.pfmt{
+  font-family:var(--f-mono);font-size:var(--t-xs);font-weight:500;
+  padding:1px 8px;border-radius:var(--r-pill);
+  background:var(--fmt-fill);color:var(--fmt-c);border:1px solid var(--fmt-edge);
+}
+.pcon{
+  font-family:var(--f-mono);font-size:var(--t-xs);color:var(--faint);
+  display:inline-flex;align-items:baseline;gap:5px;
+}
+.pcon::before{content:'';width:3px;height:3px;border-radius:50%;background:var(--faint);transform:translateY(-3px);}
+.pdesc{width:100%;padding-left:140px;font-size:var(--t-sm);color:var(--dim);line-height:1.6;margin-top:2px;}
+
+.note{margin-top:var(--sp-6);font-size:var(--t-sm);color:var(--faint);line-height:1.7;max-width:74ch;}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-in">
+  <span class="brand">EMIT<i>.</i></span>
+  <span class="spacer"></span>
+  <button class="btn-auth">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    Authorize
+  </button>
+</div></div>
+
+<div class="wrap">
+
+  <div class="panel">
+    <h1 class="title">EMIT<span class="kind"> API</span>
+      <span class="stamps"><span class="stamp">v1</span><span class="stamp sec">OAS 3.1</span></span>
+    </h1>
+    <p class="lede">Multi-tenant document processing engine. Each tenant operates in complete data isolation via PostgreSQL schema separation. Authenticated requests trigger async PDF generation with tenant context propagated across thread boundaries via Kafka.</p>
+
+    <div class="seclabel">Document lifecycle</div>
+    <div class="flow">
+      <div class="node pending"><span class="dot"></span><span class="txt"><span class="st">PENDING</span><span class="cap">persisted on create</span></span></div>
+      <div class="link"><span class="ln"></span><span class="via">kafka</span></div>
+      <div class="node processing"><span class="dot"></span><span class="txt"><span class="st">PROCESSING</span><span class="cap">worker picked up</span></span></div>
+      <div class="link"><span class="ln"></span><span class="via">render</span></div>
+      <div class="fork">
+        <div class="node done"><span class="dot"></span><span class="txt"><span class="st">DONE</span><span class="cap">pdf ready</span></span></div>
+        <div class="node failed"><span class="dot"></span><span class="txt"><span class="st">FAILED</span><span class="cap">retries exhausted</span></span></div>
+      </div>
+    </div>
+
+    <div class="seclabel">Authentication</div>
+    <table class="matrix">
+      <thead><tr><th style="width:150px">Scope</th><th style="width:250px">Header</th><th>Grants</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="scope admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7z"/></svg>ADMIN</span></td>
+          <td><span class="hdrcode">Authorization: Bearer</span></td>
+          <td>Create and manage tenants</td>
+        </tr>
+        <tr>
+          <td><span class="scope tenant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v4"/></svg>TENANT</span></td>
+          <td><span class="hdrcode">X-API-Key</span></td>
+          <td>Submit and retrieve documents</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tag open">
+    <span>Documents</span><span class="rule"></span><span class="cnt">5 endpoints</span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+
+  <div class="op">
+    <div class="ophead">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+      <span class="verb">GET</span>
+      <span class="path">/v1/documents</span>
+      <span class="sum">List documents</span>
+      <span class="scope tenant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v4"/></svg>TENANT</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+
+  <div class="op open">
+    <div class="ophead">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v6M9 14h6"/></svg></span>
+      <span class="verb">POST</span>
+      <span class="path">/v1/documents</span>
+      <span class="sum">Create document</span>
+      <span class="scope tenant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v4"/></svg>TENANT</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="opbody">
+      <div class="desc">Creates a document in <code>PENDING</code> status. The <code>content</code> field supports HTML and is rendered as-is into the final PDF.</div>
+
+      <div class="subhead">Parameters</div>
+      <div class="empty">No parameters</div>
+
+      <div class="subhead">Request body <span class="req">REQUIRED</span></div>
+      <div class="codeblock">
+<span class="p">{</span>
+  <span class="k">"title"</span><span class="p">:</span> <span class="s">"Q3 Invoice"</span><span class="p">,</span>
+  <span class="k">"content"</span><span class="p">:</span> <span class="s">"&lt;h1&gt;Invoice&lt;/h1&gt;&lt;p&gt;Total: $1,200.00&lt;/p&gt;"</span>
+<span class="p">}</span>
+      </div>
+
+      <div class="subhead">Responses</div>
+      <table class="resp">
+        <thead><tr><th>Code</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="code ok">201</span></td><td class="rdesc">Document created, queued for generation</td></tr>
+          <tr><td><span class="code err">400</span></td><td class="rdesc">Invalid request body</td></tr>
+          <tr><td><span class="code err">401</span></td><td class="rdesc">Unauthorized</td></tr>
+          <tr><td><span class="code warn">429</span></td><td class="rdesc">Rate limit exceeded</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="op">
+    <div class="ophead">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></span>
+      <span class="verb">POST</span>
+      <span class="path">/v1/documents/<span class="var">{id}</span>/generate</span>
+      <span class="sum">Request PDF generation</span>
+      <span class="scope tenant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v4"/></svg>TENANT</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+
+  <div class="op">
+    <div class="ophead">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg></span>
+      <span class="verb">GET</span>
+      <span class="path">/v1/documents/<span class="var">{id}</span>/pdf</span>
+      <span class="sum">Download PDF</span>
+      <span class="scope tenant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v4"/></svg>TENANT</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+
+  <div class="tag open" style="margin-top:var(--sp-7)">
+    <span>Schemas</span><span class="rule"></span><span class="cnt">10 models</span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+
+  <div class="schema">
+    <div class="schemahead">
+      <span class="nm">CreateDocumentRequest</span>
+      <span class="ptype">object</span>
+    </div>
+    <div class="props">
+      <div class="prow">
+        <span class="pname">title<span class="star">*</span></span>
+        <span class="ptype">string</span>
+        <span class="pcon">1 to 255 characters</span>
+        <span class="pdesc">Human-readable document title, shown in listings.</span>
+      </div>
+      <div class="prow">
+        <span class="pname">content<span class="star">*</span></span>
+        <span class="ptype">string</span>
+        <span class="pcon">up to 50000 characters</span>
+        <span class="pdesc">Raw HTML rendered into the PDF without sanitisation.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="schema">
+    <div class="schemahead">
+      <span class="nm">DocumentResponse</span>
+      <span class="ptype">object</span>
+    </div>
+    <div class="props">
+      <div class="prow">
+        <span class="pname">id</span>
+        <span class="ptype">string</span>
+        <span class="pfmt">uuid</span>
+      </div>
+      <div class="prow">
+        <span class="pname">status</span>
+        <span class="ptype">string</span>
+        <span class="pcon">PENDING | PROCESSING | DONE | FAILED</span>
+      </div>
+      <div class="prow">
+        <span class="pname">createdAt</span>
+        <span class="ptype">string</span>
+        <span class="pfmt">date-time</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
