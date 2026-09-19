@@ -1317,6 +1317,37 @@
     frame.appendChild(table);
   }
 
+  /* A region that scrolls sideways needs a tab stop to be scrolled by
+   * keyboard; Chromium adds one on its own, other engines do not. Only while
+   * it actually overflows, so a wide screen gains no empty tab stops.
+   */
+  var SCROLLER_LABELS = [
+    ['.emit-matrix-frame', 'Authentication table'],
+    ['pre.curl', 'curl command'],
+    ['pre', 'Code']
+  ];
+
+  function paintScrollers() {
+    SCROLLER_LABELS.forEach(function (entry) {
+      document.querySelectorAll('#swagger-ui ' + entry[0]).forEach(function (region) {
+        var overflowX = getComputedStyle(region).overflowX;
+        var scrolls = (overflowX === 'auto' || overflowX === 'scroll')
+          && region.scrollWidth > region.clientWidth + 1;
+        var marked = region.hasAttribute('data-emit-scroller');
+        if (scrolls && !marked) {
+          region.setAttribute('data-emit-scroller', '');
+          region.setAttribute('tabindex', '0');
+          region.setAttribute('role', 'region');
+          region.setAttribute('aria-label', entry[1] + ', scrolls horizontally');
+        } else if (!scrolls && marked) {
+          ['data-emit-scroller', 'tabindex', 'role', 'aria-label'].forEach(function (name) {
+            region.removeAttribute(name);
+          });
+        }
+      });
+    });
+  }
+
   /* Endpoint counts on group headers, from the spec: a collapsed tag renders
    * no operations, so a DOM count would read zero.
    */
@@ -1417,6 +1448,7 @@
     paintAuthModal();
     paintExampleBoxes();
     paintLifecycle();
+    paintScrollers();
   }
 
   /* React rebuilds these nodes on expand and collapse, so repaint on mutation,
@@ -1453,6 +1485,9 @@
     document.addEventListener('visibilitychange', function () {
       if (!document.hidden) schedule();
     });
+
+    /* Whether a region overflows depends on the width, which no mutation reports. */
+    window.addEventListener('resize', schedule);
 
     /* The badges and the figure need the spec; the page works without them. */
     fetch(SPEC_URL, { credentials: 'same-origin' })
