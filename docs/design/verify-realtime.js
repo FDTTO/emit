@@ -52,8 +52,10 @@ async function press(send, name) {
   await send('Input.dispatchKeyEvent', { type: 'keyUp', ...base });
 }
 
+// A ceiling, not a delay: under load (parallel runs, a JVM starting) Edge can
+// take well over ten seconds to write DevToolsActivePort.
 async function target() {
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 150; i++) {
     try {
       const port = fs.readFileSync(path.join(profile, 'DevToolsActivePort'), 'utf8').split(/\r?\n/)[0].trim();
       const list = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
@@ -85,16 +87,30 @@ async function shutdown(port) {
       await sleep(300);
     }
   } catch (e) { /* the forceful path below still runs */ }
+  // A browser that never became controllable may still be starting, and would
+  // recreate the profile after it was removed, so it is killed first.
+  if (!port) killProfileProcesses();
   for (let i = 0; i < 20; i++) {
-    try { fs.rmSync(profile, { recursive: true, force: true }); return; } catch (e) { await sleep(250); }
+    try { fs.rmSync(profile, { recursive: true, force: true }); break; } catch (e) { await sleep(250); }
   }
+  if (fs.existsSync(profile)) {
+    killProfileProcesses();
+    try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) { /* reported below */ }
+  }
+  if (!port) await sleep(1000);
+  if (fs.existsSync(profile)) {
+    killProfileProcesses();
+    try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) { console.log('warning: profile left behind at ' + profile); }
+  }
+}
+
+function killProfileProcesses() {
   if (process.platform === 'win32') {
     spawnSync('powershell', ['-NoProfile', '-Command',
       `Get-CimInstance Win32_Process -Filter "Name='msedge.exe'" | Where-Object { $_.CommandLine -like '*${profile}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }`]);
   } else {
     edge.kill('SIGKILL');
   }
-  try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) { console.log('warning: profile left behind at ' + profile); }
 }
 
 (async () => {

@@ -208,7 +208,11 @@ def main():
     parser.add_argument('--clip', action='append', default=[])
     parser.add_argument('--out', default=os.path.join(OUT, 'shot'))
     parser.add_argument('--keep', action='store_true')
+    parser.add_argument('--base', default='http://localhost:8080',
+                        help='app to run against, e.g. a second instance on 8081')
     args = parser.parse_args()
+    global BASE
+    BASE = args.base.rstrip('/') + '/swagger/'
     # The Windows console defaults to cp1252, which cannot print what the page
     # writes (arrows, for one).
     sys.stdout.reconfigure(encoding='utf-8')

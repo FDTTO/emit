@@ -22,6 +22,7 @@ Everything here runs against the app on `localhost:8080` with headless Edge.
 ```
 python docs/design/verify.py SCENARIO.js [--width W] [--wait MS | --virtual MS]
                              [--spec-url URL] [--clip JS]... [--out PREFIX] [--keep]
+                             [--base URL]
 ```
 
 A scenario is plain JavaScript. It runs inside `verify-harness.html` after
@@ -149,6 +150,7 @@ takes eight.
   mvn -q spring-boot:run -Dspring-boot.run.arguments=--server.port=8081`,
   wait for "Started" and for the log to go quiet (tenant schema migrations run
   at startup), check, then stop only that instance. The one on 8080 belongs
-  to whoever started it.
+  to whoever started it. `verify.py --base http://localhost:8081` runs any
+  scenario, or the suite, against it.
 - **Anything that creates data cleans up after itself**, usually by
   deactivating the tenant it registered.
