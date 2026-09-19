@@ -1,6 +1,8 @@
 package dev.emit.shared.openapi;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springdoc.core.customizers.OpenApiCustomizer;
@@ -8,11 +10,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import dev.emit.shared.web.ErrorResponse;
+import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.headers.Header;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.IntegerSchema;
+import io.swagger.v3.oas.models.media.MediaType;
+import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
@@ -21,6 +28,7 @@ import io.swagger.v3.oas.models.tags.Tag;
 public class OpenApiConfig {
 
     private static final Set<String> ANSWERED_BEFORE_THE_LIMITER = Set.of("401", "403");
+    private static final String ERROR_SCHEMA = "ErrorResponse";
 
     @Value("${app.openapi.server-url:}")
     private String serverUrl;
@@ -113,6 +121,44 @@ public class OpenApiConfig {
                 }
             });
         }));
+    }
+
+    /*
+     * Every error the API writes, from a controller or from a security
+     * filter, is an ErrorResponse. Declared once here for every 4xx and 5xx
+     * that states no body of its own, with an example carrying that
+     * response's own status.
+     */
+    @Bean
+    public OpenApiCustomizer errorBodies() {
+        return api -> {
+            Schema<?> schema = ModelConverters.getInstance()
+                    .readAllAsResolvedSchema(ErrorResponse.class).schema;
+            api.getComponents().addSchemas(ERROR_SCHEMA, schema);
+
+            api.getPaths().values().forEach(path -> path.readOperations().forEach(operation -> {
+                if (operation.getResponses() == null) {
+                    return;
+                }
+                operation.getResponses().forEach((code, response) -> {
+                    boolean error = code.startsWith("4") || code.startsWith("5");
+                    boolean bodyless = response.getContent() == null || response.getContent().isEmpty();
+                    if (error && bodyless) {
+                        response.setContent(new Content().addMediaType("application/json", new MediaType()
+                                .schema(new Schema<>().$ref("#/components/schemas/" + ERROR_SCHEMA))
+                                .example(errorExample(Integer.parseInt(code), response.getDescription()))));
+                    }
+                });
+            }));
+        };
+    }
+
+    private static Map<String, Object> errorExample(int status, String message) {
+        Map<String, Object> example = new LinkedHashMap<>();
+        example.put("status", status);
+        example.put("message", message);
+        example.put("timestamp", "2026-01-15T10:30:00Z");
+        return example;
     }
 
     private static Header header(String description) {
