@@ -3,6 +3,8 @@ package dev.emit.tenant.adapter.out;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.sql.DataSource;
 
@@ -48,8 +50,21 @@ class TenantProvisioner implements SchemaProvisioner {
         }
     }
 
+    /*
+     * One Liquibase run at a time in this process. Liquibase keeps its scope
+     * manager in an InheritableThreadLocal, so request threads share the main
+     * thread's manager, and two runs at once corrupt its scope stack ("Cannot
+     * end scope X when currently at scope Y"): a tenant registering while the
+     * startup runner migrates the existing ones, or two registering together.
+     * Static because the shared state is the process's, not this instance's.
+     * Across instances nothing is shared, and each schema's own
+     * DATABASECHANGELOGLOCK already guards it.
+     */
+    private static final Lock MIGRATION_LOCK = new ReentrantLock();
+
     void runMigrations(String schemaName) {
         log.info("Running migrations for schema: {}", schemaName);
+        MIGRATION_LOCK.lock();
         try {
             SpringLiquibase liquibase = new SpringLiquibase();
             liquibase.setDataSource(dataSource);
@@ -60,6 +75,8 @@ class TenantProvisioner implements SchemaProvisioner {
             log.info("Migrations completed for schema: {}", schemaName);
         } catch (LiquibaseException exception) {
             throw new SchemaProvisioningException("Failed to migrate schema: " + schemaName, exception);
+        } finally {
+            MIGRATION_LOCK.unlock();
         }
     }
 }
