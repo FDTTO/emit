@@ -2,6 +2,7 @@ package dev.emit.shared.ratelimit;
 
 import java.io.IOException;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -29,9 +30,24 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         // Only apply rate limiting when a tenant was identified from X-API-Key.
         // Requests without a tenant (e.g., /auth/login, /swagger-ui) pass through.
-        if (tenantSchema != null && !rateLimiterService.tryConsume(tenantSchema)) {
+        if (tenantSchema == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Every tenant response says where the budget stands, so a client can
+        // pace itself instead of learning the limit from a 429. Names follow
+        // the IETF RateLimit header fields draft; Retry-After is RFC 9110's.
+        RateLimitDecision decision = rateLimiterService.tryConsume(tenantSchema);
+        response.setHeader("RateLimit-Limit", String.valueOf(decision.limit()));
+        response.setHeader("RateLimit-Remaining", String.valueOf(decision.remaining()));
+        response.setHeader("RateLimit-Reset", String.valueOf(decision.resetSeconds()));
+
+        if (!decision.allowed()) {
+            response.setHeader(HttpHeaders.RETRY_AFTER, String.valueOf(decision.resetSeconds()));
             errorWriter.write(response, HttpStatus.TOO_MANY_REQUESTS.value(),
-                    "Rate limit exceeded. Try again in a moment.");
+                    "Rate limit exceeded. Try again in " + decision.resetSeconds()
+                            + (decision.resetSeconds() == 1 ? " second." : " seconds."));
             return;
         }
 

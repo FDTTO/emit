@@ -1,6 +1,8 @@
 package dev.emit.shared.ratelimit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -48,25 +50,33 @@ class RateLimitFilterTest {
     }
 
     @Test
-    void shouldPassThroughWhenWithinRateLimit() throws Exception {
+    void shouldPassThroughAndPublishTheBudgetWhenWithinRateLimit() throws Exception {
         TenantContext.setTenant("tenant_abc");
-        when(rateLimiterService.tryConsume("tenant_abc")).thenReturn(true);
+        when(rateLimiterService.tryConsume("tenant_abc")).thenReturn(new RateLimitDecision(true, 20, 7, 42));
+        MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
 
-        rateLimitFilter.doFilterInternal(new MockHttpServletRequest(), new MockHttpServletResponse(), chain);
+        rateLimitFilter.doFilterInternal(new MockHttpServletRequest(), response, chain);
 
         verify(chain).doFilter(any(), any());
+        assertThat(response.getHeader("RateLimit-Limit")).isEqualTo("20");
+        assertThat(response.getHeader("RateLimit-Remaining")).isEqualTo("7");
+        assertThat(response.getHeader("RateLimit-Reset")).isEqualTo("42");
+        assertThat(response.getHeader("Retry-After")).isNull();
     }
 
     @Test
-    void shouldReturn429WhenRateLimitExceeded() throws Exception {
+    void shouldReturn429SayingWhenToRetryWhenRateLimitExceeded() throws Exception {
         TenantContext.setTenant("tenant_abc");
-        when(rateLimiterService.tryConsume("tenant_abc")).thenReturn(false);
+        when(rateLimiterService.tryConsume("tenant_abc")).thenReturn(new RateLimitDecision(false, 20, 0, 13));
+        MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
 
-        rateLimitFilter.doFilterInternal(new MockHttpServletRequest(), new MockHttpServletResponse(), chain);
+        rateLimitFilter.doFilterInternal(new MockHttpServletRequest(), response, chain);
 
-        verify(errorWriter).write(any(), eq(429), any());
+        verify(errorWriter).write(any(), eq(429), contains("13 seconds"));
         verify(chain, never()).doFilter(any(), any());
+        assertThat(response.getHeader("Retry-After")).isEqualTo("13");
+        assertThat(response.getHeader("RateLimit-Remaining")).isEqualTo("0");
     }
 }

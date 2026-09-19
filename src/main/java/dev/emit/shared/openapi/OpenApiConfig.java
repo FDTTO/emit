@@ -1,20 +1,26 @@
 package dev.emit.shared.openapi;
 
 import java.util.List;
+import java.util.Set;
 
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.headers.Header;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 
 @Configuration
 public class OpenApiConfig {
+
+    private static final Set<String> ANSWERED_BEFORE_THE_LIMITER = Set.of("401", "403");
 
     @Value("${app.openapi.server-url:}")
     private String serverUrl;
@@ -72,5 +78,39 @@ public class OpenApiConfig {
         }
 
         return api;
+    }
+
+    /*
+     * Every operation that takes a tenant API key is rate limited, so its
+     * responses carry the budget headers and its 429 also says when to retry.
+     * Stated once, from each operation's own security requirement, rather than
+     * repeated per endpoint where one could be forgotten. Not on 401 or 403:
+     * those are answered before the limiter runs, so they carry no budget, and
+     * documenting headers they never send would be a false contract.
+     */
+    @Bean
+    public OpenApiCustomizer rateLimitHeaders() {
+        return api -> api.getPaths().values().forEach(path -> path.readOperations().forEach(operation -> {
+            boolean tenantScoped = operation.getSecurity() != null
+                    && operation.getSecurity().stream().anyMatch(requirement -> requirement.containsKey("apiKeyAuth"));
+            if (!tenantScoped || operation.getResponses() == null) {
+                return;
+            }
+            operation.getResponses().forEach((code, response) -> {
+                if (ANSWERED_BEFORE_THE_LIMITER.contains(code)) {
+                    return;
+                }
+                response.addHeaderObject("RateLimit-Limit", header("Requests this tenant may make per rolling minute."));
+                response.addHeaderObject("RateLimit-Remaining", header("Requests left in the current window after this one."));
+                response.addHeaderObject("RateLimit-Reset", header("Seconds until the oldest request in the window leaves it and frees a slot."));
+                if ("429".equals(code)) {
+                    response.addHeaderObject("Retry-After", header("Seconds to wait before retrying."));
+                }
+            });
+        }));
+    }
+
+    private static Header header(String description) {
+        return new Header().description(description).schema(new IntegerSchema());
     }
 }

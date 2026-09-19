@@ -50,18 +50,35 @@ class RateLimiterServiceTest {
 
     @Test
     void shouldAllowRequestsWithinLimit() {
-        assertThat(service.tryConsume("tenant_a")).isTrue();
-        assertThat(service.tryConsume("tenant_a")).isTrue();
-        assertThat(service.tryConsume("tenant_a")).isTrue();
+        assertThat(service.tryConsume("tenant_a").allowed()).isTrue();
+        assertThat(service.tryConsume("tenant_a").allowed()).isTrue();
+        assertThat(service.tryConsume("tenant_a").allowed()).isTrue();
     }
 
     @Test
-    void shouldBlockRequestAfterLimitExhausted() {
+    void shouldCountRemainingDownToZero() {
+        assertThat(service.tryConsume("tenant_a").remaining()).isEqualTo(2);
+        assertThat(service.tryConsume("tenant_a").remaining()).isEqualTo(1);
+        assertThat(service.tryConsume("tenant_a").remaining()).isZero();
+    }
+
+    /*
+     * The three allowed requests were made just now, so the oldest of them
+     * leaves the one-minute window, and frees a slot, close to a full minute
+     * from now: that is what the client is told to wait.
+     */
+    @Test
+    void shouldBlockRequestAfterLimitExhaustedAndSayWhenASlotFrees() {
         service.tryConsume("tenant_a");
         service.tryConsume("tenant_a");
         service.tryConsume("tenant_a");
 
-        assertThat(service.tryConsume("tenant_a")).isFalse();
+        RateLimitDecision blocked = service.tryConsume("tenant_a");
+
+        assertThat(blocked.allowed()).isFalse();
+        assertThat(blocked.limit()).isEqualTo(3);
+        assertThat(blocked.remaining()).isZero();
+        assertThat(blocked.resetSeconds()).isBetween(55L, 60L);
     }
 
     @Test
@@ -70,6 +87,6 @@ class RateLimiterServiceTest {
         service.tryConsume("tenant_a");
         service.tryConsume("tenant_a");
 
-        assertThat(service.tryConsume("tenant_b")).isTrue();
+        assertThat(service.tryConsume("tenant_b").allowed()).isTrue();
     }
 }
