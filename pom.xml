@@ -27,6 +27,15 @@
     <properties>
         <java.version>21</java.version>
         <!--
+            Without this Maven compiles with the platform encoding, which is
+            cp1252 on Windows and UTF-8 on the Linux CI runner. Source files
+            are UTF-8, so the arrows in the OpenAPI @Schema descriptions were
+            reaching the served spec as mojibake when built on Windows, and
+            the build was not reproducible across the two.
+        -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!--
             JJWT is not in the Spring Boot BOM - version declared here
             for centralized management. Update in one place if needed.
         -->
@@ -226,7 +235,6 @@
              TEST
              spring-boot-starter-test includes: JUnit 5, Mockito, AssertJ,
              Hamcrest, MockMvc, @SpringBootTest.
-             spring-security-test: @WithMockUser, SecurityMockMvcRequestPostProcessors.
              spring-boot-testcontainers: automatic Testcontainers + Spring Boot 3 integration.
              testcontainers/junit-jupiter: @Testcontainers, @Container annotations.
              testcontainers/postgresql: Docker-managed PostgreSQL image for tests.
@@ -234,11 +242,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -7,5 +7,15 @@ RUN mvn package -DskipTests -B
 
 FROM amazoncorretto:21-alpine
 WORKDIR /app
-COPY --from=build /app/target/emit-0.0.1-SNAPSHOT.jar app.jar
+
+RUN addgroup -S emit && adduser -S emit -G emit
+
+ARG JAR_FILE=target/emit-*.jar
+COPY --from=build /app/${JAR_FILE} app.jar
+
+USER emit
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD wget -qO- http://localhost:8080/actuator/health || exit 1
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
