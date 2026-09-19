@@ -35,13 +35,20 @@ public class SecurityConfig {
                 // Admin-only: creating and managing tenants requires JWT with ROLE_ADMIN.
                 // A tenant API key satisfies authenticated() but not hasRole("ADMIN").
                 .requestMatchers("/v1/tenants/**").hasRole("ADMIN")
-                .requestMatchers("/v1/documents/**").authenticated()
+                // Tenant data needs a resolved tenant, which only a tenant API
+                // key provides. An admin token here would fail later as a 500.
+                .requestMatchers("/v1/documents/**").hasRole("TENANT")
                 .anyRequest().denyAll())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Both refusals go through the same writer, so a 401 and a 403
+                // share the API's error shape instead of Spring's default.
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> errorWriter.write(
-                                response, 401, "Authentication required.")))
+                                response, 401, "Authentication required."))
+                        .accessDeniedHandler((request, response, deniedException) -> errorWriter.write(
+                                response, 403,
+                                "This credential cannot access this route. Tenant management needs an admin token; documents need a tenant API key.")))
                 .addFilterBefore(tenantFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(rateLimitFilter, TenantFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

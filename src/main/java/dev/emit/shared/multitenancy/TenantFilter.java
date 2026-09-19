@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -55,8 +56,11 @@ public class TenantFilter extends OncePerRequestFilter {
 
                 TenantContext.setTenant(tenant.getSchemaName());
                 MDC.put("tenantSchema", tenant.getSchemaName());
+                // ROLE_TENANT is what tenant routes require, which keeps a
+                // tenant key and an admin token apart in the route rules.
                 SecurityContextHolder.getContext().setAuthentication(
-                        new UsernamePasswordAuthenticationToken(tenant.getSchemaName(), null, List.of()));
+                        new UsernamePasswordAuthenticationToken(tenant.getSchemaName(), null,
+                                List.of(new SimpleGrantedAuthority("ROLE_TENANT"))));
             }
 
             filterChain.doFilter(request, response);

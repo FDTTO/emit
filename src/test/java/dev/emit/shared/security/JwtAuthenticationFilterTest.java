@@ -8,6 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +19,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.MDC;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import dev.emit.shared.web.ApiErrorWriter;
@@ -78,6 +83,23 @@ class JwtAuthenticationFilterTest {
      * instead of the token replacing it and locking the request out of the
      * tenant routes it holds a valid key for.
      */
+    @Test
+    void shouldKeepAnEarlierTenantRoleAlongsideAdmin() throws Exception {
+        String token = "valid.jwt.token";
+        when(jwtService.isValid(token)).thenReturn(true);
+        when(jwtService.extractSubject(token)).thenReturn("admin");
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                "acme", null, List.of(new SimpleGrantedAuthority("ROLE_TENANT"))));
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + token);
+        jwtAuthenticationFilter.doFilterInternal(request, new MockHttpServletResponse(), mock(FilterChain.class));
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getAuthorities())
+                .extracting(GrantedAuthority::getAuthority)
+                .containsExactlyInAnyOrder("ROLE_ADMIN", "ROLE_TENANT");
+    }
+
     @Test
     void shouldReturn401WhenTokenIsInvalid() throws Exception {
         String token = "invalid.jwt.token";

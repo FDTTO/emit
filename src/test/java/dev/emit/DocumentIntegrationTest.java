@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +80,9 @@ class DocumentIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private String login() {
         ResponseEntity<LoginResponse> response = restTemplate.postForEntity(
@@ -176,5 +182,45 @@ class DocumentIntegrationTest {
         requestGeneration(apiKey, documentId);
         awaitStatusDone(apiKey, documentId);
         downloadPdf(apiKey, documentId);
+    }
+
+    /*
+     * Each credential opens its own routes and nothing else. An admin token on
+     * a tenant route has no tenant to resolve, so it must stop at a 403.
+     */
+    @Test
+    void adminTokenIsRefusedOnTenantRoutes() throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(login());
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/v1/documents", HttpMethod.GET, new HttpEntity<>(headers), String.class);
+
+        assertForbiddenInApiShape(response);
+    }
+
+    @Test
+    void tenantKeyIsRefusedOnAdminRoutes() throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-API-Key", createTenant(login(), "refused_tenant"));
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/v1/tenants", HttpMethod.GET, new HttpEntity<>(headers), String.class);
+
+        assertForbiddenInApiShape(response);
+    }
+
+    /*
+     * The API's shape is `status`, `message`, `timestamp`. Spring's default
+     * error document carries `error` and `path`, so their absence tells the
+     * two apart.
+     */
+    private void assertForbiddenInApiShape(ResponseEntity<String> response) throws Exception {
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        JsonNode body = objectMapper.readTree(response.getBody());
+        assertThat(body.path("status").asInt()).isEqualTo(403);
+        assertThat(body.path("message").asText()).isNotBlank();
+        assertThat(body.has("error")).isFalse();
+        assertThat(body.has("path")).isFalse();
     }
 }

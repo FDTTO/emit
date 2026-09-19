@@ -36,6 +36,7 @@ public class TenantController {
     @Operation(summary = "List tenants", description = "Returns all tenants. Requires JWT authentication.")
     @ApiResponse(responseCode = "200", description = "Tenant list returned")
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
     public ResponseEntity<List<TenantResponse>> listAll() {
         List<TenantResponse> tenants = tenantService.listAll()
                 .stream()
@@ -52,6 +53,7 @@ public class TenantController {
     @ApiResponse(responseCode = "201", description = "Tenant created. The `apiKey` field is returned exactly once.")
     @ApiResponse(responseCode = "400", description = "Invalid request body", content = @Content)
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
     @ApiResponse(responseCode = "409", description = "Schema name already in use", content = @Content)
     public ResponseEntity<TenantCreatedResponse> create(@Valid @RequestBody CreateTenantRequest request) {
         TenantService.TenantCreated result = tenantService.create(request.name(), request.schemaName());
@@ -63,6 +65,7 @@ public class TenantController {
     @Operation(summary = "Get tenant by ID")
     @ApiResponse(responseCode = "200", description = "Tenant found")
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
     @ApiResponse(responseCode = "404", description = "Tenant not found", content = @Content)
     public ResponseEntity<TenantResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(TenantResponse.from(tenantService.findById(id)));
@@ -74,6 +77,7 @@ public class TenantController {
             description = "Blocks API key authentication for this tenant. Existing documents and schema data are preserved.")
     @ApiResponse(responseCode = "204", description = "Tenant deactivated")
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
     @ApiResponse(responseCode = "404", description = "Tenant not found", content = @Content)
     public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
         tenantService.deactivate(id);
@@ -86,6 +90,7 @@ public class TenantController {
             description = "Re-enables API key authentication for a previously deactivated tenant.")
     @ApiResponse(responseCode = "204", description = "Tenant reactivated")
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
     @ApiResponse(responseCode = "404", description = "Tenant not found", content = @Content)
     public ResponseEntity<Void> reactivate(@PathVariable UUID id) {
         tenantService.reactivate(id);

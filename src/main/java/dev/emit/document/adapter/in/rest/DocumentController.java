@@ -46,6 +46,7 @@ public class DocumentController {
                     + "Default: 20 per page, ordered by creation date descending.")
     @ApiResponse(responseCode = "200", description = "Document list returned")
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
     @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
     public ResponseEntity<PageResponse<DocumentSummaryResponse>> listAll(
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -58,6 +59,7 @@ public class DocumentController {
     @Operation(summary = "Get document by ID")
     @ApiResponse(responseCode = "200", description = "Document found")
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
     @ApiResponse(responseCode = "404", description = "Document not found", content = @Content)
     @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
     public ResponseEntity<DocumentResponse> findById(@PathVariable UUID id) {
@@ -72,6 +74,7 @@ public class DocumentController {
     @ApiResponse(responseCode = "201", description = "Document created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request body", content = @Content)
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
     @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
     public ResponseEntity<DocumentResponse> create(@Valid @RequestBody CreateDocumentRequest request) {
         Document saved = documentService.create(request.title(), request.content());
@@ -87,6 +90,7 @@ public class DocumentController {
                     + "Poll GET /{id} to track status.")
     @ApiResponse(responseCode = "202", description = "PDF generation accepted")
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
     @ApiResponse(responseCode = "404", description = "Document not found", content = @Content)
     @ApiResponse(responseCode = "409", description = "Document is not in PENDING status", content = @Content)
     @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
@@ -101,6 +105,7 @@ public class DocumentController {
             description = "Returns the generated PDF as application/pdf. Returns 409 if the document status is not DONE.")
     @ApiResponse(responseCode = "200", description = "PDF file returned")
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
     @ApiResponse(responseCode = "404", description = "Document not found", content = @Content)
     @ApiResponse(responseCode = "409", description = "PDF not yet ready: document is still PENDING or PROCESSING", content = @Content)
     @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
