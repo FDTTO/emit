@@ -30,7 +30,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
                 .requestMatchers("/v1/auth/login").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 // Admin-only: creating and managing tenants requires JWT with ROLE_ADMIN.
                 // A tenant API key satisfies authenticated() but not hasRole("ADMIN").

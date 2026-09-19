@@ -1,0 +1,2709 @@
+/* ==========================================================================
+   EMIT API - Swagger UI theme (swagger-ui 5.x)
+
+   Overrides of stock rules name the rule they counter.
+   Fonts are loaded in SwaggerUiController.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. TOKENS
+   rem values resolve against the 14px root set below.
+   -------------------------------------------------------------------------- */
+:root {
+  /* surfaces */
+  --e-bg:        #0d0f15;
+  --e-surface:   rgba(255,255,255,0.042);
+  --e-shine:     linear-gradient(138deg, rgba(255,255,255,0.072) 0%, rgba(255,255,255,0.018) 100%);
+  --e-glass:     linear-gradient(138deg, rgba(255,255,255,0.072) 0%, rgba(255,255,255,0.018) 100%), rgba(255,255,255,0.042);
+  --e-raised:    rgba(255,255,255,0.025);
+  --e-bar:       rgba(0,0,0,0.22);
+  --e-well:      rgba(0,0,0,0.30);
+
+  /* text */
+  --e-text:      #dde6f0;
+  --e-body:      #96a4b2;
+  --e-label:     rgba(168,186,222,0.55);
+  --e-dim:       rgba(168,186,222,0.38);
+  --e-faint:     rgba(168,186,222,0.26);
+
+  /* lines */
+  --e-hair:      rgba(255,255,255,0.055);
+  --e-line:      rgba(255,255,255,0.075);
+  --e-edge:      rgba(255,255,255,0.12);
+  --e-rim:       rgba(255,255,255,0.2);
+
+  /* elevation */
+  --e-lift:      0 8px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.05);
+  --e-lift-sm:   0 4px 20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05);
+
+  /* Methods: one desaturated steel family, told apart by luminance.
+     Green, amber and red are reserved for outcomes. DELETE stays warm. */
+  --get-c:  rgba(140,168,205,0.92); --get-bg:  rgba(140,168,205,0.07); --get-b:  rgba(140,168,205,0.22);
+  --post-c: rgba(176,196,228,0.95); --post-bg: rgba(176,196,228,0.08); --post-b: rgba(176,196,228,0.26);
+  --put-c:  rgba(158,182,218,0.93); --put-bg:  rgba(158,182,218,0.07); --put-b:  rgba(158,182,218,0.24);
+  --del-c:  rgba(206,138,132,0.92); --del-bg:  rgba(206,138,132,0.07); --del-b:  rgba(206,138,132,0.24);
+
+  /* Interaction: focus, active tab, links. */
+  --ui-c:  rgba(156,220,254,0.88); --ui-bg: rgba(156,220,254,0.07); --ui-b: rgba(156,220,254,0.30);
+  --ui-bg-hover: rgba(156,220,254,0.14); --ui-b-hover: rgba(156,220,254,0.50);
+
+  /* Who may call: read off the spec, never inferred from the path. */
+  --sc-admin-c:  rgba(186,150,228,0.92); --sc-admin-bg:  rgba(150,110,210,0.10); --sc-admin-b:  rgba(186,150,228,0.24);
+  --sc-tenant-c: rgba(126,196,204,0.92); --sc-tenant-bg: rgba(80,160,170,0.10);  --sc-tenant-b: rgba(126,196,204,0.24);
+  /* Dimmed interaction colour: keyboard focus ring, quiet labels. */
+  --ui-c-dim: rgba(156,220,254,0.55);
+
+  /* Pills. The type blue must stay distinct from the interaction cyan. */
+  --pt-c: rgba(156,200,240,0.90);  --pt-bg: rgba(120,170,230,0.08);  --pt-b: rgba(140,185,235,0.20);
+  --pf-c: rgba(206,170,120,0.88);  --pf-bg: rgba(190,150,90,0.09);   --pf-b: rgba(206,170,120,0.22);
+  --pc-c: rgba(168,186,222,0.55);  --pc-bg: rgba(168,186,222,0.05);  --pc-b: rgba(168,186,222,0.12);
+  --pr-c: rgba(210,100,90,0.9);    --pr-bg: rgba(210,80,70,0.07);    --pr-b: rgba(210,80,70,0.2);
+  --pe-c: rgba(160,120,240,0.88);  --pe-bg: rgba(140,100,220,0.07);  --pe-b: rgba(140,100,220,0.18);
+
+  /* Status: outcomes only. */
+  --s2-c: rgba(122,196,118,0.95);  --s2-bg: rgba(90,170,86,0.10);   --s2-b: rgba(122,196,118,0.26);
+  --s4-c: rgba(216,104,94,0.95);   --s4-bg: rgba(180,60,52,0.10);   --s4-b: rgba(216,104,94,0.26);
+  --s5-c: rgba(214,166,74,0.95);   --s5-bg: rgba(180,130,30,0.10);  --s5-b: rgba(214,166,74,0.26);
+
+  /* type */
+  --f-display: 'IBM Plex Mono', ui-monospace, monospace;
+  --f-body:    'Inter', system-ui, -apple-system, sans-serif;
+  --f-mono:    'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* Type scale: ten steps against the 14px root. */
+  --t-3xs: 0.58rem;   /*  8px - micro marks */
+  --t-2xs: 0.65rem;   /*  9px - uppercase labels */
+  --t-xs:  0.72rem;   /* 10px - pills, constraints */
+  --t-sm:  0.79rem;   /* 11px - meta, table headers */
+  --t-md:  0.86rem;   /* 12px - inline code, property names */
+  --t-lg:  0.94rem;   /* 13px - body copy */
+  --t-xl:  1.06rem;   /* 15px - lead paragraph */
+  --t-2xl: 1.30rem;   /* 18px - subheads */
+  --t-3xl: 1.60rem;   /* 22px - section titles */
+  --t-4xl: 2.00rem;   /* 28px - brand display */
+
+  /* radii */
+  --r-pill: 100px; --r-panel: 10px; --r-code: 8px; --r-sm: 4px; --r-xs: 3px;
+
+  /* rhythm - one scale, used everywhere */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 22px; --sp-6: 28px; --sp-7: 40px;
+
+  /* Page column and gutter, shared by the topbar, info panel and operation list. */
+  --page-column: 1000px;
+  --page-gutter: var(--sp-6);
+
+  /* horizontal padding shared by every row inside an expanded operation,
+     so section headers, tables and code blocks all align on one gutter */
+  --gutter: 22px;
+}
+
+/* Swagger's own rules are px-based and unaffected. */
+html { font-size: 14px; }
+
+/* --------------------------------------------------------------------------
+   2. PAGE
+   -------------------------------------------------------------------------- */
+body {
+  background-color: var(--e-bg) !important;
+  background-image:
+    radial-gradient(ellipse 90% 50% at 50% -5%, rgba(80,130,200,0.13) 0%, transparent 65%),
+    radial-gradient(circle, rgba(175,198,235,0.04) 1px, transparent 1px) !important;
+  background-size: auto, 34px 34px !important;
+  background-attachment: fixed, fixed !important;
+  min-height: 100vh;
+  color: var(--e-text);
+}
+
+#emit-swagger .swagger-ui,
+#emit-swagger .swagger-ui * { box-sizing: border-box; }
+
+/* Set on body and inherited, not on `*`: a universal selector matches the
+   children of mono elements directly and they lose the mono face. */
+#emit-swagger .swagger-ui { font-family: var(--f-body); }
+/* Stock declares its own families on these; they are the only places where
+   inheritance is not enough. */
+#emit-swagger .swagger-ui input,
+#emit-swagger .swagger-ui select,
+#emit-swagger .swagger-ui textarea,
+#emit-swagger .swagger-ui button { font-family: inherit; }
+
+#emit-swagger .swagger-ui,
+#emit-swagger .swagger-ui .opblock-tag-section,
+#emit-swagger .swagger-ui .no-margin { background: transparent !important; }
+
+/* Counter: .wrapper{max-width:1460px;padding:0 20px} */
+#emit-swagger .swagger-ui .wrapper {
+  background: transparent !important;
+  max-width: var(--page-column) !important;
+  padding: 0 var(--page-gutter) !important;
+  margin: 0 auto !important;
+}
+
+/* Keyboard focus ring. The legend lives outside .swagger-ui, so it is listed. */
+#emit-swagger .swagger-ui :focus-visible,
+#emit-legend :focus-visible {
+  outline: 2px solid var(--ui-c-dim) !important;
+  outline-offset: 2px !important;
+}
+/* Zero specificity via :where(): only controls without a radius of their own
+   get one, so focus never reshapes an element. */
+:where(#emit-swagger .swagger-ui :focus-visible, #emit-legend :focus-visible) {
+  border-radius: var(--r-sm);
+}
+/* Stock shows `outline: auto` on mouse click too; hide it for pointer focus only. */
+#emit-swagger .swagger-ui .opblock-summary-control:focus:not(:focus-visible),
+#emit-swagger .swagger-ui .models-control:focus:not(:focus-visible),
+#emit-swagger .swagger-ui .model-box-control:focus:not(:focus-visible) { outline: none !important; }
+/* Stock `all: inherit` pins their radius to 0, which :where() above cannot outrank. */
+#emit-swagger .swagger-ui :is(.opblock-summary-control, .models-control, .model-box-control):focus-visible {
+  border-radius: var(--r-sm) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #emit-swagger .swagger-ui * { transition: none !important; animation: none !important; }
+}
+
+/* --------------------------------------------------------------------------
+   3. TOPBAR
+   Counter: .topbar{background:#1b1b1b;padding:10px 0}
+            .topbar a{flex:1;max-width:300px;font-size:1.5em}
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui .topbar {
+  background: rgba(6,8,14,0.88) !important;
+  border-bottom: 1px solid var(--e-hair) !important;
+  backdrop-filter: blur(16px);
+  padding: 0 !important;
+  height: 52px !important;
+  display: flex !important;
+  align-items: center !important;
+  position: sticky; top: 0; z-index: 100;
+}
+/* Already inside `.topbar > .wrapper`, so no column or gutter here.
+   flex-direction counters stock, which stacks this into a column below 550px. */
+#emit-swagger .swagger-ui .topbar .topbar-wrapper {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-direction: row !important;
+  gap: var(--sp-3) !important;
+  flex-wrap: nowrap !important;
+}
+#emit-swagger .swagger-ui .topbar img,
+#emit-swagger .swagger-ui .topbar .download-url-wrapper { display: none !important; }
+#emit-swagger .swagger-ui .topbar a {
+  flex: 0 0 auto !important;
+  max-width: none !important;
+  font-family: var(--f-display) !important;
+  font-size: var(--t-xl) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  color: var(--e-text) !important;
+  text-decoration: none !important;
+  display: flex !important;
+  align-items: center !important;
+}
+#emit-swagger .swagger-ui .topbar a span { margin: 0 !important; padding: 0 !important; }
+#emit-swagger .swagger-ui .topbar a .emit-brand {
+  font-family: var(--f-body) !important;
+  font-size: var(--t-2xl) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  color: var(--e-text) !important;
+  white-space: nowrap !important;
+}
+
+/* Mirror of the scheme-bar Authorize, injected into the topbar by JS. */
+/* Credential tag: the open padlock invites, the closed one lists held scopes. */
+/* Height comes from padding; min-height keeps the tag from shrinking when a
+   credential arrives. */
+#emit-topbar-auth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 6px var(--sp-4) 6px 10px;
+  background: var(--e-glass);
+  border: 1.5px solid var(--e-line);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: filter 0.12s, border-color 0.15s, box-shadow 0.15s;
+}
+/* Hover via filter: the state rules below set background and border at the
+   same specificity and would beat a plain :hover by source order. */
+#emit-topbar-auth:hover { filter: brightness(1.18); }
+#emit-topbar-auth:active { filter: brightness(0.94); }
+
+.emit-auth-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.emit-auth-icon svg { width: 16px; height: 16px; stroke-width: 1.9; }
+
+#emit-topbar-auth[data-state=""] {
+  background: rgba(156,220,254,0.10);
+  border-color: var(--ui-b);
+  box-shadow: 0 0 7px -3px var(--ui-c);
+}
+#emit-topbar-auth[data-state=""] .emit-auth-icon { color: var(--ui-c); }
+#emit-topbar-auth[data-state=""] .emit-auth-cta { color: var(--ui-c-dim); }
+.emit-auth-cta {
+  font-family: var(--f-body);
+  font-size: var(--t-md);
+  font-weight: 600;
+}
+
+/* The tag takes the colour of the held scope, a gradient when both are held.
+   Strengths are local so the shared scope tokens stay untouched. */
+#emit-topbar-auth[data-state="ADMIN"] {
+  background: rgba(150,110,210,0.14);
+  border-color: rgba(186,150,228,0.5);
+  box-shadow: 0 0 7px -3px var(--sc-admin-c);
+}
+#emit-topbar-auth[data-state="TENANT"] {
+  background: rgba(80,160,170,0.14);
+  border-color: rgba(126,196,204,0.5);
+  box-shadow: 0 0 7px -3px var(--sc-tenant-c);
+}
+#emit-topbar-auth[data-state*="ADMIN"][data-state*="TENANT"] {
+  background: linear-gradient(100deg, rgba(150,110,210,0.22) 0%, rgba(80,160,170,0.22) 100%);
+  border-color: rgba(255,255,255,0.22);
+  box-shadow: 0 0 7px -3px var(--sc-admin-c), 0 0 7px -3px var(--sc-tenant-c);
+}
+/* Held scopes are segments of the capsule, not pills inside it. */
+.emit-auth-seg {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--f-mono);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  line-height: 1;
+}
+.emit-auth-seg svg { width: 13px; height: 13px; flex: 0 0 auto; }
+.emit-auth-seg--admin  { color: var(--sc-admin-c); }
+.emit-auth-seg--tenant { color: var(--sc-tenant-c); }
+/* Expired credential: keeps its segment, loses its colour. Must stay after the
+   scope colours (same specificity, wins by order). */
+.emit-auth-seg--expired { color: var(--e-dim); }
+.emit-auth-seg__flag {
+  font-family: var(--f-body);
+  font-size: var(--t-3xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--s4-c);
+}
+/* Nothing valid held: red hairline. */
+#emit-topbar-auth[data-state="EXPIRED"] {
+  background: var(--e-glass);
+  border-color: var(--s4-b);
+  box-shadow: none;
+}
+.emit-auth-seg + .emit-auth-seg {
+  position: relative;
+  margin-left: 10px;
+  padding-left: 11px;
+}
+.emit-auth-seg + .emit-auth-seg::before {
+  content: '';
+  position: absolute;
+  left: 0; top: -5px; bottom: -5px;
+  width: 1px;
+  background: var(--e-line);
+}
+
+/* --------------------------------------------------------------------------
+   4. INFO PANEL
+   Counter: .info{margin:50px 0}  .info hgroup.main{margin:0 0 20px}
+   -------------------------------------------------------------------------- */
+/* Also a .wrapper, so it keeps the page column; the card is drawn on the
+   inner <section>. */
+#emit-swagger .swagger-ui .information-container.wrapper {
+  max-width: var(--page-column) !important;
+  padding: 0 var(--page-gutter) !important;
+  margin: var(--sp-7) auto var(--sp-5) !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+#emit-swagger .swagger-ui .information-container > section {
+  background: var(--e-glass) !important;
+  border: 1px solid var(--e-rim) !important;
+  border-radius: var(--r-panel) !important;
+  padding: var(--sp-6) var(--sp-6) var(--sp-5) !important;
+  box-shadow: var(--e-lift) !important;
+  backdrop-filter: blur(8px);
+}
+#emit-swagger .swagger-ui .info { margin: 0 !important; }
+#emit-swagger .swagger-ui .info > div { margin: 0 !important; }
+
+/* Title and version pill on one baseline. */
+#emit-swagger .swagger-ui .info .title {
+  font-family: var(--f-body) !important;
+  font-size: var(--t-4xl) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1.2 !important;
+  color: var(--e-text) !important;
+  margin: 0 !important;
+  display: flex !important;
+  /* Baseline alignment: the caps title has no descenders, so centring would
+     drop the badges. */
+  align-items: baseline !important;
+  gap: var(--sp-3) !important;
+  flex-wrap: wrap !important;
+  /* The title is an <h2>; as a flex item it shrinks and leaves a stub underline. */
+  border-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+/* Spans are built in the controller: the title ships as one text node. */
+#emit-swagger .swagger-ui .info .title .emit-title-name {
+  display: inline !important;
+  white-space: nowrap !important;
+}
+#emit-swagger .swagger-ui .info .title .emit-title-mark {
+  font-weight: 800 !important;
+  letter-spacing: -0.035em !important;
+  color: var(--e-text) !important;
+}
+#emit-swagger .swagger-ui .info .title .emit-title-kind {
+  font-weight: 300 !important;
+  letter-spacing: -0.015em !important;
+  color: var(--e-label) !important;
+}
+
+/* Both badges live in one <span> inside the <h2>: v1 and the OAS stamp. */
+#emit-swagger .swagger-ui .info .title > span:not(.emit-title-name) {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: var(--sp-1) !important;
+}
+/* Counter: .info .title small{background:#7d8492;border-radius:57px;
+   top:-5px;vertical-align:super} - reset the superscript offset. */
+#emit-swagger .swagger-ui .info .title small {
+  position: static !important;
+  top: 0 !important;
+  vertical-align: baseline !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 2px 6px !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-2xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  background: var(--pt-bg) !important;
+  color: var(--pt-c) !important;
+  border: 1px solid var(--pt-b) !important;
+  border-radius: var(--r-sm) !important;
+}
+#emit-swagger .swagger-ui .info .title small.version-stamp {
+  background: transparent !important;
+  color: var(--e-dim) !important;
+  border-color: var(--e-line) !important;
+  font-weight: 500 !important;
+}
+#emit-swagger .swagger-ui .info .title small pre,
+#emit-swagger .swagger-ui .info .title small pre.version {
+  display: inline !important;
+  color: inherit !important;
+  font: inherit !important;
+  background: none !important;
+  border: 0 !important;
+  margin: 0 !important; padding: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Badge row: version, OAS, base URL. */
+#emit-swagger .swagger-ui .info hgroup.main {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-2) !important;
+  flex-wrap: wrap !important;
+  margin: 0 0 var(--sp-5) !important;
+}
+#emit-swagger .swagger-ui .info hgroup.main > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: var(--sp-2) !important;
+}
+#emit-swagger .swagger-ui .info .base-url {
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-sm) !important;
+  font-weight: 400 !important;
+  color: rgba(168,186,222,0.48) !important;
+  background: none !important;
+  border: 0 !important;
+  margin: 0 !important; padding: 0 !important;
+}
+/* Not in the mockup: contact, licence, spec link. */
+#emit-swagger .swagger-ui .info .license,
+#emit-swagger .swagger-ui .info .contact,
+#emit-swagger .swagger-ui .info__license,
+#emit-swagger .swagger-ui .info__contact,
+#emit-swagger .swagger-ui .info__extdocs,
+#emit-swagger .swagger-ui .info a.url,
+#emit-swagger .swagger-ui .info hgroup.main a { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   4a. INFO MARKDOWN
+   Counter: .markdown p{margin:1em auto}, whose auto side margins centre
+   every paragraph once a max-width is set.
+   -------------------------------------------------------------------------- */
+/* Spacing lives here, not on .renderedMarkdown, or it applies twice. */
+#emit-swagger .swagger-ui .info .info__description {
+  border-top: 0 !important;
+  /* hgroup.main already carries this gap. */
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+#emit-swagger .swagger-ui .info .info__description .renderedMarkdown,
+#emit-swagger .swagger-ui .info .info__description .markdown {
+  border-top: 0 !important;
+  padding-top: 0 !important;
+  margin: 0 !important;
+}
+#emit-swagger .swagger-ui .info .renderedMarkdown > *:first-child,
+#emit-swagger .swagger-ui .info .markdown > *:first-child { margin-top: 0 !important; }
+
+/* Stock declares `font-family: sans-serif` on the info block's markdown
+   elements, so these carry the family explicitly rather than inheriting it. */
+#emit-swagger .swagger-ui .info p,
+#emit-swagger .swagger-ui .info li,
+#emit-swagger .swagger-ui .info td,
+#emit-swagger .swagger-ui .info th,
+#emit-swagger .swagger-ui .info strong,
+#emit-swagger .swagger-ui .info em,
+#emit-swagger .swagger-ui .opblock-tag small p,
+#emit-swagger .swagger-ui .info .markdown p,
+#emit-swagger .swagger-ui .info .renderedMarkdown p {
+  font-family: var(--f-body) !important;
+}
+#emit-swagger .swagger-ui .info p,
+#emit-swagger .swagger-ui .info .markdown p,
+#emit-swagger .swagger-ui .info .renderedMarkdown p {
+  margin: 0 0 var(--sp-3) !important;   /* kills `1em auto` */
+  max-width: 72ch !important;
+  font-size: var(--t-md) !important;
+  line-height: 1.78 !important;
+  color: var(--e-body) !important;
+  word-break: normal !important;        /* counter: word-break:break-all */
+  overflow-wrap: anywhere !important;
+}
+/* Lead paragraph: one step larger, slightly wider measure. */
+#emit-swagger .swagger-ui .info .info__description .renderedMarkdown > p:first-child,
+#emit-swagger .swagger-ui .info .info__description .markdown > p:first-child {
+  font-size: var(--t-lg) !important;
+  max-width: 74ch !important;
+  line-height: 1.75 !important;
+}
+
+#emit-swagger .swagger-ui .info h1,
+#emit-swagger .swagger-ui .info h2,
+#emit-swagger .swagger-ui .info h3,
+#emit-swagger .swagger-ui .info h4 {
+  font-family: var(--f-body) !important;
+  font-size: var(--t-2xs) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: var(--e-label) !important;
+  border-bottom: 1px solid var(--e-line) !important;
+  padding-bottom: var(--sp-2) !important;
+  margin: var(--sp-6) 0 var(--sp-3) !important;
+}
+
+#emit-swagger .swagger-ui .info code,
+#emit-swagger .swagger-ui .info .markdown code,
+#emit-swagger .swagger-ui .info .renderedMarkdown code {
+  font-family: var(--f-mono) !important;
+  font-size: 0.84em !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  background: var(--pt-bg) !important;
+  color: var(--pt-c) !important;
+  border: 1px solid var(--pt-b) !important;
+  border-radius: var(--r-xs) !important;
+  padding: 1px 6px !important;
+}
+#emit-swagger .swagger-ui .info strong { color: var(--e-text) !important; font-weight: 600 !important; }
+#emit-swagger .swagger-ui .info em { color: var(--e-dim) !important; }
+#emit-swagger .swagger-ui .info a {
+  font-family: var(--f-body) !important;
+  font-size: inherit !important;
+  color: var(--ui-c) !important;
+  text-decoration: none !important;
+}
+#emit-swagger .swagger-ui .info a:hover { color: rgba(156,220,254,1) !important; }
+
+/* Numbered steps: counter-driven badges instead of browser markers. */
+#emit-swagger .swagger-ui .info ol,
+#emit-swagger .swagger-ui .info .markdown ol,
+#emit-swagger .swagger-ui .info .renderedMarkdown ol {
+  counter-reset: emit-step !important;
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: var(--sp-3) 0 var(--sp-5) !important;
+}
+#emit-swagger .swagger-ui .info ol > li,
+#emit-swagger .swagger-ui .info .markdown ol > li,
+#emit-swagger .swagger-ui .info .renderedMarkdown ol > li {
+  counter-increment: emit-step !important;
+  list-style: none !important;
+  position: relative !important;
+  padding-left: 32px !important;
+  margin: 0 0 var(--sp-3) !important;
+  font-size: var(--t-md) !important;
+  line-height: 1.85 !important;
+  color: var(--e-body) !important;
+}
+#emit-swagger .swagger-ui .info ol > li::before,
+#emit-swagger .swagger-ui .info .markdown ol > li::before,
+#emit-swagger .swagger-ui .info .renderedMarkdown ol > li::before {
+  content: counter(emit-step) !important;
+  position: absolute !important;
+  left: 0 !important; top: 4px !important;
+  display: block !important;
+  width: 18px !important;
+  line-height: 18px !important;
+  text-align: right !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-xs) !important;
+  font-weight: 500 !important;
+  font-variant-numeric: tabular-nums !important;
+  color: var(--e-faint) !important;
+  background: none !important;
+  border: 0 !important;
+}
+/* Steps that name a real operation link to it (wired by enhance.js). */
+#emit-swagger .swagger-ui .info .emit-step-link {
+  cursor: pointer !important;
+  transition: border-color 0.14s, color 0.14s, background 0.14s !important;
+}
+/* The go-to mark tells a link chip apart from plain code at rest. */
+#emit-swagger .swagger-ui .info .emit-step-link svg {
+  width: 9px !important;
+  height: 9px !important;
+  margin-left: 5px !important;
+  opacity: 0.55 !important;
+  vertical-align: baseline !important;
+  transition: opacity 0.14s !important;
+}
+#emit-swagger .swagger-ui .info .emit-step-link:hover svg,
+#emit-swagger .swagger-ui .info .emit-step-link:focus-visible svg { opacity: 1 !important; }
+#emit-swagger .swagger-ui .info .emit-step-link:hover {
+  border-color: var(--ui-b) !important;
+  color: var(--ui-c) !important;
+}
+#emit-swagger .swagger-ui .info .emit-step-link:focus-visible {
+  outline: none !important;
+  border-color: var(--ui-b) !important;
+  box-shadow: 0 0 0 2px var(--ui-bg) !important;
+}
+
+#emit-swagger .swagger-ui .info ul,
+#emit-swagger .swagger-ui .info .markdown ul,
+#emit-swagger .swagger-ui .info .renderedMarkdown ul {
+  padding-left: var(--sp-5) !important;
+  margin: var(--sp-3) 0 var(--sp-5) !important;
+}
+#emit-swagger .swagger-ui .info ul > li {
+  font-size: var(--t-md) !important;
+  line-height: 1.85 !important;
+  color: var(--e-body) !important;
+  margin-bottom: var(--sp-2) !important;
+}
+#emit-swagger .swagger-ui .info ul > li::marker { color: rgba(156,220,254,0.4) !important; }
+/* The panel supplies the closing space; a trailing list margin doubles it. */
+#emit-swagger .swagger-ui .info .renderedMarkdown > *:last-child,
+#emit-swagger .swagger-ui .info .markdown > *:last-child { margin-bottom: 0 !important; }
+
+/* border-collapse: separate is required for the radius, so the corner cells
+   carry it. */
+#emit-swagger .swagger-ui .info table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-radius: var(--r-code) !important;
+  margin: var(--sp-3) 0 var(--sp-5) !important;
+  font-size: var(--t-md) !important;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+#emit-swagger .swagger-ui .info table thead th {
+  background: var(--e-bar) !important;
+  color: var(--e-dim) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-2xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  text-align: left !important;
+  padding: var(--sp-2) var(--sp-4) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+}
+#emit-swagger .swagger-ui .info table thead th:first-child { border-radius: 7px 0 0 0 !important; }
+#emit-swagger .swagger-ui .info table thead th:last-child  { border-radius: 0 7px 0 0 !important; }
+#emit-swagger .swagger-ui .info table tbody td {
+  padding: 10px var(--sp-4) !important;
+  color: var(--e-body) !important;
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+  vertical-align: top !important;
+}
+#emit-swagger .swagger-ui .info table tbody tr:last-child td { border-bottom: 0 !important; }
+#emit-swagger .swagger-ui .info table tbody tr:last-child td:first-child { border-radius: 0 0 0 7px !important; }
+#emit-swagger .swagger-ui .info table tbody tr:last-child td:last-child  { border-radius: 0 0 7px 0 !important; }
+#emit-swagger .swagger-ui .info table tbody tr { transition: background 0.12s; }
+#emit-swagger .swagger-ui .info table tbody tr:hover td { background: rgba(255,255,255,0.018) !important; }
+
+/* Authentication table after enhance.js swaps the first cell for a scope badge. */
+/* Scrolls inside this frame on narrow screens instead of widening the page. */
+#emit-swagger .swagger-ui .info .emit-matrix-frame { overflow-x: auto; }
+#emit-swagger .swagger-ui .info table.emit-matrix tbody td:first-child {
+  vertical-align: middle !important;
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   5. SCHEME BAR
+   Counter: .servers>label{margin:-20px 15px 0 0}
+            .schemes-server-container>label{flex-direction:column}
+   Together they overlapped the label onto the select.
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui .scheme-container {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: var(--sp-4) 0 !important;
+  margin: 0 0 var(--sp-2) !important;
+  border-bottom: 1px solid var(--e-hair) !important;
+}
+#emit-swagger .swagger-ui .scheme-container .schemes {
+  align-items: center !important;
+  gap: var(--sp-3) !important;
+}
+#emit-swagger .swagger-ui .scheme-container .schemes > .schemes-server-container { align-items: center !important; }
+
+/* Real structure:
+     .schemes-server-container > div > span.servers-title  ("Servers")
+                                     > div.servers > label > select
+   The caption is a sibling of the select's label, not its text, so the row
+   is laid out on their shared parent and the status dot goes on the caption. */
+#emit-swagger .swagger-ui .schemes-server-container > div {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-3) !important;
+}
+#emit-swagger .swagger-ui .servers-title {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: var(--sp-2) !important;
+  margin: 0 !important;
+  color: var(--e-dim) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-2xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.13em !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+/* Live-server indicator. */
+#emit-swagger .swagger-ui .servers-title::before {
+  content: '' !important;
+  flex: 0 0 auto !important;
+  width: 6px !important; height: 6px !important;
+  border-radius: 50% !important;
+  background: rgba(110,185,80,0.72) !important;
+  box-shadow: 0 0 6px rgba(110,185,80,0.38) !important;
+}
+#emit-swagger .swagger-ui .servers > label,
+#emit-swagger .swagger-ui .schemes-server-container label {
+  display: block !important;
+  flex-direction: row !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+#emit-swagger .swagger-ui .servers select,
+#emit-swagger .swagger-ui .scheme-container select {
+  background: var(--e-well) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: var(--r-sm) !important;
+  color: var(--e-body) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-sm) !important;
+  text-transform: none !important;   /* counter: text-transform:uppercase */
+  padding: 5px 10px !important;
+  min-width: 240px !important;
+  box-shadow: none !important;
+}
+/* Only the button is hidden: the topbar tag replaces it. Swagger renders the
+   Authorize dialog inside .auth-wrapper, so hiding the wrapper hides the dialog. */
+#emit-swagger .swagger-ui .scheme-container .schemes .auth-wrapper > .authorize { display: none !important; }
+
+/* Counter: .btn.authorize{display:inline} + span{float:left} */
+#emit-swagger .swagger-ui .auth-wrapper .authorize,
+#emit-swagger .swagger-ui .btn.authorize {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: var(--ui-bg) !important;
+  border: 1px solid var(--ui-b) !important;
+  border-radius: var(--r-sm) !important;
+  color: var(--ui-c) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-sm) !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  padding: 5px 14px !important;
+  box-shadow: none !important;
+}
+/* Markup is <span>Authorize</span><svg>; order puts the lock first. */
+#emit-swagger .swagger-ui .btn.authorize span {
+  float: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  order: 2 !important;
+}
+#emit-swagger .swagger-ui .btn.authorize svg {
+  order: 1 !important;
+  width: 13px !important;
+  height: 13px !important;
+  fill: currentColor !important;
+  opacity: 0.7 !important;
+}
+#emit-swagger .swagger-ui .auth-wrapper .authorize:hover,
+#emit-swagger .swagger-ui .btn.authorize:hover {
+  background: var(--ui-bg-hover) !important;
+  border-color: var(--ui-b-hover) !important;
+  box-shadow: none !important;
+}
+
+/* Filter box is not part of the mockup. */
+#emit-swagger .swagger-ui .filter-container,
+#emit-swagger .swagger-ui .filter { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   6. TAG HEADERS
+   Counter: .opblock-tag{border-bottom:1px solid;font-size:24px;padding:10px 20px 10px 10px}
+   The tag description (`small`) is hidden.
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui .opblock-tag {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-3) !important;
+  border: 0 !important;
+  background: transparent !important;
+  padding: 10px 2px !important;
+  margin: var(--sp-7) 0 var(--sp-2) !important;
+  color: var(--e-label) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-xs) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  transition: color 0.15s !important;
+}
+#emit-swagger .swagger-ui .opblock-tag:hover { background: transparent !important; color: rgba(168,186,222,0.8) !important; }
+/* The first tag sits under the servers row, so it gets a smaller top gap. */
+#emit-swagger .swagger-ui .opblock-tag:first-of-type { margin-top: var(--sp-5) !important; }
+#emit-swagger .swagger-ui .opblock-tag::before {
+  content: '' !important;
+  flex: 0 0 auto !important;
+  width: 7px !important; height: 7px !important;
+  border-radius: 50% !important;
+  border: 1.5px solid rgba(168,186,222,0.3) !important;
+}
+/* The rule fills the gap between label and chevron. */
+#emit-swagger .swagger-ui .opblock-tag::after {
+  content: '' !important;
+  flex: 1 1 auto !important;
+  height: 1px !important;
+  min-width: var(--sp-5) !important;
+  background: var(--e-line) !important;
+}
+#emit-swagger .swagger-ui .opblock-tag > a,
+#emit-swagger .swagger-ui .opblock-tag > span,
+#emit-swagger .swagger-ui .opblock-tag > div {
+  flex: 0 0 auto !important;
+  color: inherit !important;
+  font: inherit !important;
+  letter-spacing: inherit !important;
+  text-decoration: none !important;
+  overflow: visible !important;
+}
+#emit-swagger .swagger-ui .opblock-tag small,
+#emit-swagger .swagger-ui .opblock-tag .info__externaldocs { display: none !important; }
+/* Chevron sits after the rule. */
+#emit-swagger .swagger-ui .opblock-tag .expand-operation { order: 1 !important; flex: 0 0 auto !important; }
+
+/* Endpoint count, read off the spec by enhance.js.
+   Row order: dot, label, rule, count, chevron. */
+#emit-swagger .swagger-ui .emit-count {
+  flex: 0 0 auto !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-3xs) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  color: var(--e-faint) !important;
+  white-space: nowrap !important;
+}
+/* `span` in the selector outranks the `font: inherit` reset on
+   .opblock-tag > span. */
+#emit-swagger .swagger-ui .opblock-tag > span.emit-count {
+  order: 1 !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-3xs) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  color: var(--e-faint) !important;
+}
+#emit-swagger .swagger-ui section.models .models-control .emit-count { order: 2 !important; }
+#emit-swagger .swagger-ui .opblock-tag svg { fill: var(--e-faint) !important; }
+
+/* --------------------------------------------------------------------------
+   7. OPERATION CARDS
+   Counter: .opblock{border:1px solid #000;box-shadow:0 0 3px;margin:0 0 15px}
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui .opblock {
+  color: var(--e-body) !important;
+  background: var(--e-glass) !important;
+  border: 1px solid var(--e-line) !important;
+  border-radius: var(--r-panel) !important;
+  margin: 0 0 var(--sp-2) !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  transition: background 0.14s, border-color 0.14s !important;
+}
+#emit-swagger .swagger-ui .opblock:hover {
+  border-color: var(--e-edge) !important;
+}
+#emit-swagger .swagger-ui .opblock.is-open {
+  background: var(--e-glass) !important;
+  border: 1px solid var(--e-rim) !important;
+  box-shadow: 0 8px 36px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+  backdrop-filter: blur(8px);
+  margin: 0 0 var(--sp-4) !important;
+}
+/* Rail on the open card, in the method token at reduced strength. */
+#emit-swagger .swagger-ui .opblock.is-open.opblock-get    { border-left: 2px solid var(--get-b) !important; }
+#emit-swagger .swagger-ui .opblock.is-open.opblock-post   { border-left: 2px solid var(--post-b) !important; }
+#emit-swagger .swagger-ui .opblock.is-open.opblock-delete { border-left: 2px solid var(--del-b) !important; }
+#emit-swagger .swagger-ui .opblock.is-open.opblock-put,
+#emit-swagger .swagger-ui .opblock.is-open.opblock-patch  { border-left: 2px solid var(--put-b) !important; }
+
+/* Summary row. Counter: .opblock-summary{padding:5px} */
+#emit-swagger .swagger-ui .opblock .opblock-summary {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-3) !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 11px var(--sp-4) !important;
+  /* Stock text colour #3b4151 disappears on the dark ground. */
+  color: var(--e-body) !important;
+  transition: background 0.12s !important;
+}
+#emit-swagger .swagger-ui .opblock .opblock-summary:hover { background: rgba(255,255,255,0.02) !important; }
+#emit-swagger .swagger-ui .opblock.is-open .opblock-summary { border-bottom: 1px solid var(--e-line) !important; }
+#emit-swagger .swagger-ui .opblock-summary-control {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-3) !important;
+  flex: 1 1 auto !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+}
+/* Counter: .opblock-summary-path-description-wrapper{padding:0 10px;gap:0 10px} */
+#emit-swagger .swagger-ui .opblock-summary-path-description-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-3) !important;
+  padding: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+/* Method badge. Counter: {background:#000;color:#fff;min-width:80px;text-shadow} */
+#emit-swagger .swagger-ui .opblock .opblock-summary-method,
+#emit-swagger .emit-legend-pill[class*="m-"] {
+  flex: 0 0 auto !important;
+  min-width: 52px !important;
+  padding: 3px 8px !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--r-sm) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-2xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.09em !important;
+  text-align: center !important;
+  text-shadow: none !important;
+  background: none !important;
+}
+#emit-swagger .swagger-ui .opblock-get    .opblock-summary-method { color: var(--get-c)!important;  background: var(--get-bg)!important;  border-color: var(--get-b)!important; }
+#emit-swagger .swagger-ui .opblock-post   .opblock-summary-method { color: var(--post-c)!important; background: var(--post-bg)!important; border-color: var(--post-b)!important; }
+#emit-swagger .swagger-ui .opblock-delete .opblock-summary-method { color: var(--del-c)!important;  background: var(--del-bg)!important;  border-color: var(--del-b)!important; }
+#emit-swagger .swagger-ui .opblock-put    .opblock-summary-method,
+#emit-swagger .swagger-ui .opblock-patch  .opblock-summary-method { color: var(--put-c)!important;  background: var(--put-bg)!important;  border-color: var(--put-b)!important; }
+
+#emit-swagger .swagger-ui .opblock .opblock-summary-path,
+#emit-swagger .swagger-ui .opblock .opblock-summary-path__deprecated {
+  flex: 0 0 auto !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-md) !important;
+  font-weight: 500 !important;
+  color: var(--e-text) !important;
+  word-break: normal !important;
+}
+#emit-swagger .swagger-ui .opblock .opblock-summary-description {
+  flex: 1 1 auto !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-sm) !important;
+  color: var(--e-dim) !important;
+  word-break: normal !important;
+}
+#emit-swagger .swagger-ui .opblock .opblock-summary-operation-id { display: none !important; }
+#emit-swagger .swagger-ui .authorization__btn { background: transparent !important; border: 0 !important; padding: 0 var(--sp-1) !important; }
+#emit-swagger .swagger-ui .authorization__btn svg { fill: rgba(168,186,222,0.35) !important; }
+#emit-swagger .swagger-ui .authorization__btn.unlocked svg { fill: rgba(168,186,222,0.18) !important; }
+/* Stock sizes the chevron svgs 20x20 by attribute, which makes the tag row taller. */
+#emit-swagger .swagger-ui .expand-operation svg,
+#emit-swagger .swagger-ui .opblock .arrow { fill: var(--e-faint) !important; }
+/* Laid out as a block: an inline box adds the font's descender to the row. */
+#emit-swagger .swagger-ui .opblock-tag .expand-operation {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 !important;
+}
+#emit-swagger .swagger-ui .opblock-tag .expand-operation svg { width: 16px !important; height: 16px !important; }
+#emit-swagger .swagger-ui .opblock .opblock-control-arrow {
+  display: flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+  padding: 0 !important;
+}
+#emit-swagger .swagger-ui .opblock .opblock-control-arrow .arrow { width: 15px !important; height: 15px !important; }
+#emit-swagger .swagger-ui .view-line-link { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   8. OPERATION BODY
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui .opblock-body { background: rgba(0,0,0,0.04) !important; }
+#emit-swagger .swagger-ui .opblock .opblock-section,
+#emit-swagger .swagger-ui .opblock-body > div { background: transparent !important; }
+
+/* Counter: .opblock-description-wrapper{padding:15px 20px;margin:0 0 5px} */
+#emit-swagger .swagger-ui .opblock-description-wrapper,
+#emit-swagger .swagger-ui .opblock-external-docs-wrapper,
+#emit-swagger .swagger-ui .opblock-title_normal {
+  background: transparent !important;
+  padding: var(--sp-4) var(--gutter) !important;
+  margin: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+}
+/* Font declared, not inherited (stock sets sans-serif); `ch` depends on it. */
+#emit-swagger .swagger-ui .opblock-description-wrapper p,
+#emit-swagger .swagger-ui .opblock-description-wrapper .renderedMarkdown p,
+#emit-swagger .swagger-ui .opblock-title_normal p {
+  margin: 0 !important;
+  font-family: var(--f-body) !important;
+  max-width: 74ch !important;
+  font-size: var(--t-md) !important;
+  line-height: 1.78 !important;
+  color: var(--e-body) !important;
+}
+/* Empty parameters: the section stays, since Try it out lives in its header. */
+#emit-swagger .swagger-ui .parameters-container > .opblock-description-wrapper {
+  padding: var(--sp-2) var(--gutter) !important;
+  border-bottom: 0 !important;
+}
+#emit-swagger .swagger-ui .parameters-container > .opblock-description-wrapper p {
+  font-family: var(--f-body) !important;
+  /* Not prose, so it does not take the prose measure it would inherit. */
+  max-width: none !important;
+  font-size: var(--t-sm) !important;
+  font-style: italic !important;
+  line-height: normal !important;
+  color: var(--e-faint) !important;
+}
+
+/* Prose code only: without the guard this matches <code class="language-json">. */
+#emit-swagger .swagger-ui .opblock-description-wrapper code:not([class*="language-"]),
+#emit-swagger .swagger-ui .opblock-body .renderedMarkdown code:not([class*="language-"]),
+#emit-swagger .swagger-ui .opblock-body .markdown code:not([class*="language-"]) {
+  font-family: var(--f-mono) !important;
+  font-size: 0.84em !important;
+  font-weight: 400 !important;
+  background: var(--pt-bg) !important;
+  color: var(--pt-c) !important;
+  border: 1px solid var(--pt-b) !important;
+  border-radius: var(--r-xs) !important;
+  padding: 1px 5px !important;
+}
+
+/* Section headers: PARAMETERS / REQUEST BODY / RESPONSES.
+   Counter: .opblock-section-header{background:hsla(0,0%,100%,.8);
+            box-shadow:0 1px 2px;min-height:50px;padding:8px 20px} */
+#emit-swagger .swagger-ui .opblock .opblock-section-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-3) !important;
+  background: var(--e-bar) !important;
+  box-shadow: none !important;
+  /* No top rule: the block above already ends with a hairline. */
+  border-top: 0 !important;
+  border-bottom: 1px solid var(--e-hair) !important;
+  min-height: 0 !important;
+  padding: 9px var(--gutter) !important;
+}
+#emit-swagger .swagger-ui .opblock .opblock-section-header h4,
+#emit-swagger .swagger-ui .opblock .opblock-section-header h4 > span,
+#emit-swagger .swagger-ui .opblock .opblock-section-header > label {
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-3xs) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.13em !important;
+  text-transform: uppercase !important;
+  color: var(--e-dim) !important;
+}
+#emit-swagger .swagger-ui .opblock .opblock-section-header h4 { flex: 1 1 auto !important; }
+#emit-swagger .swagger-ui .opblock .opblock-section-header > label { margin-left: auto !important; }
+#emit-swagger .swagger-ui .opblock .opblock-section-header > label > span { padding: 0 var(--sp-2) 0 0 !important; }
+#emit-swagger .swagger-ui .opblock-section-header .required {
+  color: var(--e-dim) !important;
+  font-size: var(--t-3xs) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+}
+
+/* Try it out. Counter: .btn{border:2px solid grey;padding:5px 23px;font-size:14px}
+   Reset and Cancel share this class and are overridden below. */
+#emit-swagger .swagger-ui .btn.try-out__btn,
+#emit-swagger .swagger-ui .emit-note__action,
+#emit-swagger .swagger-ui .live-responses-table a[download] {
+  background: transparent !important;
+  border: 1px solid var(--ui-b) !important;
+  border-radius: var(--r-sm) !important;
+  color: var(--ui-c) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-xs) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  padding: 2px 10px !important;
+  box-shadow: none !important;
+}
+#emit-swagger .swagger-ui .btn.try-out__btn:hover,
+#emit-swagger .swagger-ui .emit-note__action:hover,
+#emit-swagger .swagger-ui .live-responses-table a[download]:hover {
+  border-color: var(--ui-b-hover) !important;
+  background: var(--ui-bg) !important;
+  box-shadow: none !important;
+}
+#emit-swagger .swagger-ui .try-out { margin-left: auto !important; }
+
+/* --------------------------------------------------------------------------
+   9. TABLES (parameters + responses)
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui .opblock table,
+#emit-swagger .swagger-ui .parameters,
+#emit-swagger .swagger-ui .responses-table {
+  background: transparent !important;
+  border-collapse: collapse !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+#emit-swagger .swagger-ui .opblock table thead tr th,
+#emit-swagger .swagger-ui .opblock table thead tr td {
+  background: var(--e-bar) !important;
+  color: var(--e-dim) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-3xs) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.13em !important;
+  text-transform: uppercase !important;
+  text-align: left !important;
+  /* Declared so every header cell in a row shares one line box. */
+  line-height: normal !important;
+  padding: 9px var(--gutter) !important;
+  border-bottom: 1px solid var(--e-line) !important;
+}
+#emit-swagger .swagger-ui .opblock table tbody tr { background: transparent !important; transition: background 0.1s; }
+#emit-swagger .swagger-ui .opblock table tbody tr td {
+  background: transparent !important;
+  color: var(--e-body) !important;
+  padding: var(--sp-3) var(--gutter) !important;
+  border-bottom: 1px solid var(--e-hair) !important;
+  vertical-align: top !important;
+}
+#emit-swagger .swagger-ui .opblock table tbody tr:last-child td { border-bottom: 0 !important; }
+#emit-swagger .swagger-ui .opblock table tbody tr:hover td { background: rgba(255,255,255,0.012) !important; }
+#emit-swagger .swagger-ui .parameters-container,
+#emit-swagger .swagger-ui .parameters-container--empty,
+#emit-swagger .swagger-ui .table-container,
+#emit-swagger .swagger-ui .responses-inner,
+#emit-swagger .swagger-ui .responses-wrapper,
+#emit-swagger .swagger-ui .body-param,
+#emit-swagger .swagger-ui .body-param-options,
+#emit-swagger .swagger-ui .model-example,
+#emit-swagger .swagger-ui .request-body-section { background: transparent !important; padding: 0 !important; }
+#emit-swagger .swagger-ui .opblock-section .parameters-container--empty {
+  padding: var(--sp-3) var(--gutter) !important;
+  color: var(--e-faint) !important;
+  font-size: var(--t-sm) !important;
+  font-style: italic !important;
+}
+
+/* Parameter name. Counter: .parameter__name{font-size:16px} and its
+   `:after{content:"required"}` red text, restyled as a pill. */
+#emit-swagger .swagger-ui .parameter__name {
+  display: block !important;
+  margin: 0 0 var(--sp-1) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-md) !important;
+  font-weight: 500 !important;
+  color: var(--e-text) !important;
+}
+#emit-swagger .swagger-ui .parameter__name.required { font-weight: 500 !important; }
+#emit-swagger .swagger-ui .parameter__name.required span { display: none !important; }
+#emit-swagger .swagger-ui .parameter__name.required::after {
+  content: 'required' !important;
+  position: static !important;
+  top: 0 !important;
+  display: inline-block !important;
+  margin-left: var(--sp-2) !important;
+  padding: 1px 5px !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-3xs) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: var(--e-dim) !important;
+  background: transparent !important;
+  border: 1px solid var(--e-line) !important;
+  border-radius: var(--r-xs) !important;
+  vertical-align: middle !important;
+}
+/* The format is a span nested inside .parameter__type:
+   <div class="parameter__type">string<span class="prop-format">($uuid)</span></div> */
+#emit-swagger .swagger-ui .parameter__type {
+  display: inline-block !important;
+  margin: 2px 3px 2px 0 !important;
+  padding: 1px 7px !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-xs) !important;
+  font-weight: 500 !important;
+  color: var(--pt-c) !important;
+  background: var(--pt-bg) !important;
+  border: 1px solid var(--pt-b) !important;
+  border-radius: var(--r-sm) !important;
+}
+#emit-swagger .swagger-ui .parameter__type .prop-format {
+  color: var(--pf-c) !important;
+  background: none !important;
+  border: none !important;
+  border-left: 1px solid var(--pf-b) !important;
+  padding-left: 5px !important;
+  margin-left: 4px !important;
+}
+/* Counter: .parameter__in{color:grey;font-style:italic} */
+#emit-swagger .swagger-ui .parameter__in,
+#emit-swagger .swagger-ui .parameter__extension {
+  display: inline-block !important;
+  margin: 2px 3px 2px 0 !important;
+  padding: 1px 6px !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-2xs) !important;
+  font-weight: 500 !important;
+  font-style: normal !important;
+  letter-spacing: 0.04em !important;
+  color: rgba(168,186,222,0.45) !important;
+  background: rgba(168,186,222,0.04) !important;
+  border: 1px solid rgba(168,186,222,0.1) !important;
+  border-radius: var(--r-xs) !important;
+}
+#emit-swagger .swagger-ui .parameter__deprecated {
+  color: var(--del-c) !important;
+  font-style: normal !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-2xs) !important;
+}
+/* Name on top, attributes (location first) wrapped beneath. */
+/* Swagger puts the same parameters-col_* class on header and body cells, so
+   body-only rules are scoped to tbody. */
+#emit-swagger .swagger-ui .parameters-col_name { width: 230px !important; }
+#emit-swagger .swagger-ui .parameters tbody .parameters-col_name {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: var(--sp-1) !important;
+}
+#emit-swagger .swagger-ui .parameters tbody .parameters-col_name .parameter__name {
+  order: -2 !important;
+  flex: 0 0 100% !important;
+  margin-bottom: 2px !important;
+}
+#emit-swagger .swagger-ui .parameters tbody .parameters-col_name .parameter__in { order: -1 !important; }
+#emit-swagger .swagger-ui .parameters tbody .parameters-col_name .parameter__type,
+#emit-swagger .swagger-ui .parameters tbody .parameters-col_name .parameter__in { margin: 0 !important; }
+#emit-swagger .swagger-ui .parameter__deprecated:empty { display: none !important; }
+#emit-swagger .swagger-ui .parameters tbody .parameters-col_description {
+  margin-bottom: 0 !important;
+  color: var(--e-body) !important;
+  font-size: var(--t-md) !important;
+  line-height: 1.7 !important;
+}
+#emit-swagger .swagger-ui .parameters tbody .parameters-col_description p {
+  font-family: var(--f-body) !important;
+  font-size: var(--t-md) !important;
+  color: var(--e-body) !important;
+}
+
+/* Responses: the row classes .resp-s2/-s4/-s5 are added by enhance.js. */
+/* nowrap keeps the dot and the code on one line under automatic table layout. */
+#emit-swagger .swagger-ui .response-col_status {
+  width: 104px !important;
+  white-space: nowrap !important;
+}
+/* The device: a status code, wherever one is drawn. */
+#emit-swagger .swagger-ui .response-col_status,
+#emit-swagger .emit-legend-pill[class*="s-"] {
+  color: var(--e-body) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-md) !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+/* The dot takes the row's status colour through currentColor. */
+#emit-swagger .swagger-ui tr.response .response-col_status::before,
+#emit-swagger .emit-legend-pill[class*="s-"]::before {
+  content: '' !important;
+  display: inline-block !important;
+  width: 6px !important;
+  height: 6px !important;
+  margin-right: 6px !important;
+  border-radius: 50% !important;
+  background: currentColor !important;
+  vertical-align: middle !important;
+}
+#emit-swagger .swagger-ui tr.resp-s2 .response-col_status { color: var(--s2-c) !important; }
+#emit-swagger .swagger-ui tr.resp-s4 .response-col_status { color: var(--s4-c) !important; }
+#emit-swagger .swagger-ui tr.resp-s5 .response-col_status { color: var(--s5-c) !important; }
+#emit-swagger .swagger-ui .response-col_description { color: var(--e-body) !important; font-size: var(--t-md) !important; }
+#emit-swagger .swagger-ui .response-col_description p { margin: 0 !important; color: var(--e-body) !important; font-size: var(--t-md) !important; }
+#emit-swagger .swagger-ui .response-col_description__inner p {
+  font-family: var(--f-body) !important;
+  color: var(--e-body) !important;
+  line-height: 1.6 !important;
+}
+#emit-swagger .swagger-ui .responses-inner h4,
+#emit-swagger .swagger-ui .responses-inner h5 {
+  margin: var(--sp-3) 0 var(--sp-1) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-3xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: var(--e-faint) !important;
+}
+/* Links column and media-type controls carry no meaning here. */
+#emit-swagger .swagger-ui .response-col_links,
+#emit-swagger .swagger-ui .responses-table thead tr th:last-child,
+#emit-swagger .swagger-ui .response-controls,
+#emit-swagger .swagger-ui .content-type-wrapper { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   10. TABS + CODE
+   Counter: .tab li:first-of-type:after{background:rgba(0,0,0,.2)} - the
+   separator is invisible on a dark ground.
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui .tab {
+  display: flex !important;
+  gap: var(--sp-1) !important;
+  padding: 0 !important;
+  margin: var(--sp-3) 0 var(--sp-2) !important;
+  border-bottom: 1px solid var(--e-hair) !important;
+}
+#emit-swagger .swagger-ui .tab li {
+  min-width: 0 !important;
+  padding: 0 !important;
+  color: var(--e-dim) !important;
+  font-size: var(--t-xs) !important;
+  font-weight: 500 !important;
+}
+#emit-swagger .swagger-ui .tab li:first-of-type { padding-right: 0 !important; }
+/* First tab label aligns with the block gutter. */
+#emit-swagger .swagger-ui .tab li:first-of-type button.tablinks { padding-left: 0 !important; }
+#emit-swagger .swagger-ui .tab li:first-of-type::after { display: none !important; }
+#emit-swagger .swagger-ui .tab li button.tablinks {
+  padding: 5px 12px !important;
+  font-family: var(--f-body) !important;
+  color: var(--e-dim) !important;
+  background: none !important;
+  border: 0 !important;
+  border-bottom: 2px solid transparent !important;
+  /* Square: the bottom border is the active underline. */
+  border-radius: 0 !important;
+  font-weight: 500 !important;
+  transition: color 0.14s, border-color 0.14s !important;
+}
+#emit-swagger .swagger-ui .tab li.active button.tablinks {
+  color: var(--e-text) !important;
+  border-bottom-color: var(--ui-b) !important;
+  font-weight: 600 !important;
+}
+#emit-swagger .swagger-ui .tab li button.tablinks:hover { color: var(--e-body) !important; }
+/* The wrapper owns the gutter; no side padding here. */
+#emit-swagger .swagger-ui .opblock-body .tab,
+#emit-swagger .swagger-ui .model-example .tab { margin: 0 !important; }
+
+/* Section-header tabs. Counter: .tab-header .tab-item{padding:0 40px} and the
+   4px active bar in the upstream palette, replaced by weight and colour. */
+#emit-swagger .swagger-ui .opblock .tab-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-5) !important;
+  flex: 1 1 auto !important;
+}
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item,
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item:first-of-type {
+  padding: 0 !important;
+  opacity: 1 !important;
+}
+/* A single tab has no active state to show. */
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item h4 {
+  margin: 0 !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-3xs) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.13em !important;
+  text-transform: uppercase !important;
+  color: var(--e-faint) !important;
+  transition: color 0.14s !important;
+}
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item:hover h4 { color: var(--e-dim) !important; }
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item.active h4 { color: var(--e-dim) !important; }
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item.active h4 span { position: static !important; }
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item h4 span::after,
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item.active h4 span::after { content: none !important; }
+
+/* Example pickers. Counter: .examples__title{font-size:1.1em;font-weight:700}
+   and sibling headers at .9rem bold - all far heavier than this page's labels. */
+#emit-swagger .swagger-ui .examples__title,
+#emit-swagger .swagger-ui .examples__section-header,
+#emit-swagger .swagger-ui .example__section-header,
+#emit-swagger .swagger-ui .examples-select__section-label {
+  display: block !important;
+  margin: 0 0 var(--sp-2) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-3xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: var(--e-faint) !important;
+}
+#emit-swagger .swagger-ui .examples__section,
+#emit-swagger .swagger-ui .example__section { margin-top: var(--sp-4) !important; }
+#emit-swagger .swagger-ui .examples-select { margin: 0 0 var(--sp-2) !important; }
+#emit-swagger .swagger-ui .model-example { margin-top: 0 !important; }
+/* The section owns the gap before RESPONSES, whichever tab is showing. */
+#emit-swagger .swagger-ui .body-param,
+#emit-swagger .swagger-ui .body-param-options { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+#emit-swagger .swagger-ui .opblock-section { padding-bottom: 0 !important; }
+
+/* Hairline frame; the leading edge takes the response's status colour. */
+#emit-swagger .swagger-ui .responses-table .highlight-code {
+  border-color: var(--e-hair) !important;
+  border-left-width: 2px !important;
+}
+#emit-swagger .swagger-ui tr.resp-s2 .highlight-code { border-left-color: var(--s2-b) !important; }
+#emit-swagger .swagger-ui tr.resp-s4 .highlight-code { border-left-color: var(--s4-b) !important; }
+#emit-swagger .swagger-ui tr.resp-s5 .highlight-code { border-left-color: var(--s5-b) !important; }
+/* Inside a table cell the block spans the cell, so it needs no side gutter. */
+#emit-swagger .swagger-ui .responses-table .highlight-code,
+#emit-swagger .swagger-ui .parameters .highlight-code { margin: var(--sp-2) 0 var(--sp-3) !important; }
+
+/* Code block. Counter: pre.microlight{background:#333;padding:10px;font-size:12px}
+   and .highlight-code{position:relative} which anchors the copy button. */
+#emit-swagger .swagger-ui .highlight-code {
+  position: relative !important;
+  /* The containers pad themselves. */
+  margin: var(--sp-3) 0 0 !important;
+  background: var(--e-well) !important;
+  border: 1px solid var(--e-line) !important;
+  border-radius: var(--r-code) !important;
+  box-shadow: none !important;
+  color: var(--e-body) !important;
+  overflow: hidden !important;
+}
+#emit-swagger .swagger-ui .highlight-code > .microlight,
+#emit-swagger .swagger-ui .opblock-body pre.microlight {
+  background: none !important;
+  color: var(--e-body) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-sm) !important;
+  font-weight: 400 !important;
+  line-height: 1.85 !important;
+  padding: var(--sp-3) var(--sp-4) !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  max-height: 420px !important;
+}
+/* Stock `code{font-family:Consolas,...}` matches the child directly, so the
+   family is set on the code element too. */
+#emit-swagger .swagger-ui code,
+#emit-swagger .swagger-ui pre { font-family: var(--f-mono) !important; }
+#emit-swagger .swagger-ui .microlight code { color: inherit !important; }
+/* The highlighter writes a background on every token span; cleared here.
+   Token colours are kept. */
+#emit-swagger .swagger-ui .highlight-code pre,
+#emit-swagger .swagger-ui .highlight-code code,
+#emit-swagger .swagger-ui .highlight-code span,
+#emit-swagger .swagger-ui pre.microlight,
+#emit-swagger .swagger-ui pre.microlight code,
+#emit-swagger .swagger-ui pre.microlight span {
+  background: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  text-decoration: none !important;
+}
+#emit-swagger .swagger-ui .highlight-code pre,
+#emit-swagger .swagger-ui pre.microlight { padding: var(--sp-3) var(--sp-4) !important; }
+#emit-swagger .swagger-ui .highlight-code .headerline { display: block !important; }
+/* Counter: .copy-to-clipboard{background:#7d8293;position:absolute;
+   right:100px;bottom:10px;width:30px;height:30px} - it is a floating
+   square, not a toolbar. Moved to the top-right corner of the block. */
+#emit-swagger .swagger-ui .copy-to-clipboard {
+  top: var(--sp-2) !important;
+  right: var(--sp-2) !important;
+  bottom: auto !important;
+  width: 26px !important;
+  height: 26px !important;
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid var(--e-edge) !important;
+  border-radius: var(--r-sm) !important;
+  opacity: 0.5 !important;
+  transition: opacity 0.14s, background 0.14s !important;
+}
+#emit-swagger .swagger-ui .highlight-code:hover .copy-to-clipboard { opacity: 1 !important; }
+#emit-swagger .swagger-ui .copy-to-clipboard:hover,
+#emit-swagger .swagger-ui .copy-to-clipboard:active { background: rgba(255,255,255,0.1) !important; }
+/* The stock copy icon is a data URI with fill="#fff" baked in. currentColor
+   cannot reach a background-image, so the icon is replaced wholesale. */
+#emit-swagger .swagger-ui .copy-to-clipboard button {
+  height: 20px !important;
+  background: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23a8badc" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"%3E%3Crect x="9" y="9" width="12" height="12" rx="2"/%3E%3Cpath d="M5 15V5a2 2 0 0 1 2-2h10"/%3E%3C/svg%3E') 50% no-repeat !important;
+  background-size: 14px 14px !important;
+}
+
+/* Executed request: Curl, Request URL, Server response. Label above, well
+   around the code. The curl copy button is a sibling of the code, so grid
+   places both in one cell instead of absolute positioning. */
+#emit-swagger .swagger-ui .responses-inner .curl-command,
+#emit-swagger .swagger-ui .responses-inner .request-url,
+#emit-swagger .swagger-ui .responses-inner > div > div > h4 {
+  margin-left: var(--gutter) !important;
+  margin-right: var(--gutter) !important;
+}
+#emit-swagger .swagger-ui .curl-command {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  background: transparent !important;
+}
+#emit-swagger .swagger-ui .curl-command > h4 { grid-row: 1; }
+#emit-swagger .swagger-ui .curl-command > div:last-child,
+#emit-swagger .swagger-ui .curl-command > .copy-to-clipboard { grid-row: 2; grid-column: 1; }
+#emit-swagger .swagger-ui .curl-command > .copy-to-clipboard {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  justify-self: end;
+  align-self: start;
+  margin: var(--sp-2) !important;
+  z-index: 1;
+}
+#emit-swagger .swagger-ui .curl-command:hover > .copy-to-clipboard { opacity: 1 !important; }
+#emit-swagger .swagger-ui .curl-command > div:last-child,
+#emit-swagger .swagger-ui .opblock-body .request-url pre.microlight {
+  background: var(--e-well) !important;
+  border: 1px solid var(--e-line) !important;
+  border-radius: var(--r-code) !important;
+  overflow: hidden !important;
+}
+#emit-swagger .swagger-ui .curl,
+#emit-swagger .swagger-ui .opblock-body .request-url pre.microlight {
+  color: var(--e-body) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-sm) !important;
+  padding: var(--sp-3) var(--sp-4) !important;
+}
+
+/* File response: stock renders a bare default-blue link. The file name comes
+   from the download attribute and may break anywhere, so the cell cannot
+   overflow on narrow screens. */
+#emit-swagger .swagger-ui .live-responses-table a[download] {
+  display: inline-flex !important;
+  align-items: center;
+  gap: var(--sp-2);
+  width: fit-content;
+  max-width: 100%;
+  white-space: nowrap;
+  margin: var(--sp-1) 0 var(--sp-2);
+  padding: 5px 12px !important;
+  text-decoration: none !important;
+}
+#emit-swagger .swagger-ui .live-responses-table a[download]::before {
+  content: '';
+  width: 13px; height: 13px;
+  flex: 0 0 auto;
+  background: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%239cdcfe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpath d="M12 3v12M7 11l5 5 5-5M4 20h16"/%3E%3C/svg%3E') 50% / contain no-repeat;
+}
+#emit-swagger .swagger-ui .live-responses-table a[download]::after {
+  content: attr(download);
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-family: var(--f-mono);
+  font-size: var(--t-xs);
+  color: var(--e-dim);
+}
+
+/* Response headers: one per line, hanging indent. Stock prefixes each line
+   with a space, absorbed by the negative indent. */
+#emit-swagger .swagger-ui .opblock-body .live-responses-table .response-col_description > div > pre.microlight {
+  background: var(--e-well) !important;
+  border: 1px solid var(--e-line) !important;
+  border-radius: var(--r-code) !important;
+  padding: var(--sp-3) var(--sp-4) !important;
+}
+#emit-swagger .swagger-ui .live-responses-table .headerline {
+  display: block;
+  white-space: pre-wrap;
+  padding-left: 2ch !important;
+  text-indent: -3ch;
+}
+
+/* Response notes: a credential received, or an id carried to other operations. */
+#emit-swagger .swagger-ui .emit-notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: var(--sp-2) var(--gutter) var(--sp-3);
+}
+#emit-swagger .swagger-ui .emit-note {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 7px var(--sp-3);
+  border: 1px solid var(--e-line);
+  border-radius: var(--r-sm);
+  font-family: var(--f-body);
+  font-size: var(--t-sm);
+  color: var(--e-body);
+}
+#emit-swagger .swagger-ui .emit-note svg { width: 14px; height: 14px; flex: 0 0 auto; }
+#emit-swagger .swagger-ui .emit-note--admin  { background: var(--sc-admin-bg);  border-color: var(--sc-admin-b); }
+#emit-swagger .swagger-ui .emit-note--tenant { background: var(--sc-tenant-bg); border-color: var(--sc-tenant-b); }
+#emit-swagger .swagger-ui .emit-note--carry  { background: var(--ui-bg);        border-color: var(--ui-b); }
+#emit-swagger .swagger-ui .emit-note--admin svg  { color: var(--sc-admin-c); }
+#emit-swagger .swagger-ui .emit-note--tenant svg { color: var(--sc-tenant-c); }
+#emit-swagger .swagger-ui .emit-note--carry svg  { color: var(--ui-c); }
+/* Refusal explained. */
+#emit-swagger .swagger-ui .emit-note--denied     { background: var(--s4-bg);    border-color: var(--s4-b); }
+#emit-swagger .swagger-ui .emit-note--denied svg { color: var(--s4-c); }
+#emit-swagger .swagger-ui .emit-note__action { margin-left: auto; cursor: pointer; }
+/* Followed document; the trail colours match the lifecycle figure. */
+#emit-swagger .swagger-ui .emit-note--follow     { background: var(--ui-bg); border-color: var(--ui-b); }
+#emit-swagger .swagger-ui .emit-note--follow svg { color: var(--ui-c); }
+#emit-swagger .swagger-ui .emit-note__trail {
+  font-family: var(--f-mono);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+#emit-swagger .swagger-ui .emit-note__state--pending    { color: var(--s5-c); }
+#emit-swagger .swagger-ui .emit-note__state--processing { color: var(--pt-c); }
+#emit-swagger .swagger-ui .emit-note__state--done       { color: var(--s2-c); }
+#emit-swagger .swagger-ui .emit-note__state--failed     { color: var(--s4-c); }
+#emit-swagger .swagger-ui .emit-note__state.is-past     { color: var(--e-dim); font-weight: 500; }
+#emit-swagger .swagger-ui .emit-note__sep { margin: 0 5px; color: var(--e-faint); font-weight: 400; }
+#emit-swagger .swagger-ui .emit-note__quiet { color: var(--e-dim); }
+#emit-swagger .swagger-ui .emit-note__link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--ui-c);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--ui-b);
+  text-underline-offset: 3px;
+}
+#emit-swagger .swagger-ui .emit-note__link:hover { text-decoration-color: var(--ui-c); }
+/* Duration is metadata, not an outcome: neutral colour. */
+#emit-swagger .swagger-ui .request-duration {
+  color: var(--e-dim) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-xs) !important;
+  background: transparent !important;
+  border: 1px solid var(--e-line) !important;
+  border-radius: var(--r-xs) !important;
+  padding: 2px 7px !important;
+}
+
+/* --------------------------------------------------------------------------
+   11. FORM CONTROLS
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui input[type=text],
+#emit-swagger .swagger-ui input[type=password],
+#emit-swagger .swagger-ui input[type=search],
+#emit-swagger .swagger-ui input[type=email],
+#emit-swagger .swagger-ui input[type=file],
+#emit-swagger .swagger-ui textarea {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: var(--r-sm) !important;
+  color: var(--e-text) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-md) !important;
+  padding: 6px 10px !important;
+  box-shadow: none !important;
+}
+/* A disabled textarea shows an example, so it is drawn as code. Height comes
+   from the rows set by paintExampleBoxes(), not stock's min-height:280px. */
+#emit-swagger .swagger-ui .opblock textarea[disabled] {
+  background: var(--e-well) !important;
+  border: 1px solid var(--e-line) !important;
+  border-radius: var(--r-code) !important;
+  color: var(--e-body) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-sm) !important;
+  line-height: 1.85 !important;
+  padding: var(--sp-3) var(--sp-4) !important;
+  min-height: 0 !important;
+  height: auto !important;
+  resize: none !important;
+  overflow: hidden !important;
+  opacity: 1 !important;
+  cursor: default !important;
+}
+#emit-swagger .swagger-ui input::placeholder,
+#emit-swagger .swagger-ui textarea::placeholder { color: rgba(168,186,222,0.25) !important; }
+#emit-swagger .swagger-ui input:focus,
+#emit-swagger .swagger-ui textarea:focus,
+#emit-swagger .swagger-ui select:focus {
+  border-color: var(--ui-b) !important;
+  box-shadow: 0 0 0 2px var(--ui-bg) !important;
+  outline: none !important;
+}
+#emit-swagger .swagger-ui select {
+  background: var(--e-well) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: var(--r-sm) !important;
+  color: var(--e-body) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-sm) !important;
+  padding: 5px 9px !important;
+  box-shadow: none !important;
+}
+#emit-swagger .swagger-ui .body-param__text,
+#emit-swagger .swagger-ui textarea.body-param__text {
+  background: var(--e-well) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: var(--r-code) !important;
+  color: var(--e-text) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-sm) !important;
+  line-height: 1.75 !important;
+  min-height: 120px !important;
+  padding: var(--sp-3) var(--sp-4) !important;
+}
+#emit-swagger .swagger-ui .btn {
+  border-radius: var(--r-sm) !important;
+  border-width: 1px !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-sm) !important;
+  font-weight: 600 !important;
+  padding: 6px 18px !important;
+  box-shadow: none !important;
+  transition: background 0.15s, border-color 0.15s, color 0.15s !important;
+}
+#emit-swagger .swagger-ui .btn:hover { box-shadow: none !important; }
+/* Execute is primary (filled accent); Cancel, Clear and Download are outlines. */
+#emit-swagger .swagger-ui .btn.execute,
+#emit-swagger .swagger-ui .btn.modal-btn.auth.authorize {
+  background: var(--ui-bg) !important;
+  border-color: var(--ui-b) !important;
+  color: var(--ui-c) !important;
+}
+#emit-swagger .swagger-ui .btn.execute:hover,
+#emit-swagger .swagger-ui .btn.modal-btn.auth.authorize:hover {
+  background: var(--ui-bg-hover) !important;
+  border-color: var(--ui-b-hover) !important;
+}
+/* Undo actions: Cancel, Reset, Clear, Done. */
+#emit-swagger .swagger-ui .btn.cancel,
+#emit-swagger .swagger-ui .btn.try-out__btn.cancel,
+#emit-swagger .swagger-ui .btn.try-out__btn.reset,
+#emit-swagger .swagger-ui .btn.modal-btn.auth.btn-done {
+  background: transparent !important;
+  border-color: var(--e-line) !important;
+  color: var(--e-dim) !important;
+}
+#emit-swagger .swagger-ui .btn.cancel:hover,
+#emit-swagger .swagger-ui .btn.try-out__btn.cancel:hover,
+#emit-swagger .swagger-ui .btn.try-out__btn.reset:hover,
+#emit-swagger .swagger-ui .btn.modal-btn.auth.btn-done:hover {
+  background: transparent !important;
+  border-color: var(--e-edge) !important;
+  color: var(--e-body) !important;
+}
+#emit-swagger .swagger-ui .btn.btn-clear {
+  background: transparent !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: var(--e-dim) !important;
+}
+/* Swagger ships this button unstyled. */
+#emit-swagger .swagger-ui .download-contents {
+  background: transparent !important;
+  border: 1px solid var(--e-line) !important;
+  border-radius: var(--r-sm) !important;
+  color: var(--e-dim) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-xs) !important;
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
+  box-shadow: none !important;
+  transition: border-color 0.14s, color 0.14s !important;
+}
+#emit-swagger .swagger-ui .download-contents:hover {
+  border-color: var(--e-edge) !important;
+  color: var(--e-body) !important;
+}
+#emit-swagger .swagger-ui .btn-group { padding: var(--sp-4) var(--gutter) !important; gap: var(--sp-2) !important; }
+#emit-swagger .swagger-ui .execute-wrapper { padding: var(--sp-4) var(--gutter) !important; }
+/* Empty until Try it out; the padding alone showed as a band. */
+#emit-swagger .swagger-ui .execute-wrapper:empty,
+#emit-swagger .swagger-ui .btn-group:empty,
+#emit-swagger .swagger-ui .responses-header:empty { display: none !important; }
+
+/* Inputs are inert before Try it out, so they read as outlines. */
+#emit-swagger .swagger-ui input:disabled,
+#emit-swagger .swagger-ui textarea:disabled,
+#emit-swagger .swagger-ui select:disabled {
+  background: rgba(255,255,255,0.015) !important;
+  border-color: rgba(255,255,255,0.05) !important;
+  color: var(--e-faint) !important;
+  cursor: default !important;
+}
+#emit-swagger .swagger-ui .parameters-col_description input { max-width: 340px !important; }
+
+/* --------------------------------------------------------------------------
+   12. AUTHORIZE MODAL
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui .dialog-ux .backdrop-ux { background: rgba(4,6,18,0.75) !important; backdrop-filter: blur(6px); }
+#emit-swagger .swagger-ui .dialog-ux .modal-ux {
+  color: var(--e-body) !important;
+  background: var(--e-glass) !important;
+  backdrop-filter: blur(22px);
+  border: 1px solid rgba(255,255,255,0.22) !important;
+  border-radius: var(--r-panel) !important;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-header {
+  background: var(--e-bar) !important;
+  border-bottom: 1px solid var(--e-line) !important;
+  border-radius: var(--r-panel) var(--r-panel) 0 0 !important;
+  padding: var(--sp-3) var(--sp-5) !important;
+}
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-header h3 {
+  color: var(--e-text) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-lg) !important;
+  font-weight: 600 !important;
+  /* Stock pads the title 0 20px, off the dialog gutter. */
+  padding: 0 !important;
+}
+/* The close svg has no fill and is not a .btn, so it is coloured here. */
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-header .close-modal {
+  background: transparent !important;
+  border: 0 !important;
+  padding: var(--sp-1) !important;
+  color: var(--e-dim) !important;
+  cursor: pointer !important;
+  transition: color 0.14s !important;
+}
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-header .close-modal:hover { color: var(--e-text) !important; }
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-header .close-modal svg {
+  width: 16px !important;
+  height: 16px !important;
+  fill: currentColor !important;
+}
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-content { background: transparent !important; padding: var(--sp-5) !important; }
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-content h4 { color: var(--e-text) !important; font-family: var(--f-body) !important; font-size: var(--t-md) !important; font-weight: 600 !important; }
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-content p,
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-content .renderedMarkdown p { color: var(--e-body) !important; font-family: var(--f-body) !important; font-size: var(--t-md) !important; margin: 0 0 var(--sp-2) !important; }
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-content label { color: var(--e-body) !important; font-family: var(--f-body) !important; font-size: var(--t-sm) !important; }
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-content code { font-family: var(--f-mono) !important; background: var(--pt-bg) !important; color: var(--pt-c) !important; border: 1px solid var(--pt-b) !important; border-radius: var(--r-xs) !important; padding: 1px 5px !important; }
+#emit-swagger .swagger-ui .dialog-ux .modal-ux-content .wrapper { background: transparent !important; padding: 0 !important; max-width: none !important; }
+#emit-swagger .swagger-ui .auth-container { border-bottom: 1px solid var(--e-line) !important; padding: 0 0 var(--sp-4) !important; margin: 0 0 var(--sp-4) !important; }
+#emit-swagger .swagger-ui .auth-container:last-of-type { border-bottom: 0 !important; margin-bottom: 0 !important; padding-bottom: 0 !important; }
+
+/* Scheme headline. The badge comes from paintAuthModal(); the scheme type is a
+   bare text node, hence the style on the h4. */
+#emit-swagger .swagger-ui .auth-container h4 {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-2) !important;
+  margin: 0 0 var(--sp-2) !important;
+  color: var(--e-dim) !important;
+  font-size: var(--t-sm) !important;
+  font-weight: 400 !important;
+}
+#emit-swagger .swagger-ui .auth-container .wrapper { margin: 0 0 var(--sp-3) !important; padding: 0 !important; }
+#emit-swagger .swagger-ui .auth-container label {
+  display: block !important;
+  margin: 0 0 var(--sp-1) !important;
+  font-size: var(--t-3xs) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.13em !important;
+  text-transform: uppercase !important;
+  color: var(--e-dim) !important;
+}
+/* Wider field: it holds a JWT. */
+#emit-swagger .swagger-ui .auth-container input[type=text],
+#emit-swagger .swagger-ui .auth-container input[type=password] {
+  width: 100% !important;
+  max-width: none !important;
+}
+/* Stock centres this row. */
+#emit-swagger .swagger-ui .auth-btn-wrapper {
+  justify-content: flex-end !important;
+  gap: var(--sp-2) !important;
+  padding: 0 !important;
+}
+/* Stock gives the last button margin-right:1em. */
+#emit-swagger .swagger-ui .auth-btn-wrapper .btn-done { margin-right: 0 !important; }
+#emit-swagger .swagger-ui .scopes h2 { color: var(--e-text) !important; font-size: var(--t-sm) !important; }
+
+/* --------------------------------------------------------------------------
+   13. SCHEMAS
+   Counter: section.models{border:1px solid rgba(59,65,81,.3);margin:30px 0}
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui section.models {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: var(--sp-7) 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+#emit-swagger .swagger-ui section.models.is-open { padding: 0 !important; }
+#emit-swagger .swagger-ui section.models h4,
+#emit-swagger .swagger-ui section.models.is-open h4 {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-3) !important;
+  background: transparent !important;
+  border: 0 !important;
+  margin: 0 0 var(--sp-2) !important;
+  padding: 10px 2px !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-xs) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: var(--e-label) !important;
+  transition: color 0.15s !important;
+}
+#emit-swagger .swagger-ui section.models h4:hover { color: rgba(168,186,222,0.8) !important; }
+#emit-swagger .swagger-ui section.models h4::before {
+  content: '' !important;
+  flex: 0 0 auto !important;
+  width: 7px !important; height: 7px !important;
+  border-radius: 50% !important;
+  border: 1.5px solid rgba(168,186,222,0.3) !important;
+  order: -1 !important;
+}
+/* Order 2 is taken by the model count. */
+#emit-swagger .swagger-ui section.models h4 svg { fill: var(--e-faint) !important; order: 3 !important; }
+#emit-swagger .swagger-ui section.models .models-control {
+  background: transparent !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-3) !important;
+  flex: 1 !important;
+}
+#emit-swagger .swagger-ui section.models .models-control span { flex: 0 0 auto !important; order: 0 !important; }
+#emit-swagger .swagger-ui section.models .models-control::after {
+  content: '' !important;
+  order: 1 !important;
+  flex: 1 1 auto !important;
+  height: 1px !important;
+  min-width: var(--sp-5) !important;
+  background: var(--e-line) !important;
+}
+#emit-swagger .swagger-ui section.models .no-margin { padding: 0 !important; }
+/* Schema component, used in the Schemas section and in every Schema tab.
+   Width counters .models .json-schema-2020-12:not(.--embedded){width:calc(100% - 40px)} */
+#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] {
+  width: 100% !important;
+  background: var(--e-glass) !important;
+  border: 1px solid var(--e-rim) !important;
+  border-radius: var(--r-panel) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18) !important;
+  margin: 0 0 var(--sp-3) 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"]:last-child { margin-bottom: 0 !important; }
+#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-2) !important;
+  background: var(--e-bar) !important;
+  border-bottom: 1px solid var(--e-line) !important;
+  padding: 11px var(--sp-4) !important;
+}
+#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head .json-schema-2020-12-accordion {
+  background: transparent !important;
+  flex: 1 !important;
+  padding: 0 !important;
+  text-align: left !important;
+}
+#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head .json-schema-2020-12__title:first-of-type {
+  color: var(--e-text) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-md) !important;
+  font-weight: 600 !important;
+}
+/* Stock puts an 18px box around a 20px glyph, which made the card head taller. */
+#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head .json-schema-2020-12-accordion__icon {
+  width: 14px !important;
+  height: 14px !important;
+}
+#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head .json-schema-2020-12-accordion__icon svg {
+  width: 14px !important;
+  height: 14px !important;
+  fill: rgba(168,186,222,0.45) !important;
+}
+/* Hidden at every level: the card chevron and property chevrons cover it. */
+#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head .json-schema-2020-12-expand-deep-button {
+  display: none !important;
+}
+/* Rows carry their own horizontal padding so separators reach the edges. */
+#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > :not(.json-schema-2020-12-head) {
+  border-left: 0 !important;
+  margin: 0 !important;
+  padding: var(--sp-1) 0 !important;
+}
+
+/* Property rows: embedded schema nodes, unstyled by stock. */
+#emit-swagger .swagger-ui .json-schema-2020-12-keyword--properties > ul,
+#emit-swagger .swagger-ui .json-schema-2020-12-keyword--patternProperties > ul {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+/* The li is the row, so the separator and hover span the card. */
+#emit-swagger .swagger-ui li.json-schema-2020-12-property {
+  border-bottom: 1px solid rgba(255,255,255,0.035) !important;
+  margin: 0 !important;
+  padding: 9px var(--sp-4) !important;
+  transition: background 0.12s !important;
+}
+#emit-swagger .swagger-ui li.json-schema-2020-12-property:last-child { border-bottom: 0 !important; }
+#emit-swagger .swagger-ui li.json-schema-2020-12-property:hover { background: rgba(255,255,255,0.012) !important; }
+/* Counter: .json-schema-2020-12{margin:0 20px 15px;padding:12px 0 12px 20px} */
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded {
+  background: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head {
+  display: flex !important;
+  align-items: baseline !important;
+  flex-wrap: wrap !important;
+  gap: var(--sp-1) var(--sp-2) !important;
+  padding: 0 !important;
+}
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12-accordion {
+  background: transparent !important;
+  flex: 0 0 auto !important;
+  min-width: 132px !important;
+  padding: 0 !important;
+  text-align: left !important;
+}
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12__title {
+  color: var(--e-text) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-md) !important;
+  font-weight: 600 !important;
+}
+/* Rows without an accordion button still hold the name column. */
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head > .json-schema-2020-12__title {
+  flex: 0 0 auto !important;
+  min-width: 132px !important;
+}
+/* Swagger emits the body element even when there is nothing in it. */
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-body:empty { display: none !important; }
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12__title:after {
+  color: var(--e-dim) !important;
+  font-weight: 600 !important;
+}
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12-accordion__icon {
+  width: 14px !important; height: 14px !important;
+}
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12-accordion__icon svg {
+  width: 14px !important; height: 14px !important;
+  fill: rgba(168,186,222,0.35) !important;
+}
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12-expand-deep-button {
+  display: none !important;
+}
+/* Every level: card head, property rows, enum viewer. */
+#emit-swagger .swagger-ui .json-schema-2020-12__attribute,
+#emit-swagger .emit-legend-pill.p-type {
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid var(--e-line) !important;
+  border-radius: var(--r-xs) !important;
+  color: var(--e-text) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-xs) !important;
+  font-weight: 600 !important;
+  padding: 1px 6px !important;
+  text-transform: lowercase !important;
+}
+/* Schema names keep their case; keywords are lowercased. */
+#emit-swagger .swagger-ui .json-schema-2020-12__attribute.emit-type-name {
+  text-transform: none !important;
+}
+#emit-swagger .swagger-ui .json-schema-2020-12__attribute--primary,
+#emit-swagger .emit-legend-pill.p-type {
+  background: var(--pt-bg) !important;
+  border-color: var(--pt-b) !important;
+  color: var(--pt-c) !important;
+}
+/* Formats and constraints share a class; enhance.js marks which is which.
+   A format is a filled capsule, a constraint a note behind a bullet. */
+#emit-swagger .swagger-ui .json-schema-2020-12__constraint {
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-xs) !important;
+  line-height: normal !important;
+  margin: 0 !important;
+}
+#emit-swagger .swagger-ui .json-schema-2020-12__constraint.emit-format,
+#emit-swagger .emit-legend-pill.p-fmt {
+  display: inline-block !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-xs) !important;
+  background: var(--pf-bg) !important;
+  border: 1px solid var(--pf-b) !important;
+  border-radius: var(--r-pill) !important;
+  color: var(--pf-c) !important;
+  font-weight: 500 !important;
+  padding: 1px 8px !important;
+}
+#emit-swagger .swagger-ui .json-schema-2020-12__constraint.emit-constraint {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 5px !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: var(--e-faint) !important;
+  font-weight: 400 !important;
+  padding: 0 !important;
+}
+#emit-swagger .swagger-ui .json-schema-2020-12__constraint.emit-constraint::before {
+  content: '' !important;
+  flex: 0 0 auto !important;
+  width: 3px !important;
+  height: 3px !important;
+  border-radius: 50% !important;
+  background: var(--e-faint) !important;
+  transform: translateY(-3px) !important;
+}
+/* An inline enum hides the nested Enum accordion, for that row only. */
+#emit-swagger .swagger-ui article.emit-has-enum
+  > .json-schema-2020-12-body
+  > .json-schema-2020-12-keyword--enum { display: none !important; }
+
+/* Same for array items once the row names the item type. */
+#emit-swagger .swagger-ui article.emit-array
+  > .json-schema-2020-12-body
+  > .json-schema-2020-12-keyword--items { display: none !important; }
+
+/* Description and example hang in the value column (140px). */
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-body {
+  border-left: 0 !important;
+  margin: 2px 0 0 !important;
+  padding: 0 0 0 140px !important;
+}
+/* Deeper levels keep the nesting rule: there the indent is the only thing
+   saying which schema a row belongs to. */
+#emit-swagger .swagger-ui article.json-schema-2020-12--embedded .json-schema-2020-12-body .json-schema-2020-12-body {
+  border-left: 1px solid var(--e-line) !important;
+  margin: 0 0 var(--sp-2) 8px !important;
+  padding: var(--sp-1) 0 0 var(--sp-3) !important;
+}
+
+/* Not inline-block: shrink-to-fit resolved the card's width:100% against its
+   own content. */
+#emit-swagger .swagger-ui .model-box {
+  display: block !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+#emit-swagger .swagger-ui .model,
+#emit-swagger .swagger-ui .model-title {
+  color: var(--e-text) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-sm) !important;
+}
+#emit-swagger .swagger-ui .model-title__text,
+#emit-swagger .swagger-ui .model-title { font-weight: 600 !important; }
+#emit-swagger .swagger-ui .model-toggle { top: 2px !important; }
+#emit-swagger .swagger-ui .model .property { color: var(--e-body) !important; font-family: var(--f-mono) !important; }
+#emit-swagger .swagger-ui .model .property.primitive,
+#emit-swagger .swagger-ui .prop-type { color: var(--pt-c) !important; }
+#emit-swagger .swagger-ui .prop-format { color: var(--pf-c) !important; }
+#emit-swagger .swagger-ui table.model tbody tr td { padding: 3px 0 !important; border: 0 !important; }
+#emit-swagger .swagger-ui table.model tr.property-row td:first-child { color: var(--e-text) !important; }
+#emit-swagger .swagger-ui table.model tr.property-row .star { color: var(--pr-c) !important; }
+#emit-swagger .swagger-ui .model .renderedMarkdown p { color: var(--e-dim) !important; font-size: var(--t-sm) !important; margin: 0 !important; }
+
+/* Fallbacks for json-schema renderer elements not named elsewhere. :where()
+   keeps them at zero specificity so named rules always win. */
+#emit-swagger .swagger-ui :where([class*="json-schema-2020-12"]) { background: transparent !important; color: var(--e-body) !important; }
+#emit-swagger .swagger-ui :where([class*="json-schema-2020-12__title"]) {
+  color: var(--e-text) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-md) !important;
+  font-weight: 700 !important;
+}
+/* Constraint. The class is singular: __constraint (+ --string, --number...). */
+/* Before enhance.js marks the pills: unboxed, so nothing flashes. */
+#emit-swagger .swagger-ui :where([class*="json-schema-2020-12__constraint"]) {
+  display: inline-block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: var(--e-faint) !important;
+  border: 0 !important;
+  font-family: var(--f-mono) !important;
+  font-size: 0.72em !important;
+}
+
+/* Description block: .json-schema-2020-12-keyword--description >
+   .core-keyword__value--secondary > .renderedMarkdown > p */
+#emit-swagger .swagger-ui .json-schema-2020-12-keyword--description {
+  display: block !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 4px 0 0 !important;
+}
+#emit-swagger .swagger-ui .json-schema-2020-12-keyword--description .renderedMarkdown p {
+  margin: 0 !important;
+  color: var(--e-dim) !important;
+  font-size: var(--t-sm) !important;
+  font-style: normal !important;
+  line-height: 1.6 !important;
+}
+
+/* Example: a caption under the description. Label in sans, value in mono. */
+#emit-swagger .swagger-ui .json-schema-2020-12-json-viewer.json-schema-2020-12-keyword--example {
+  display: block !important;
+  margin: 3px 0 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+}
+/* Stock prints "=" between the spans and indents the label 20px. */
+#emit-swagger .swagger-ui .json-schema-2020-12-keyword--example
+  .json-schema-2020-12-json-viewer__name--secondary
+  + .json-schema-2020-12-json-viewer__value--secondary::before {
+  content: none !important;
+}
+#emit-swagger .swagger-ui .json-schema-2020-12-keyword--example .json-schema-2020-12-json-viewer__name {
+  margin: 0 6px 0 0 !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-2xs) !important;
+  font-weight: 500 !important;
+  font-style: normal !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: var(--e-faint) !important;
+}
+#emit-swagger .swagger-ui .json-schema-2020-12-keyword--example .json-schema-2020-12-json-viewer__value {
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-xs) !important;
+  font-weight: 500 !important;
+  font-style: normal !important;
+  color: var(--e-dim) !important;
+}
+#emit-swagger .swagger-ui button:where([class*="json-schema-2020-12"]) {
+  background: transparent !important; border: 0 !important;
+  color: var(--e-dim) !important; font-size: 0.72em !important; cursor: pointer !important;
+}
+#emit-swagger .swagger-ui button:where([class*="json-schema-2020-12"]):hover { color: var(--e-body) !important; }
+#emit-swagger .swagger-ui span.model-hint,
+#emit-swagger .swagger-ui .range-info {
+  background: var(--pf-bg) !important; color: var(--pf-c) !important;
+  border: 1px solid var(--pf-b) !important; border-radius: var(--r-xs) !important;
+  padding: 1px 5px !important; font-style: normal !important; font-family: var(--f-mono) !important;
+}
+
+/* --------------------------------------------------------------------------
+   14. LEGEND (markup injected by SwaggerUiController)
+   -------------------------------------------------------------------------- */
+#emit-legend {
+  position: fixed; bottom: var(--sp-5); right: var(--sp-5); z-index: 9000;
+  display: flex; flex-direction: column; align-items: flex-end; gap: var(--sp-2);
+  font-family: var(--f-body);
+}
+#emit-legend-btn {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--e-surface);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: var(--r-code);
+  color: rgba(168,186,222,0.5);
+  font-size: var(--t-md); cursor: pointer;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.28);
+  transition: background 0.14s, border-color 0.14s, color 0.14s;
+}
+#emit-legend-btn:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.28); color: rgba(168,186,222,0.85); }
+#emit-legend-panel {
+  display: none;
+  min-width: 232px;
+  /* The panel grows upward from a fixed anchor, so on a short window it would
+     run off the top of the screen. */
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--e-glass);
+  border: 1px solid var(--e-rim);
+  border-radius: var(--r-panel);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 36px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+#emit-legend-panel[data-open="true"] { display: block; }
+.emit-legend-title {
+  margin-bottom: 10px; padding-bottom: 7px;
+  border-bottom: 1px solid var(--e-line);
+  font-size: var(--t-3xs); font-weight: 800; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--e-dim);
+}
+.emit-legend-section + .emit-legend-section { margin-top: 10px; }
+.emit-legend-label {
+  margin-bottom: 5px;
+  font-size: var(--t-3xs); font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--e-faint);
+}
+/* Content-sized columns, so every description starts at the same x. */
+.emit-legend-rows {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: center;
+  /* Keep examples at their natural size. */
+  justify-items: start;
+  column-gap: var(--sp-2);
+  row-gap: var(--sp-1);
+}
+.emit-legend-row { display: contents; }
+/* Examples are styled by the rules they illustrate (named in those selectors),
+   so the legend cannot drift from the page. Only layout lives here. */
+.emit-legend-pill,
+.emit-legend-mark,
+.emit-legend-note { flex: 0 0 auto; min-width: 58px; text-align: center; }
+.emit-legend-pill { display: inline-block; }
+.emit-legend-mark {
+  display: inline-block;
+  font-family: var(--f-mono); font-size: var(--t-md); font-weight: 600;
+  color: var(--e-text);
+}
+.emit-legend-mark i { font-style: normal; font-weight: 700; color: var(--e-dim); margin-left: 2px; }
+.emit-legend-note {
+  display: inline-flex; align-items: baseline; gap: 5px;
+  font-family: var(--f-mono); font-size: var(--t-xs); color: var(--e-faint);
+}
+.emit-legend-note::before {
+  content: ''; flex: 0 0 auto; width: 3px; height: 3px;
+  border-radius: 50%; background: var(--e-faint); transform: translateY(-3px);
+}
+/* Only colour varies between method and status examples. */
+#emit-swagger .emit-legend-pill.m-get   { color: var(--get-c) !important;  background: var(--get-bg) !important;  border-color: var(--get-b) !important; }
+#emit-swagger .emit-legend-pill.m-post  { color: var(--post-c) !important; background: var(--post-bg) !important; border-color: var(--post-b) !important; }
+#emit-swagger .emit-legend-pill.m-del   { color: var(--del-c) !important;  background: var(--del-bg) !important;  border-color: var(--del-b) !important; }
+#emit-swagger .emit-legend-pill.m-put   { color: var(--put-c) !important;  background: var(--put-bg) !important;  border-color: var(--put-b) !important; }
+#emit-swagger .emit-legend-pill.s-2xx   { color: var(--s2-c) !important; }
+#emit-swagger .emit-legend-pill.s-4xx   { color: var(--s4-c) !important; }
+#emit-swagger .emit-legend-pill.s-5xx   { color: var(--s5-c) !important; }
+.emit-legend-desc { font-size: var(--t-xs); color: var(--e-dim); }
+
+/* --------------------------------------------------------------------------
+   15. OPERATION ICONS + SCOPE BADGES (markup injected by enhance.js)
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui .emit-op-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border: 1px solid var(--e-hair);
+  border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.03);
+  color: var(--e-dim);
+}
+#emit-swagger .swagger-ui .emit-op-icon svg { width: 14px; height: 14px; }
+#emit-swagger .swagger-ui .opblock.is-open .emit-op-icon { color: var(--e-label); }
+
+#emit-swagger .swagger-ui .emit-scopes {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+#emit-swagger .swagger-ui .emit-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+/* The glyph inherits the badge's colour, so a scope never needs its icon
+   coloured separately from its text. */
+#emit-swagger .swagger-ui .emit-scope svg {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  stroke-width: 2.2;
+}
+#emit-swagger .swagger-ui .emit-scope--admin  { color: var(--sc-admin-c);  background: var(--sc-admin-bg);  border: 1px solid var(--sc-admin-b); }
+#emit-swagger .swagger-ui .emit-scope--tenant { color: var(--sc-tenant-c); background: var(--sc-tenant-bg); border: 1px solid var(--sc-tenant-b); }
+#emit-swagger .swagger-ui .emit-scope--public,
+#emit-swagger .swagger-ui .emit-scope--other  { color: var(--e-dim); background: transparent; border: 1px solid var(--e-line); font-weight: 500; }
+
+/* The stock padlock is replaced by the scope badge. */
+#emit-swagger .swagger-ui .opblock-summary .authorization__btn { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   16. DOCUMENT LIFECYCLE (markup injected by enhance.js)
+   Nodes contribute only their 9px marker to layout and labels are out of
+   flow, so the axis stays put whatever the label length.
+   -------------------------------------------------------------------------- */
+/* Container query: the figure reflows on its own width. */
+#emit-swagger .swagger-ui #emit-lifecycle {
+  margin: var(--sp-6) 0 var(--sp-2);
+  container: emit-lifecycle / inline-size;
+}
+#emit-swagger .swagger-ui .emit-section-label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin: 0 0 var(--sp-3);
+  font-family: var(--f-body);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--e-label);
+}
+#emit-swagger .swagger-ui .emit-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--e-line);
+}
+
+#emit-swagger .swagger-ui .emit-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px var(--sp-5);
+  background: var(--e-well);
+  border: 1px solid var(--e-line);
+  border-radius: var(--r-code);
+  overflow-x: auto;
+}
+#emit-swagger .swagger-ui .emit-flow-node {
+  position: relative;
+  flex: 0 0 auto;
+  width: 112px; height: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#emit-swagger .swagger-ui .emit-flow-dot {
+  width: 9px; height: 9px;
+  flex: 0 0 auto;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  background: var(--e-well);
+}
+#emit-swagger .swagger-ui .emit-flow-text {
+  position: absolute;
+  top: 17px;
+  left: 50%;
+  width: 112px;
+  transform: translateX(-50%);
+  text-align: center;
+}
+#emit-swagger .swagger-ui .emit-flow-state {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+}
+#emit-swagger .swagger-ui .emit-flow-caption {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--f-body);
+  font-size: var(--t-3xs);
+  line-height: 1.55;
+  letter-spacing: 0.03em;
+  color: var(--e-faint);
+}
+/* Current state of the followed document. */
+#emit-swagger .swagger-ui .emit-flow-node.is-current .emit-flow-dot {
+  background: currentColor;
+  box-shadow: 0 0 0 3px var(--e-well), 0 0 0 4px currentColor;
+}
+#emit-swagger .swagger-ui .emit-flow-node--pending    { color: var(--s5-c); }
+#emit-swagger .swagger-ui .emit-flow-node--processing { color: var(--pt-c); }
+#emit-swagger .swagger-ui .emit-flow-node--done       { color: var(--s2-c); }
+#emit-swagger .swagger-ui .emit-flow-node--failed     { color: var(--s4-c); }
+
+#emit-swagger .swagger-ui .emit-flow-link {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 44px; max-width: 132px;
+  height: 9px;
+}
+#emit-swagger .swagger-ui .emit-flow-line {
+  position: absolute;
+  left: 0; right: 0; top: 4px;
+  height: 1px;
+  background: var(--e-edge);
+}
+#emit-swagger .swagger-ui .emit-flow-line::after {
+  content: '';
+  position: absolute;
+  right: 0; top: -2.5px;
+  border-left: 5px solid var(--e-edge);
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+}
+#emit-swagger .swagger-ui .emit-flow-via {
+  position: absolute;
+  left: 0; right: 0; top: 11px;
+  text-align: center;
+  font-family: var(--f-mono);
+  font-size: var(--t-3xs);
+  letter-spacing: 0.05em;
+  color: var(--e-faint);
+}
+
+/* Mirrored outcomes. The arm span is fixed on both sides, so the trunk meets
+   the bracket exactly on the axis. */
+#emit-swagger .swagger-ui .emit-flow-fork {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 76px;
+  padding-left: 22px;
+}
+#emit-swagger .swagger-ui .emit-flow-fork::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 1px;
+  background: var(--e-edge);
+}
+#emit-swagger .swagger-ui .emit-flow-fork .emit-flow-node::before {
+  content: '';
+  position: absolute;
+  left: -22px; top: 4px;
+  width: 22px; height: 1px;
+  background: var(--e-edge);
+}
+/* text thrown outward, away from the axis */
+#emit-swagger .swagger-ui .emit-flow-fork .emit-flow-node--done .emit-flow-text { top: auto; bottom: 17px; }
+
+@container emit-lifecycle (max-width: 640px) {
+  #emit-swagger .swagger-ui .emit-flow { padding: 56px var(--sp-3); }
+  #emit-swagger .swagger-ui .emit-flow-fork { gap: 64px; }
+}
+
+/* Narrow: a vertical timeline. A centred row wider than its scroller starts at
+   a negative offset that cannot be scrolled to.
+   Nodes are 28px with the dot 1px from the top; the connectors depend on it. */
+@container emit-lifecycle (max-width: 520px) {
+  #emit-swagger .swagger-ui .emit-flow {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: var(--sp-5);
+  }
+  #emit-swagger .swagger-ui .emit-flow-node {
+    width: auto;
+    height: 28px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: var(--sp-3);
+  }
+  #emit-swagger .swagger-ui .emit-flow-dot { margin-top: 1px; }
+  #emit-swagger .swagger-ui .emit-flow-text {
+    position: static;
+    width: auto;
+    transform: none;
+    text-align: left;
+  }
+  #emit-swagger .swagger-ui .emit-flow-link {
+    flex: 0 0 auto;
+    width: 9px;
+    min-width: 0;
+    max-width: none;
+    height: 30px;
+  }
+  #emit-swagger .swagger-ui .emit-flow-line {
+    left: 4px; right: auto;
+    top: -18px; bottom: 1px;
+    width: 1px; height: auto;
+  }
+  #emit-swagger .swagger-ui .emit-flow-line::after {
+    left: -2.5px; right: auto;
+    top: auto; bottom: 0;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-top: 5px solid var(--e-edge);
+    border-bottom: 0;
+  }
+  #emit-swagger .swagger-ui .emit-flow-via {
+    left: 21px; right: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: left;
+    white-space: nowrap;
+  }
+  #emit-swagger .swagger-ui .emit-flow-fork {
+    gap: var(--sp-3);
+    padding-left: 22px;
+  }
+  #emit-swagger .swagger-ui .emit-flow-fork::before { left: 4px; top: 5px; bottom: 23px; }
+  #emit-swagger .swagger-ui .emit-flow-fork .emit-flow-node::before { left: -18px; top: 5px; width: 18px; }
+}
+
+/* --------------------------------------------------------------------------
+   17. SCROLLBAR
+   -------------------------------------------------------------------------- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
+::-webkit-scrollbar-thumb { background: var(--e-line); border-radius: var(--r-xs); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+
+/* --------------------------------------------------------------------------
+   18. SPEC FAILURE
+   Counter: stock draws a 2px #f93e3e box with a scaleUp animation.
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui .errors-wrapper {
+  animation: none !important;
+  background: var(--s4-bg) !important;
+  border: 1px solid var(--s4-b) !important;
+  border-radius: var(--r-panel) !important;
+  margin: var(--sp-6) auto !important;
+  padding: var(--sp-5) var(--sp-6) !important;
+  max-width: 720px !important;
+}
+/* The failure layout has no .wrapper: the gutter goes on the centred column,
+   not on the box, which is sized by its content. */
+#emit-swagger .swagger-ui > .loading-container { padding: 0 var(--page-gutter) !important; }
+#emit-swagger .swagger-ui .loading-container .info .title {
+  font-size: var(--t-3xl) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  text-transform: none !important;
+  text-align: center !important;
+  color: var(--e-text) !important;
+}
+#emit-swagger .swagger-ui .errors-wrapper .errors h4,
+#emit-swagger .swagger-ui .errors-wrapper hgroup h4 {
+  color: var(--s4-c) !important;
+  font-family: var(--f-body) !important;
+  font-size: var(--t-2xs) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+/* Status code and URL: mono. */
+#emit-swagger .swagger-ui .errors-wrapper .errors small,
+#emit-swagger .swagger-ui .errors-wrapper .message {
+  color: var(--e-body) !important;
+  font-family: var(--f-mono) !important;
+  font-size: var(--t-sm) !important;
+  line-height: 1.7 !important;
+}
+#emit-swagger .swagger-ui .errors-wrapper .errors > .error-wrapper { padding: 0 !important; }
+
+/* --------------------------------------------------------------------------
+   19. NARROW VIEWPORTS
+   -------------------------------------------------------------------------- */
+/* The gutter shrinks through its token. `.information-container.wrapper`
+   outranks a rule on `.information-container` alone. */
+@media (max-width: 720px) {
+  :root {
+    --gutter: var(--sp-4);
+    --page-gutter: var(--sp-3);
+  }
+  #emit-swagger .swagger-ui .information-container > section { padding: var(--sp-5) var(--sp-4) var(--sp-4) !important; }
+  #emit-swagger .swagger-ui .info .title { font-size: var(--t-3xl) !important; }
+  #emit-swagger .swagger-ui .errors-wrapper { padding: var(--sp-5) var(--sp-4) !important; }
+  /* Stock turns this into a column and keeps align-items:center, which then
+     centres horizontally. */
+  #emit-swagger .swagger-ui .opblock-summary-path-description-wrapper {
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: var(--sp-1) var(--sp-3) !important;
+  }
+  /* Tighter cells; below ~360px the table scrolls in its frame. */
+  #emit-swagger .swagger-ui .info table thead th,
+  #emit-swagger .swagger-ui .info table tbody td {
+    padding-left: var(--sp-2) !important;
+    padding-right: var(--sp-2) !important;
+  }
+  /* Stock gives the select a 240px minimum width. */
+  #emit-swagger .swagger-ui .schemes-server-container .servers { flex: 1 1 0 !important; min-width: 0 !important; }
+  #emit-swagger .swagger-ui .servers select { min-width: 0 !important; width: 100% !important; }
+  #emit-legend { bottom: var(--sp-3); right: var(--sp-3); }
+}
