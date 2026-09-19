@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!--
+    Verification harness for the Swagger theme. Not part of the application:
+    it is never compiled, never served, and never referenced by the app.
+
+    Swagger UI renders nothing for a collapsed region, so this page boots the
+    real bundles, theme.css and enhance.js against the real /v3/api-docs with
+    the operations listed and the schemas open. verify.py publishes it next to
+    the app's static files for a run and removes it afterwards.
+  -->
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EMIT API verification harness</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+    <link rel="stylesheet" type="text/css" href="/swagger-ui/swagger-ui.css">
+    <link rel="stylesheet" type="text/css" href="/swagger-ui/index.css">
+    <link rel="stylesheet" type="text/css" href="/swagger/theme.css">
+    <style>
+      html { background-color: #0d0f15; }
+      body { background-color: #0d0f15; color: #dde6f0; margin: 0; }
+    </style>
+  </head>
+  <body id="emit-swagger">
+    <div id="swagger-ui"></div>
+    <script>
+      /* Virtual time starves requestAnimationFrame, and enhance.js repaints
+         through it, so checks would pass or fail at random. rAF runs on a
+         timer here; the page itself is unchanged. */
+      window.requestAnimationFrame = function (callback) {
+        return setTimeout(function () { callback(performance.now()); }, 16);
+      };
+      window.cancelAnimationFrame = function (id) { clearTimeout(id); };
+    </script>
+
+    <div id="emit-legend">
+      <div id="emit-legend-panel" data-open="false"></div>
+      <button id="emit-legend-btn" type="button" aria-expanded="false" aria-controls="emit-legend-panel">&#8759;</button>
+    </div>
+
+    <script src="/swagger-ui/swagger-ui-bundle.js" charset="UTF-8"></script>
+    <script src="/swagger-ui/swagger-ui-standalone-preset.js" charset="UTF-8"></script>
+    <script>
+      window.onload = function () {
+        window.ui = SwaggerUIBundle({
+          dom_id: '#swagger-ui',
+          deepLinking: true,
+          syntaxHighlight: { theme: 'nord' },
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+          layout: 'StandaloneLayout',
+          /* The spec is read directly rather than through
+             /v3/api-docs/swagger-config, because the served config carries
+             docExpansion and would override the expansion set here. */
+          url: '/v3/api-docs',
+          displayRequestDuration: true,
+          /* Mirrors application-dev.properties. */
+          persistAuthorization: true,
+          docExpansion: 'list',
+          defaultModelsExpandDepth: 5,
+          defaultModelExpandDepth: 5,
+          filter: 'false',
+          operationsSorter: 'alpha',
+          tagsSorter: 'alpha',
+          validatorUrl: ''
+        });
+      };
+    </script>
+    <script src="/swagger/enhance.js" charset="UTF-8"></script>
+  </body>
+</html>
