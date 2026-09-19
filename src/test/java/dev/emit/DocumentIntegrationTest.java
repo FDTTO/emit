@@ -14,6 +14,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -25,15 +26,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import dev.emit.domain.document.DocumentStatus;
-import dev.emit.presentation.rest.auth.LoginRequest;
-import dev.emit.presentation.rest.auth.LoginResponse;
-import dev.emit.presentation.rest.document.CreateDocumentRequest;
-import dev.emit.presentation.rest.document.DocumentResponse;
-import dev.emit.presentation.rest.tenant.CreateTenantRequest;
-import dev.emit.presentation.rest.tenant.TenantCreatedResponse;
-
-import org.springframework.http.MediaType;
+import dev.emit.document.adapter.in.rest.CreateDocumentRequest;
+import dev.emit.document.adapter.in.rest.DocumentResponse;
+import dev.emit.document.domain.DocumentStatus;
+import dev.emit.shared.auth.LoginRequest;
+import dev.emit.shared.auth.LoginResponse;
+import dev.emit.tenant.adapter.in.rest.CreateTenantRequest;
+import dev.emit.tenant.adapter.in.rest.TenantCreatedResponse;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
@@ -65,6 +64,15 @@ class DocumentIntegrationTest {
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
         registry.add("spring.data.redis.host", redis::getHost);
         registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+        /*
+         * This test's subject is the document lifecycle, and the lifecycle is
+         * asynchronous, so it has to poll for the outcome. At the production
+         * limit of 20 requests a minute it could poll for seven seconds before
+         * the rate limiter started answering 429, which made the test pass or
+         * fail on how fast Kafka and the PDF renderer happened to be on the
+         * day. The rate limiter has its own tests; here it is noise.
+         */
+        registry.add("emit.rate-limit.requests-per-minute", () -> 1_000);
     }
 
     @Autowired
@@ -72,7 +80,7 @@ class DocumentIntegrationTest {
 
     private String login() {
         ResponseEntity<LoginResponse> response = restTemplate.postForEntity(
-                "/auth/login",
+                "/v1/auth/login",
                 new LoginRequest("admin", "admin123"),
                 LoginResponse.class);
 
@@ -80,14 +88,14 @@ class DocumentIntegrationTest {
         return response.getBody().token();
     }
 
-    private String createTenant(String token) {
+    private String createTenant(String token, String schemaName) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
 
         ResponseEntity<TenantCreatedResponse> response = restTemplate.exchange(
                 "/v1/tenants",
                 HttpMethod.POST,
-                new HttpEntity<>(new CreateTenantRequest("Test Company", "test_company"), headers),
+                new HttpEntity<>(new CreateTenantRequest("Tenant " + schemaName, schemaName), headers),
                 TenantCreatedResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -134,6 +142,13 @@ class DocumentIntegrationTest {
                             HttpMethod.GET,
                             new HttpEntity<>(headers),
                             DocumentResponse.class);
+                    /*
+                     * Asserted before the body is read: any non-200 here comes
+                     * back as an error document, and deserialising that into a
+                     * DocumentResponse fails with a Jackson message about enum
+                     * ordinals that says nothing about what went wrong.
+                     */
+                    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
                     assertThat(response.getBody().status()).isEqualTo(DocumentStatus.DONE);
                 });
     }
@@ -156,7 +171,7 @@ class DocumentIntegrationTest {
     @Test
     void fullDocumentLifecycle() {
         String token = login();
-        String apiKey = createTenant(token);
+        String apiKey = createTenant(token, "test_company");
         UUID documentId = createDocument(apiKey);
         requestGeneration(apiKey, documentId);
         awaitStatusDone(apiKey, documentId);

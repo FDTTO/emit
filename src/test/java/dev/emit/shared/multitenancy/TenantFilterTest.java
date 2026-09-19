@@ -1,0 +1,183 @@
+package dev.emit.shared.multitenancy;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.MDC;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import dev.emit.tenant.domain.Tenant;
+import dev.emit.tenant.domain.TenantRepository;
+import dev.emit.shared.web.ApiErrorWriter;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletResponse;
+
+@ExtendWith(MockitoExtension.class)
+class TenantFilterTest {
+
+    @Mock
+    private TenantRepository tenantRepository;
+
+    @Mock
+    private ApiErrorWriter errorWriter;
+
+    @InjectMocks
+    private TenantFilter tenantFilter;
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+        MDC.clear();
+        TenantContext.clear();
+    }
+
+    private Tenant buildActiveTenant(String schemaName) {
+        return Tenant.create("Test Corp", schemaName, "hashvalue");
+    }
+
+    private Tenant buildInactiveTenant(String schemaName) {
+        Tenant tenant = buildActiveTenant(schemaName);
+        tenant.deactivate();
+        return tenant;
+    }
+
+    @Test
+    void shouldSetTenantContextAndSecurityContextWhenApiKeyIsValid() throws Exception {
+        String apiKey = "valid-api-key";
+        String hash = ApiKeyHasher.hash(apiKey);
+        Tenant tenant = buildActiveTenant("tenant_abc");
+
+        when(tenantRepository.findByApiKeyHash(hash)).thenReturn(Optional.of(tenant));
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("X-API-Key", apiKey);
+
+        var capturedTenant = new String[1];
+        var capturedSchema = new String[1];
+        var capturedPrincipal = new String[1];
+        Filter capturingFilter = (req, res, fc) -> {
+            capturedTenant[0] = TenantContext.getTenant();
+            capturedSchema[0] = MDC.get("tenantSchema");
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null)
+                capturedPrincipal[0] = auth.getName();
+        };
+        tenantFilter.doFilterInternal(request, new MockHttpServletResponse(),
+                new MockFilterChain(mock(jakarta.servlet.Servlet.class), capturingFilter));
+
+        assertThat(capturedTenant[0]).isEqualTo("tenant_abc");
+        assertThat(capturedSchema[0]).isEqualTo("tenant_abc");
+        assertThat(capturedPrincipal[0]).isEqualTo("tenant_abc");
+
+        assertThat(TenantContext.getTenant()).isNull();
+        assertThat(MDC.get("tenantSchema")).isNull();
+    }
+
+    @Test
+    void shouldNotSetTenantContextWhenApiKeyIsAbsent() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+
+        tenantFilter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
+
+        verify(tenantRepository, never()).findByApiKeyHash(any());
+        assertThat(TenantContext.getTenant()).isNull();
+    }
+
+    @Test
+    void shouldReturn401WhenApiKeyIsInvalid() throws Exception {
+        String apiKey = "invalid-key";
+        String hash = ApiKeyHasher.hash(apiKey);
+
+        when(tenantRepository.findByApiKeyHash(hash)).thenReturn(Optional.empty());
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("X-API-Key", apiKey);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        tenantFilter.doFilterInternal(request, response, chain);
+
+        verify(errorWriter).write(any(), eq(HttpServletResponse.SC_UNAUTHORIZED),
+                any());
+        assertThat(TenantContext.getTenant()).isNull();
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        verify(chain, never()).doFilter(any(), any());
+    }
+
+    @Test
+    void shouldReturn403WhenTenantIsInactive() throws Exception {
+        String apiKey = "valid-but-inactive";
+        String hash = ApiKeyHasher.hash(apiKey);
+        Tenant tenant = buildInactiveTenant("inactive_tenant");
+
+        when(tenantRepository.findByApiKeyHash(hash)).thenReturn(Optional.of(tenant));
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("X-API-Key", apiKey);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        tenantFilter.doFilterInternal(request, response, chain);
+
+        verify(errorWriter).write(any(), eq(HttpServletResponse.SC_FORBIDDEN),
+                any());
+        assertThat(TenantContext.getTenant()).isNull();
+        verify(chain, never()).doFilter(any(), any());
+    }
+
+    @Test
+    void shouldAlwaysSetRequestIdInMdc() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+
+        var capturedRequestId = new String[1];
+        Filter capturingFilter = (req, res, fc) -> capturedRequestId[0] = MDC.get("requestId");
+        MockFilterChain chain = new MockFilterChain(mock(jakarta.servlet.Servlet.class), capturingFilter);
+
+        tenantFilter.doFilterInternal(request, new MockHttpServletResponse(), chain);
+
+        assertThat(capturedRequestId[0]).isNotNull().isNotBlank();
+    }
+
+    @Test
+    void shouldClearMdcAndTenantContextInFinallyEvenOnException() throws Exception {
+        String apiKey = "valid-api-key";
+        String hash = ApiKeyHasher.hash(apiKey);
+        Tenant tenant = buildActiveTenant("tenant_abc");
+
+        when(tenantRepository.findByApiKeyHash(hash)).thenReturn(Optional.of(tenant));
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("X-API-Key", apiKey);
+
+        Filter throwingFilter = (req, res, fc) -> {
+            throw new RuntimeException("downstream failure");
+        };
+        MockFilterChain throwingChain = new MockFilterChain(mock(jakarta.servlet.Servlet.class), throwingFilter);
+
+        try {
+            tenantFilter.doFilterInternal(request, new MockHttpServletResponse(), throwingChain);
+        } catch (RuntimeException ignored) {
+        }
+
+        assertThat(TenantContext.getTenant()).isNull();
+        assertThat(MDC.get("tenantSchema")).isNull();
+        assertThat(MDC.get("requestId")).isNull();
+    }
+}

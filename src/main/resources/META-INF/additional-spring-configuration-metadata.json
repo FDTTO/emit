@@ -24,6 +24,21 @@
       "name": "emit.admin.password",
       "type": "java.lang.String",
       "description": "Password for the built-in admin account seeded on startup."
+    },
+    {
+      "name": "emit.rate-limit.requests-per-minute",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of requests allowed per tenant per minute. Enforced via a Redis sliding-window sorted set. Default: 20."
+    },
+    {
+      "name": "emit.kafka.topic.document-generation",
+      "type": "java.lang.String",
+      "description": "Name of the Kafka topic used for document generation requests. Consumed by DocumentGenerationConsumer with retry and DLQ support."
+    },
+    {
+      "name": "emit.kafka.topic.replicas",
+      "type": "java.lang.Integer",
+      "description": "Replication factor for the document.generation.requested Kafka topic. Use 1 for single-broker dev environments; 3 for production clusters. Default: 1."
     }
   ]
 }

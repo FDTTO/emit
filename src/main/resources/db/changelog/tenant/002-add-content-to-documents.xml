@@ -5,6 +5,9 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
     <changeSet id="002-add-content-to-documents" author="emit">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="documents" columnName="content"/></not>
+        </preConditions>
         <addColumn tableName="documents">
             <column name="content" type="TEXT" />
         </addColumn>
