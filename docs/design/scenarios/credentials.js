@@ -20,7 +20,7 @@ function acceptedToken() {
   var token = (V.json('/v1/auth/login', 'post') || {}).token;
   check('accepting applies the response token', !!token && V.held('bearerAuth') === token);
   check('and the note says so', /Authorized as ADMIN with this token/.test(note(LOGIN) || ''), note(LOGIN));
-  V.open('Tenants', 'create', 200);
+  V.open('Tenants', 'createTenant', 200);
   setTimeout(function () {
     V.fakeResponse('/v1/tenants', 'post', 201, { id: 't-1', apiKey: 'key-1' }, 'http://localhost:8080/v1/tenants');
   }, 1400);
@@ -28,7 +28,7 @@ function acceptedToken() {
 }
 
 function tenantNote() {
-  var text = note('operations-Tenants-create') || '';
+  var text = note('operations-Tenants-createTenant') || '';
   check('an empty scheme is filled from the response', V.held('apiKeyAuth') === 'key-1', V.held('apiKeyAuth'));
   check('tenant note: authorized', /Authorized as TENANT with this key/.test(text), text);
   check('tenant note: id carried in page order',

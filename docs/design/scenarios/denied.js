@@ -10,10 +10,10 @@ var refuse = function (path, method, status, message) {
   V.fakeResponse(path, method, status, { status: status, message: message }, 'http://localhost:8080' + path);
 };
 var says = function (block, pattern) { return function () { return pattern.test(textOf(block)); }; };
-var DOCS = 'Documents-listAll_1';
-var TENANTS = 'Tenants-listAll';
+var DOCS = 'Documents-listDocuments';
+var TENANTS = 'Tenants-listTenants';
 
-V.open('Documents', 'listAll_1', 3500);
+V.open('Documents', 'listDocuments', 3500);
 V.until(function () { return isOpen(DOCS); }, function () {
   refuse('/v1/documents', 'get', 401, 'Authentication required.');
   V.until(says(DOCS, /needs TENANT/), missing);
@@ -25,8 +25,8 @@ function missing() {
   var way = noteOf(DOCS) && noteOf(DOCS).querySelector('.emit-note__action');
   check('missing: offers the way to get it', !!way && way.textContent === 'Register a tenant', way && way.textContent);
   if (way) way.click();
-  V.until(function () { return isOpen('Tenants-create'); }, function () {
-    check('the way opens tenant registration', isOpen('Tenants-create'));
+  V.until(function () { return isOpen('Tenants-createTenant'); }, function () {
+    check('the way opens tenant registration', isOpen('Tenants-createTenant'));
     V.authorize('apiKeyAuth', 'key');
     V.until(says(DOCS, /authorized now/), resolved);
   });
@@ -35,7 +35,7 @@ function missing() {
 function resolved() {
   check('resolved once Authorize holds it', /TENANT is authorized now. Execute again/.test(textOf(DOCS)), textOf(DOCS));
   V.authorize('bearerAuth', V.jwt(-60));
-  V.open('Tenants', 'listAll', 0);
+  V.open('Tenants', 'listTenants', 0);
   V.until(function () { return isOpen(TENANTS); }, function () {
     refuse('/v1/tenants', 'get', 401, 'Invalid or expired token.');
     V.until(says(TENANTS, /has expired/), expired);

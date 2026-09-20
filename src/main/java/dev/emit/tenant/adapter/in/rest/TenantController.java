@@ -33,7 +33,7 @@ public class TenantController {
     private final TenantService tenantService;
 
     @GetMapping
-    @Operation(summary = "List tenants", description = "Returns all tenants. Requires JWT authentication.")
+    @Operation(operationId = "listTenants", summary = "List tenants", description = "Returns all tenants. Requires JWT authentication.")
     @ApiResponse(responseCode = "200", description = "Tenant list returned")
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
     @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
@@ -47,6 +47,7 @@ public class TenantController {
 
     @PostMapping
     @Operation(
+            operationId = "createTenant",
             summary = "Create tenant",
             description = "Creates a tenant with an isolated PostgreSQL schema provisioned and migrated via Liquibase. "
                     + "Returns a raw API key in the `apiKey` field exactly once; it cannot be recovered after this response.")
@@ -62,7 +63,7 @@ public class TenantController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get tenant by ID")
+    @Operation(operationId = "getTenant", summary = "Get tenant by ID")
     @ApiResponse(responseCode = "200", description = "Tenant found")
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
     @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
@@ -73,6 +74,7 @@ public class TenantController {
 
     @PostMapping("/{id}/deactivate")
     @Operation(
+            operationId = "deactivateTenant",
             summary = "Deactivate tenant",
             description = "Blocks API key authentication for this tenant. Existing documents and schema data are preserved.")
     @ApiResponse(responseCode = "204", description = "Tenant deactivated")
@@ -86,6 +88,7 @@ public class TenantController {
 
     @PostMapping("/{id}/reactivate")
     @Operation(
+            operationId = "reactivateTenant",
             summary = "Reactivate tenant",
             description = "Re-enables API key authentication for a previously deactivated tenant.")
     @ApiResponse(responseCode = "204", description = "Tenant reactivated")

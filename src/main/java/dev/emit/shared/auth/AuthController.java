@@ -37,6 +37,7 @@ public class AuthController {
     @PostMapping("/login")
     @SecurityRequirements({})
     @Operation(
+            operationId = "login",
             summary = "Login",
             description = "Authenticates with admin credentials and returns a signed JWT. Use the token on all tenant management endpoints.")
     @ApiResponse(responseCode = "200", description = "JWT token returned")

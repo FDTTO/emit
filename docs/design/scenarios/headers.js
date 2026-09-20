@@ -3,11 +3,11 @@
 // heading over every column it shows, the name and type as machine output,
 // the description between them as prose. The responses table's own Links
 // column stays hidden, which is what the nested table used to inherit.
-var OP = '#operations-Documents-findById_1 ';
+var OP = '#operations-Documents-getDocument ';
 var face = function (selector) { var n = document.querySelector(OP + selector); return n ? getComputedStyle(n).fontFamily.split(',')[0].replace(/['"]/g, '') : null; };
 var shown = function (selector) { var n = document.querySelector(OP + selector); return !!n && getComputedStyle(n).display !== 'none'; };
 
-V.open('Documents', 'findById_1', 2500);
+V.open('Documents', 'getDocument', 2500);
 V.until(function () { return !!document.querySelector(OP + '.headers td'); }, function () {
   var table = document.querySelector(OP + '.headers');
   var headings = table.querySelectorAll('th');

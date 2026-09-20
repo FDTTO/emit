@@ -27,9 +27,9 @@ var accepted = function (id) {
   V.fakeResponse('/v1/documents/{id}/generate', 'post', 202, null, 'http://localhost:8080/v1/documents/' + id + '/generate',
                  { date: ['Sat', '19 Sep 2026 12:00:00 GMT'] });
 };
-var note = function () { return V.text('#operations-Documents-generate .emit-note--follow') || ''; };
+var note = function () { return V.text('#operations-Documents-requestDocumentGeneration .emit-note--follow') || ''; };
 // The action button (Check again), not any button: the document id is a link button too.
-var button = function () { return !!document.querySelector('#operations-Documents-generate .emit-note--follow .emit-note__action'); };
+var button = function () { return !!document.querySelector('#operations-Documents-requestDocumentGeneration .emit-note--follow .emit-note__action'); };
 var lit = function () { var s = document.querySelector('#emit-lifecycle .is-current .emit-flow-state'); return s && s.textContent; };
 
 var isOpen = function (block) { var b = document.getElementById('operations-' + block); return !!b && b.classList.contains('is-open'); };
@@ -37,8 +37,8 @@ var noteSays = function (pattern) { return function () { return pattern.test(not
 
 V.until(function () { return !!V.definition('apiKeyAuth'); }, function () {
   V.authorize('apiKeyAuth', 'key');
-  V.open('Documents', 'generate', 0);
-  V.until(function () { return isOpen('Documents-generate'); }, function () {
+  V.open('Documents', 'requestDocumentGeneration', 0);
+  V.until(function () { return isOpen('Documents-requestDocumentGeneration'); }, function () {
     accepted('done');
     V.until(noteSays(/PENDING/), function () {
       check('follows from PENDING', /PENDING/.test(note()) && /checking/.test(note()), note());
@@ -53,11 +53,11 @@ function reachedDone() {
   check('the figure lights DONE', lit() === 'DONE', lit());
   check('reads send the held key', (headersSent.done || {})['X-API-Key'] === 'key', headersSent.done);
   check('two reads were enough', reads.done === 2, reads.done);
-  var named = document.querySelector('#operations-Documents-generate .emit-note--follow .emit-note__link');
+  var named = document.querySelector('#operations-Documents-requestDocumentGeneration .emit-note--follow .emit-note__link');
   check('the document id is a link', !!named && named.textContent === 'done', named && named.textContent);
   if (named) named.click();
-  V.until(function () { return isOpen('Documents-findById_1'); }, function () {
-    check('the id link opens Get document by ID', isOpen('Documents-findById_1'));
+  V.until(function () { return isOpen('Documents-getDocument'); }, function () {
+    check('the id link opens Get document by ID', isOpen('Documents-getDocument'));
     check('with that id in place', V.param('/v1/documents/{id}', 'get') === 'done', V.param('/v1/documents/{id}', 'get'));
     accepted('limited');
     V.until(noteSays(/resuming in 2s/), rateLimited);

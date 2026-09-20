@@ -41,6 +41,7 @@ public class DocumentController {
 
     @GetMapping
     @Operation(
+            operationId = "listDocuments",
             summary = "List documents",
             description = "Returns a paginated list of documents scoped to the authenticated tenant. "
                     + "Default: 20 per page, ordered by creation date descending.")
@@ -56,7 +57,7 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get document by ID")
+    @Operation(operationId = "getDocument", summary = "Get document by ID")
     @ApiResponse(responseCode = "200", description = "Document found")
     @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
     @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
@@ -68,6 +69,7 @@ public class DocumentController {
 
     @PostMapping
     @Operation(
+            operationId = "createDocument",
             summary = "Create document",
             description = "Creates a document in PENDING status. "
                     + "The `content` field supports HTML and is rendered as-is into the final PDF.")
@@ -83,6 +85,7 @@ public class DocumentController {
 
     @PostMapping("/{id}/generate")
     @Operation(
+            operationId = "requestDocumentGeneration",
             summary = "Request PDF generation",
             description = "Publishes a DocumentGenerationRequestedEvent to Kafka and returns 202 immediately. "
                     + "Generation runs asynchronously: PENDING → PROCESSING → DONE (or FAILED after 3 attempts "
@@ -101,6 +104,7 @@ public class DocumentController {
 
     @GetMapping("/{id}/pdf")
     @Operation(
+            operationId = "downloadDocumentPdf",
             summary = "Download PDF",
             description = "Returns the generated PDF as application/pdf. Returns 409 if the document status is not DONE.")
     @ApiResponse(responseCode = "200", description = "PDF file returned")
