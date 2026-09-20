@@ -15,6 +15,7 @@ Everything here runs against the app on `localhost:8080` with headless Edge.
 | Does it survive something paced by time (polling, a real pipeline)? | `verify.py` (realtime, the default) |
 | A long scenario that is mostly waiting? | `verify.py --virtual MS` |
 | A picture of a region, below the fold included | `verify.py --clip JS` |
+| Does a refactor leave the page looking the same? | `snapshot.js` + `pixdiff.py` |
 | Did a Java change work on the running app? | a second instance on 8081 (below) |
 
 ## verify.py
@@ -71,6 +72,26 @@ characterization net under any later change: run it before and after.
 `verify-realtime.js` is the runner underneath: Node 22, the DevTools
 protocol over the native WebSocket, a throwaway profile and a free port per
 run, and the viewport set through `Emulation.setDeviceMetricsOverride`.
+
+## Pixel comparison
+
+A change that must not alter the rendering is verified by capturing the same
+page before and after:
+
+```
+set PAGE=(function(){var b=document.body.getBoundingClientRect();return {x:0,y:0,width:Math.ceil(b.width),height:Math.ceil(document.body.scrollHeight)};})()
+
+python docs/design/verify.py docs/design/snapshot.js --width 1280 --out %TEMP%/before --clip "%PAGE%"
+...make the change...
+python docs/design/verify.py docs/design/snapshot.js --width 1280 --out %TEMP%/after --clip "%PAGE%"
+python docs/design/pixdiff.py %TEMP%/before_0.png %TEMP%/after_0.png --ignore-from %TEMP%/after.json
+```
+
+`snapshot.js` opens the page in a fixed state and reports the regions the page
+generates per load, the timestamps inside schema examples, which `pixdiff`
+masks. Calibrate first: two runs of unchanged code must report `identical`. It
+executes nothing, because a token or a duration differs between runs and would
+read as a regression.
 
 ## Realtime or virtual
 
