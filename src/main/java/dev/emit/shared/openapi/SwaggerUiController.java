@@ -37,8 +37,8 @@ class SwaggerUiController {
                     <link rel="preconnect" href="https://fonts.googleapis.com">
                     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
                     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
-                    <link rel="stylesheet" type="text/css" href="./swagger-ui.css">
-                    <link rel="stylesheet" type="text/css" href="index.css">
+                    <!-- theme.css imports stock Swagger into a cascade layer, so the
+                         theme outranks it without !important. -->
                     <link rel="stylesheet" type="text/css" href="/swagger/theme.css">
                     <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32">
                     <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16">
