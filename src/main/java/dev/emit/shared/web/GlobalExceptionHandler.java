@@ -14,6 +14,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
@@ -87,6 +88,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(404, "Resource not found.", OffsetDateTime.now(ZoneOffset.UTC)));
+    }
+
+    /**
+     * A path value Spring could not convert, such as a document id that is not
+     * a UUID. The caller sent something the route cannot accept, so it is a
+     * 400 naming the value, not a 500.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
+        Class<?> required = exception.getRequiredType();
+        String expected = required == null ? "the expected type" : required.getSimpleName();
+        return ResponseEntity.badRequest().body(new ErrorResponse(400,
+                "'" + exception.getName() + "' is not a valid " + expected + ".",
+                OffsetDateTime.now(ZoneOffset.UTC)));
     }
 
     /**

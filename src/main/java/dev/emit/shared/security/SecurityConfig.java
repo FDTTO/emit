@@ -32,13 +32,20 @@ public class SecurityConfig {
                 .requestMatchers("/v1/auth/login").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
+                // The rest of the actuator answers to operators, not to API
+                // credentials, so it stays closed to every caller here.
+                .requestMatchers("/actuator/**").denyAll()
                 // Admin-only: creating and managing tenants requires JWT with ROLE_ADMIN.
                 // A tenant API key satisfies authenticated() but not hasRole("ADMIN").
                 .requestMatchers("/v1/tenants/**").hasRole("ADMIN")
                 // Tenant data needs a resolved tenant, which only a tenant API
                 // key provides. An admin token here would fail later as a 500.
                 .requestMatchers("/v1/documents/**").hasRole("TENANT")
-                .anyRequest().denyAll())
+                // A caller who proved who they are gets the honest answer for a
+                // URL that does not exist: 404 from the dispatcher. Without a
+                // credential the 401 comes first, so the set of routes cannot
+                // be mapped anonymously.
+                .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Both refusals go through the same writer, so a 401 and a 403

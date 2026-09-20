@@ -10,7 +10,7 @@
 
 Accepts an HTTP request to generate a PDF, returns `202 Accepted` immediately, and processes asynchronously through Kafka. Each tenant runs in an isolated PostgreSQL schema. Rate limiting is distributed and atomic across any number of instances.
 
-Five structural decisions. 130 tests that prove the contract holds.
+Five structural decisions. 134 tests that prove the contract holds.
 
 </div>
 
@@ -500,7 +500,7 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 
 ## Testing
 
-**130 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
+**134 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
 
 **Unit** (Mockito + JUnit 5) · 89 tests
 
@@ -560,13 +560,16 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
                                              wrong password 401
 ```
 
-**Integration** (Testcontainers: real containers, no test doubles) · 9 tests
+**Integration** (Testcontainers: real containers, no test doubles) · 13 tests
 
 ```
 ├── RateLimiterServiceTest             [4]   within limit, remaining counts down to zero,
 │                                            exhausted limit says when a slot frees,
 │                                            per-tenant isolation
 │   └── GenericContainer  redis:7-alpine
+├── RouteAccessTest                    [4]   unknown route: 401 without a credential,
+│                                            404 with one; a path id that is not a
+│                                            UUID is 400; the actuator stays closed
 ├── TenantMigrationsStartupTest        [1]   tenant schemas are migrated before the
 │                                            web server accepts a request
 ├── TenantProvisionerConcurrencyTest   [1]   concurrent tenant schema migrations all
