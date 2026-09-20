@@ -1319,9 +1319,28 @@ body {
   text-transform: uppercase !important;
   color: var(--e-faint) !important;
 }
-/* Links column and media-type controls carry no meaning here. */
+/* Response headers table: name and type are machine output, the description
+   between them is prose and takes the body face. Stock gives all three the
+   same bold mono. */
+#emit-swagger .swagger-ui .headers-wrapper .headers td {
+  font-family: var(--f-mono) !important;
+  font-weight: 500 !important;
+  color: var(--e-text) !important;
+}
+#emit-swagger .swagger-ui .headers-wrapper .headers td:nth-child(2) {
+  font-family: var(--f-body) !important;
+  font-weight: 400 !important;
+  color: var(--e-body) !important;
+}
+#emit-swagger .swagger-ui .headers-wrapper .headers td:nth-child(3) {
+  color: var(--e-body) !important;
+}
+
+/* Links column and media-type controls carry no meaning here. The child
+   path matters: the headers table is nested inside the responses table, so
+   a descendant selector hid its Type heading while its cells stayed. */
 #emit-swagger .swagger-ui .response-col_links,
-#emit-swagger .swagger-ui .responses-table thead tr th:last-child,
+#emit-swagger .swagger-ui .responses-table > thead > tr > th:last-child,
 #emit-swagger .swagger-ui .response-controls,
 #emit-swagger .swagger-ui .content-type-wrapper { display: none !important; }
 
