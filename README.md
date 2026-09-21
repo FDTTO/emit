@@ -389,10 +389,12 @@ Requires Docker Desktop, Java 21, and Maven 3.9+.
 ```bash
 git clone https://github.com/FDTTO/emit.git && cd emit
 docker compose up -d
-mvn spring-boot:run
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-Open `http://localhost:8080/swagger-ui/index.html`.
+The `dev` profile holds the local JWT secret and admin credentials. Without a profile the application refuses to start rather than run on built-in secrets.
+
+Open `http://localhost:8080/swagger-ui/index.html`. The steps below work from any HTTP client; in the console each response also hands its result to the next step.
 
 **1. Authenticate as admin**
 
@@ -403,7 +405,7 @@ Content-Type: application/json
 { "username": "admin", "password": "admin123" }
 ```
 
-Copy the `token` from the response. Click **Authorize** in Swagger and paste it under `bearerAuth`.
+The response carries a `token`, sent as `Authorization: Bearer <token>`. In the console, executing the login applies it to **Authorize** for you.
 
 **2. Create a tenant**
 
@@ -415,7 +417,7 @@ Content-Type: application/json
 { "name": "Acme Corp", "schemaName": "acme_corp" }
 ```
 
-Copy the `apiKey`. Returned exactly once, stored as SHA-256. Click **Authorize** and paste under `apiKeyAuth`.
+The `apiKey` is returned exactly once and stored only as a SHA-256 hash. In the console it is applied to **Authorize** as the tenant credential; elsewhere, send it as `X-API-Key`.
 
 **3. Process a document**
 
@@ -434,6 +436,8 @@ POST /v1/documents/{id}/generate    # 202 Accepted, event published to Kafka
 GET  /v1/documents/{id}             # poll until status: DONE
 GET  /v1/documents/{id}/pdf         # download the generated PDF
 ```
+
+In the console the created id is filled into these operations, and after `generate` the page follows the document to `DONE`, says how long it took, and offers the PDF.
 
 ---
 
