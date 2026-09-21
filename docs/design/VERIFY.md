@@ -75,6 +75,14 @@ run, and the viewport set through `Emulation.setDeviceMetricsOverride`. It
 drives any Chromium: `BROWSER` names the executable, otherwise the first one
 installed is used (Edge or Chrome on Windows, Chrome or Chromium on Linux).
 
+`--coverage` adds the Chromium coverage the DevTools Coverage panel uses:
+every run records which theme rules were applied and which functions of
+`enhance.js` ran, and the suite ends with what no scenario reached. A rule
+never applied is either dead or a state no scenario visits; a probe of the
+real DOM tells the two apart. The browser reports only the rules it
+applied, so the total comes from parsing the stylesheet. Coverage slows the
+page: a scenario that fails only under it is waiting on a clock somewhere.
+
 CI runs the suite in the `ui-suite` job on every push: the application on
 the compose dependencies, headless Chrome, two runs at a time. A failure keeps
 the application log as an artifact.

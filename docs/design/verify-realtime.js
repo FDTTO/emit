@@ -147,10 +147,12 @@ function killProfileProcesses() {
     let id = 0;
     const pending = new Map();
     const events = new Map();
+    const stylesheets = new Map();
     ws.addEventListener('message', (m) => {
       const msg = JSON.parse(m.data);
       if (msg.id && pending.has(msg.id)) { pending.get(msg.id)(msg); pending.delete(msg.id); }
       if (msg.method && events.has(msg.method)) { events.get(msg.method)(msg); events.delete(msg.method); }
+      if (msg.method === 'CSS.styleSheetAdded') stylesheets.set(msg.params.header.styleSheetId, msg.params.header.sourceURL);
     });
     const send = (method, params = {}) => new Promise((r) => { const n = ++id; pending.set(n, r); ws.send(JSON.stringify({ id: n, method, params })); });
     const evaluate = async (expression) => (await send('Runtime.evaluate', { expression, returnByValue: true })).result.result.value;
@@ -162,6 +164,17 @@ function killProfileProcesses() {
     // A headless page does not always hold the window's focus, and keys sent
     // to an unfocused page go nowhere. This makes the page behave as focused.
     await send('Emulation.setFocusEmulationEnabled', { enabled: true });
+    // COVERAGE records which rules of the theme were ever applied and which
+    // functions of the page script ever ran: code no scenario reaches is code
+    // no check can protect. The same tracking the DevTools Coverage panel uses.
+    const coverage = Boolean(process.env.COVERAGE);
+    if (coverage) {
+      await send('DOM.enable');
+      await send('CSS.enable');
+      await send('CSS.startRuleUsageTracking');
+      await send('Profiler.enable');
+      await send('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
+    }
     // VIRTUAL_MS switches to virtual time: the clock is paused until the page
     // has started loading, then runs on a budget that stops for network
     // fetches. Fast for long idle scenarios, but idle time is skipped and
@@ -192,6 +205,17 @@ function killProfileProcesses() {
 
     const log = await evaluate('JSON.stringify(window.__log || null)');
     fs.writeFileSync(`${outPrefix}.json`, log || 'null');
+    if (coverage) {
+      const theme = [...stylesheets].find(([, sourceUrl]) => /\/swagger\/theme\.css/.test(sourceUrl));
+      const rules = (await send('CSS.stopRuleUsageTracking')).result.ruleUsage
+        .filter((rule) => theme && rule.styleSheetId === theme[0])
+        .map((rule) => [rule.startOffset, rule.endOffset, rule.used]);
+      const scripts = (await send('Profiler.takePreciseCoverage')).result.result
+        .filter((script) => /\/swagger\/enhance\.js/.test(script.url));
+      const functions = scripts.flatMap((script) => script.functions.map((fn) =>
+        [fn.functionName, fn.ranges[0].startOffset, fn.ranges[0].endOffset, fn.ranges[0].count]));
+      fs.writeFileSync(`${outPrefix}.coverage.json`, JSON.stringify({ rules, functions }));
+    }
     for (let i = 0; i < clips.length; i++) {
       const box = await evaluate(clips[i]);
       if (!box) continue;

@@ -48,11 +48,14 @@ import subprocess
 import sys
 import tempfile
 
+import coverage_report
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 STATIC = os.path.join(ROOT, 'target', 'classes', 'static', 'swagger')
 BASE = 'http://localhost:8080/swagger/'
 SCENARIOS = os.path.join(HERE, 'scenarios')
+COVERAGE = False
 OUT = os.path.join(tempfile.gettempdir(), 'verify')
 
 
@@ -91,6 +94,8 @@ def remove(name):
 def run(name, wait, virtual, width, clips, out):
     """Runs one published page and returns its log, or an explanation."""
     env = dict(os.environ, VIEW_W=str(width), VIRTUAL_MS=str(virtual or 0))
+    if COVERAGE:
+        env['COVERAGE'] = '1'
     done = subprocess.run(['node', os.path.join(HERE, 'verify-realtime.js'), BASE + name, str(wait), out] + clips,
                           env=env, capture_output=True, text=True)
     if done.returncode != 0 or 'error' in done.stdout:
@@ -121,6 +126,9 @@ def header(path):
 
 
 def suite(directory, only, jobs, verbose):
+    if COVERAGE:
+        for stale in coverage_report.coverage_files(OUT):
+            os.remove(stale)
     scenarios = sorted(glob.glob(os.path.join(directory, '*.js')))
     if only:
         scenarios = [s for s in scenarios if only in os.path.basename(s)]
@@ -174,6 +182,9 @@ def suite(directory, only, jobs, verbose):
             print('       error: ' + e.splitlines()[0][:200])
         if not checks and not errors:
             print('       (no checks recorded)')
+    if COVERAGE:
+        coverage_report.report(coverage_report.coverage_files(OUT),
+                               os.path.join(STATIC, 'theme.css'), os.path.join(STATIC, 'enhance.js'))
     return 1 if failed else 0
 
 
@@ -210,9 +221,12 @@ def main():
     parser.add_argument('--keep', action='store_true')
     parser.add_argument('--base', default='http://localhost:8080',
                         help='app to run against, e.g. a second instance on 8081')
+    parser.add_argument('--coverage', action='store_true',
+                        help='with --suite: list theme rules and script functions no scenario reached')
     args = parser.parse_args()
-    global BASE
+    global BASE, COVERAGE
     BASE = args.base.rstrip('/') + '/swagger/'
+    COVERAGE = args.coverage
     # The Windows console defaults to cp1252, which cannot print what the page
     # writes (arrows, for one).
     sys.stdout.reconfigure(encoding='utf-8')
