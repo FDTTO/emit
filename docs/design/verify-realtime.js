@@ -10,7 +10,8 @@
 //
 // Usage: node verify-realtime.js <url> <waitMs> <outPrefix> [clipExprJs...]
 //        VIEW_W=375 sets the viewport width; VIRTUAL_MS=60000 runs on virtual
-//        time instead of waiting waitMs of wall clock.
+//        time instead of waiting waitMs of wall clock; BROWSER names the
+//        Chromium to drive, otherwise the first one installed is used.
 // After waitMs of wall-clock time it reads window.__log from the page into
 // <outPrefix>.json and, for each clip expression (JS returning
 // {x,y,width,height} in page coordinates), saves a 2x screenshot of that
@@ -21,16 +22,36 @@ const os = require('os');
 const path = require('path');
 
 const [url, waitMs, outPrefix, ...clips] = process.argv.slice(2);
-const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+
+const INSTALLED = {
+  win32: ['C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+          'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'],
+  linux: ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/microsoft-edge'],
+  darwin: ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+           '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge']
+};
+const BROWSER = process.env.BROWSER || (INSTALLED[process.platform] || []).find((candidate) => fs.existsSync(candidate));
+if (!BROWSER || !fs.existsSync(BROWSER)) {
+  console.log(BROWSER ? `error: BROWSER points to nothing: ${BROWSER}`
+                      : 'error: no Chromium browser found; set BROWSER to its executable');
+  process.exit(1);
+}
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'cdp-'));
 
-const edge = spawn(EDGE, [
+const child = spawn(BROWSER, [
   '--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-prefers-reduced-motion',
-  // Port 0: Edge picks a free port and writes it to DevToolsActivePort in the
-  // profile. A fixed port can attach to a previous run's instance that is
-  // still shutting down.
-  '--window-size=1280,1400', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'
+  // Port 0: the browser picks a free port and writes it to DevToolsActivePort
+  // in the profile. A fixed port can attach to a previous run's instance that
+  // is still shutting down.
+  '--window-size=1280,1400', '--remote-debugging-port=0', `--user-data-dir=${profile}`,
+  // CI runners on recent Ubuntu block the unprivileged user namespaces
+  // Chrome's sandbox needs; the page under test is our own.
+  ...(process.env.CI ? ['--no-sandbox'] : []),
+  'about:blank'
 ], { stdio: 'ignore' });
+// Unhandled, a failed launch kills this process before the profile is
+// removed; handled, the run waits out its ceiling and cleans up as usual.
+child.on('error', (error) => console.log('error: the browser did not start: ' + error.message));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -68,7 +89,7 @@ async function target() {
 }
 
 /*
- * On Windows the launched msedge.exe hands off to the real browser process
+ * On Windows the launched executable hands off to the real browser process
  * and exits, so killing its process tree kills nothing and leaks a browser
  * and a profile per run. The browser is closed over the protocol, the
  * profile removed with retries while Windows releases its files, and only
@@ -104,12 +125,14 @@ async function shutdown(port) {
   }
 }
 
+// Only the processes started with this run's profile, whatever the browser.
 function killProfileProcesses() {
   if (process.platform === 'win32') {
     spawnSync('powershell', ['-NoProfile', '-Command',
-      `Get-CimInstance Win32_Process -Filter "Name='msedge.exe'" | Where-Object { $_.CommandLine -like '*${profile}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }`]);
+      `Get-CimInstance Win32_Process -Filter "Name='${path.basename(BROWSER)}'" | Where-Object { $_.CommandLine -like '*${profile}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }`]);
   } else {
-    edge.kill('SIGKILL');
+    child.kill('SIGKILL');
+    spawnSync('pkill', ['-KILL', '-f', profile]);
   }
 }
 

@@ -71,7 +71,13 @@ characterization net under any later change: run it before and after.
 
 `verify-realtime.js` is the runner underneath: Node 22, the DevTools
 protocol over the native WebSocket, a throwaway profile and a free port per
-run, and the viewport set through `Emulation.setDeviceMetricsOverride`.
+run, and the viewport set through `Emulation.setDeviceMetricsOverride`. It
+drives any Chromium: `BROWSER` names the executable, otherwise the first one
+installed is used (Edge or Chrome on Windows, Chrome or Chromium on Linux).
+
+CI runs the suite in the `ui-suite` job on every push: the application on
+the compose dependencies, headless Chrome, two runs at a time. A failure keeps
+the application log as an artifact.
 
 ## Pixel comparison
 
