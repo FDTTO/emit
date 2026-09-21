@@ -23,3 +23,54 @@ jobs:
 
       - name: Run tests
         run: mvn test
+
+  # The console's regression suite: the application on its real dependencies,
+  # driven in headless Chrome. The Java tests cannot see the theme or the
+  # console's behaviour; this is the only check that does.
+  ui-suite:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Start PostgreSQL, Kafka and Redis
+        run: docker compose up -d --wait postgres kafka redis
+
+      - name: Start the application
+        run: |
+          mvn -q -DskipTests spring-boot:run -Dspring-boot.run.profiles=dev > app.log 2>&1 &
+          for attempt in $(seq 1 90); do
+            curl -sf http://localhost:8080/v3/api-docs > /dev/null && exit 0
+            sleep 2
+          done
+          echo "The application did not start within three minutes."
+          tail -n 80 app.log
+          exit 1
+
+      - name: Run the UI suite
+        run: python docs/design/verify.py --suite --jobs 2
+
+      - name: Keep the application log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-log
+          path: app.log
