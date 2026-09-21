@@ -33,7 +33,7 @@ Options (single run):
   --width W  --wait MS  --virtual MS  --spec-url URL  --clip JS (repeatable)
   --out PREFIX  --keep
 Options (suite):
-  --only TEXT   run only scenarios whose file name contains TEXT
+  --only A,B    run only scenarios whose file name contains A or B
   --jobs N      runs at a time (default 3)
   --verbose     print every check, not only the failures
 """
@@ -131,7 +131,8 @@ def suite(directory, only, jobs, verbose):
             os.remove(stale)
     scenarios = sorted(glob.glob(os.path.join(directory, '*.js')))
     if only:
-        scenarios = [s for s in scenarios if only in os.path.basename(s)]
+        wanted = [name.strip() for name in only.split(',') if name.strip()]
+        scenarios = [s for s in scenarios if any(name in os.path.basename(s) for name in wanted)]
     if not scenarios:
         sys.exit('No scenarios in %s' % directory)
 
@@ -209,7 +210,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     parser.add_argument('scenario', nargs='?')
     parser.add_argument('--suite', nargs='?', const=SCENARIOS, metavar='DIR')
-    parser.add_argument('--only')
+    parser.add_argument('--only', help='run only scenarios whose file name contains one of these, comma-separated')
     parser.add_argument('--jobs', type=int, default=3)
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--virtual', type=int, metavar='MS')

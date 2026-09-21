@@ -83,6 +83,16 @@ real DOM tells the two apart. The browser reports only the rules it
 applied, so the total comes from parsing the stylesheet. Coverage slows the
 page: a scenario that fails only under it is waiting on a clock somewhere.
 
+`mutate.py` goes one step further: it knocks one named function of
+`enhance.js` out at a time (a `return;` as its first statement), serves the
+mutant, and runs only the scenarios whose coverage shows that function
+running. A failing run kills the mutant; a green run means the function could
+stop working unnoticed. Calibrate it before trusting a score: a function a
+scenario is known to check must be killed, and one nothing checks must
+survive. Every mutant runs a real suite, so a full pass takes over an hour;
+`--only` and `--sample` narrow it. The served script is restored after each
+mutant.
+
 CI runs the suite in the `ui-suite` job on every push: the application on
 the compose dependencies, headless Chrome, two runs at a time. A failure keeps
 the application log as an artifact.
