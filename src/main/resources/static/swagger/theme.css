@@ -776,20 +776,6 @@ body {
   padding: 5px 14px;
   box-shadow: none;
 }
-/* Markup is <span>Authorize</span><svg>; order puts the lock first. */
-#emit-swagger .swagger-ui .btn.authorize span {
-  float: none;
-  padding: 0;
-  margin: 0;
-  order: 2;
-}
-#emit-swagger .swagger-ui .btn.authorize svg {
-  order: 1;
-  width: 13px;
-  height: 13px;
-  fill: currentColor;
-  opacity: 0.7;
-}
 #emit-swagger .swagger-ui .auth-wrapper .authorize:hover,
 #emit-swagger .swagger-ui .btn.authorize:hover {
   background: var(--ui-bg-hover);
@@ -982,9 +968,6 @@ body {
   word-break: normal;
 }
 #emit-swagger .swagger-ui .opblock .opblock-summary-operation-id { display: none; }
-#emit-swagger .swagger-ui .authorization__btn { background: transparent; border: 0; padding: 0 var(--sp-1); }
-#emit-swagger .swagger-ui .authorization__btn svg { fill: rgba(168,186,222,0.35); }
-#emit-swagger .swagger-ui .authorization__btn.unlocked svg { fill: rgba(168,186,222,0.18); }
 /* Stock sizes the chevron svgs 20x20 by attribute, which makes the tag row taller. */
 #emit-swagger .swagger-ui .expand-operation svg,
 #emit-swagger .swagger-ui .opblock .arrow { fill: var(--e-faint); }
@@ -1089,7 +1072,6 @@ body {
 }
 #emit-swagger .swagger-ui .opblock .opblock-section-header h4 { flex: 1 1 auto; }
 #emit-swagger .swagger-ui .opblock .opblock-section-header > label { margin-left: auto; }
-#emit-swagger .swagger-ui .opblock .opblock-section-header > label > span { padding: 0 var(--sp-2) 0 0; }
 #emit-swagger .swagger-ui .opblock-section-header .required {
   color: var(--e-dim);
   font-size: var(--t-3xs);
@@ -1167,12 +1149,6 @@ body {
 #emit-swagger .swagger-ui .body-param-options,
 #emit-swagger .swagger-ui .model-example,
 #emit-swagger .swagger-ui .request-body-section { background: transparent; padding: 0; }
-#emit-swagger .swagger-ui .opblock-section .parameters-container--empty {
-  padding: var(--sp-3) var(--gutter);
-  color: var(--e-faint);
-  font-size: var(--t-sm);
-  font-style: italic;
-}
 
 /* Parameter name. Counter: .parameter__name{font-size:16px} and its
    `:after{content:"required"}` red text, restyled as a pill. */
@@ -1695,16 +1671,6 @@ body {
   text-underline-offset: 3px;
 }
 #emit-swagger .swagger-ui .emit-note__link:hover { text-decoration-color: var(--ui-c); }
-/* Duration is metadata, not an outcome: neutral colour. */
-#emit-swagger .swagger-ui .request-duration {
-  color: var(--e-dim);
-  font-family: var(--f-mono);
-  font-size: var(--t-xs);
-  background: transparent;
-  border: 1px solid var(--e-line);
-  border-radius: var(--r-xs);
-  padding: 2px 7px;
-}
 
 /* --------------------------------------------------------------------------
    11. FORM CONTROLS
