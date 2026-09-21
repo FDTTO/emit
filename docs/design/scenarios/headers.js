@@ -1,8 +1,8 @@
 // @widths 1280
-// The response headers table, which arrived with the rate limit headers: a
-// heading over every column it shows, the name and type as machine output,
-// the description between them as prose. The responses table's own Links
-// column stays hidden, which is what the nested table used to inherit.
+// The response headers table: a heading over every column it shows, the name
+// and type as machine output, the description between them as prose. It is
+// nested inside the responses table, whose own Links column stays hidden
+// without the rule reaching into the inner table.
 var OP = '#operations-Documents-getDocument ';
 var face = function (selector) { var n = document.querySelector(OP + selector); return n ? getComputedStyle(n).fontFamily.split(',')[0].replace(/['"]/g, '') : null; };
 var shown = function (selector) { var n = document.querySelector(OP + selector); return !!n && getComputedStyle(n).display !== 'none'; };
