@@ -1672,6 +1672,17 @@ body {
 #emit-swagger .swagger-ui .emit-note__state.is-past     { color: var(--e-dim); font-weight: 500; }
 #emit-swagger .swagger-ui .emit-note__sep { margin: 0 5px; color: var(--e-faint); font-weight: 400; }
 #emit-swagger .swagger-ui .emit-note__quiet { color: var(--e-dim); }
+/* The request id of a refusal: machine output, quiet until pointed at. */
+#emit-swagger .swagger-ui .emit-note__ref {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: var(--f-mono);
+  font-size: var(--t-xs);
+  color: var(--e-dim);
+  cursor: copy;
+}
+#emit-swagger .swagger-ui .emit-note__ref:hover { color: var(--e-body); }
 #emit-swagger .swagger-ui .emit-note__link {
   background: none;
   border: 0;

@@ -375,7 +375,8 @@
     return {
       scheme: schemes[0],
       sentWith: heldCredential(schemes[0]),
-      message: body && typeof body.message === 'string' ? body.message : null
+      message: body && typeof body.message === 'string' ? body.message : null,
+      requestId: responseHeader(response, 'x-request-id')
     };
   }
 
@@ -559,15 +560,22 @@
     return follow;
   }
 
+  /* A header of a stored response, as one string. Swagger splits header
+     values on commas, so "Sat, 19 Sep 2026 12:00:00 GMT" arrives as two
+     parts and is joined back. */
+  function responseHeader(response, name) {
+    var headers = response.get('headers');
+    var value = headers && (headers.get ? headers.get(name) : headers[name]);
+    if (value && typeof value.toArray === 'function') value = value.toArray();
+    if (Array.isArray(value)) value = value.join(', ');
+    return typeof value === 'string' && value ? value : null;
+  }
+
   /* The server's clock when it answered, from the Date header: the run is
      timed on the server's clock at both ends, never against the reads'
-     backoff. Whole seconds only. Swagger splits header values on commas,
-     so "Sat, 19 Sep 2026 12:00:00 GMT" arrives as two parts. */
+     backoff. Whole seconds only. */
   function serverTime(response) {
-    var headers = response.get('headers');
-    var date = headers && (headers.get ? headers.get('date') : headers.date);
-    if (date && typeof date.toArray === 'function') date = date.toArray();
-    if (Array.isArray(date)) date = date.join(', ');
+    var date = responseHeader(response, 'date');
     var time = date ? Date.parse(date) : NaN;
     return isNaN(time) ? null : time;
   }
@@ -843,6 +851,23 @@
 
   /* Names the missing credential and links to where it comes from; once a
      working one is held, says so instead. */
+  function requestRef(requestId) {
+    var shown = 'request ' + requestId.slice(0, 8);
+    var ref = el('button', 'emit-note__ref', shown);
+    ref.type = 'button';
+    ref.title = requestId + ' - click to copy';
+    ref.dataset.requestId = requestId;
+    ref.setAttribute('aria-label', 'Copy request id ' + requestId);
+    ref.addEventListener('click', function () {
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(requestId).then(function () {
+        ref.textContent = 'copied';
+        setTimeout(function () { ref.textContent = shown; }, 1200);
+      });
+    });
+    return ref;
+  }
+
   function denialNote(denied, state) {
     var scope = SCOPE_BY_SCHEME[denied.scheme] || { key: 'other', label: denied.scheme, icon: null };
     var source = credentialSourceFor(denied.scheme);
@@ -867,6 +892,9 @@
       said = scope.label + ' is authorized now. Execute again.';
     }
     bar.appendChild(el('span', 'emit-note__text', said));
+    /* The id the API logged this refusal under: short on screen, copied
+       whole on click, so it can be quoted against the logs. */
+    if (state !== 'resolved' && denied.requestId) bar.appendChild(requestRef(denied.requestId));
     if (action) {
       var button = el('button', 'emit-note__action', action);
       button.type = 'button';

@@ -6,8 +6,10 @@
 var noteOf = function (block) { return document.querySelector('#operations-' + block + ' .emit-note[data-state]'); };
 var textOf = function (block) { var n = noteOf(block); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; };
 var isOpen = function (block) { var b = document.getElementById('operations-' + block); return !!b && b.classList.contains('is-open'); };
+var REQUEST_ID = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
 var refuse = function (path, method, status, message) {
-  V.fakeResponse(path, method, status, { status: status, message: message }, 'http://localhost:8080' + path);
+  V.fakeResponse(path, method, status, { status: status, message: message }, 'http://localhost:8080' + path,
+                 { 'x-request-id': REQUEST_ID });
 };
 var says = function (block, pattern) { return function () { return pattern.test(textOf(block)); }; };
 var DOCS = 'Documents-listDocuments';
@@ -24,6 +26,10 @@ function missing() {
   check('missing: in the 4xx colour', !!noteOf(DOCS) && noteOf(DOCS).classList.contains('emit-note--denied'));
   var way = noteOf(DOCS) && noteOf(DOCS).querySelector('.emit-note__action');
   check('missing: offers the way to get it', !!way && way.textContent === 'Register a tenant', way && way.textContent);
+  var ref = noteOf(DOCS) && noteOf(DOCS).querySelector('.emit-note__ref');
+  check('missing: names the request it was refused in',
+        !!ref && ref.textContent === 'request 3fa85f64' && ref.dataset.requestId === REQUEST_ID,
+        ref && { shown: ref.textContent, id: ref.dataset.requestId });
   if (way) way.click();
   V.until(function () { return isOpen('Tenants-createTenant'); }, function () {
     check('the way opens tenant registration', isOpen('Tenants-createTenant'));
