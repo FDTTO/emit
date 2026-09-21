@@ -2,6 +2,7 @@ package dev.emit.document.adapter.in.rest;
 
 import java.util.UUID;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -50,7 +51,7 @@ public class DocumentController {
     @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
     @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
     public ResponseEntity<PageResponse<DocumentSummaryResponse>> listAll(
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         PageResponse<DocumentSummaryResponse> page = PageResponse.from(
                 documentService.listAll(pageable).map(DocumentSummaryResponse::from));
         return ResponseEntity.ok(page);
