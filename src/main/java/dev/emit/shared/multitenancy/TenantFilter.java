@@ -3,7 +3,6 @@ package dev.emit.shared.multitenancy;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,8 +31,6 @@ public class TenantFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-
-        MDC.put("requestId", UUID.randomUUID().toString());
 
         try {
             String apiKey = request.getHeader("X-API-Key");
@@ -66,7 +63,7 @@ public class TenantFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } finally {
             TenantContext.clear();
-            MDC.clear();
+            MDC.remove("tenantSchema");
         }
     }
 }

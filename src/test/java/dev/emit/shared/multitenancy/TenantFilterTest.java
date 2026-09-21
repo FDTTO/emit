@@ -142,17 +142,22 @@ class TenantFilterTest {
         verify(chain, never()).doFilter(any(), any());
     }
 
+    /*
+     * The request id belongs to RequestIdFilter, which runs outside this one
+     * and still logs after it returns. Clearing the whole MDC here would strip
+     * the id from everything logged after the tenant was resolved.
+     */
     @Test
-    void shouldAlwaysSetRequestIdInMdc() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest();
+    void shouldLeaveMdcKeysItDoesNotOwn() throws Exception {
+        MDC.put("requestId", "outer-id");
+        try {
+            tenantFilter.doFilterInternal(new MockHttpServletRequest(), new MockHttpServletResponse(),
+                    new MockFilterChain());
 
-        var capturedRequestId = new String[1];
-        Filter capturingFilter = (req, res, fc) -> capturedRequestId[0] = MDC.get("requestId");
-        MockFilterChain chain = new MockFilterChain(mock(jakarta.servlet.Servlet.class), capturingFilter);
-
-        tenantFilter.doFilterInternal(request, new MockHttpServletResponse(), chain);
-
-        assertThat(capturedRequestId[0]).isNotNull().isNotBlank();
+            assertThat(MDC.get("requestId")).isEqualTo("outer-id");
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Test
@@ -178,6 +183,5 @@ class TenantFilterTest {
 
         assertThat(TenantContext.getTenant()).isNull();
         assertThat(MDC.get("tenantSchema")).isNull();
-        assertThat(MDC.get("requestId")).isNull();
     }
 }

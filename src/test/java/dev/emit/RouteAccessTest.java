@@ -65,6 +65,14 @@ class RouteAccessTest extends ContainerizedTest {
     }
 
     @Test
+    void shouldTagEvenARefusedResponseWithItsRequestId() {
+        ResponseEntity<String> response = get("/v1/nope", null);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getHeaders().getFirst("X-Request-Id")).matches("[0-9a-f-]{36}");
+    }
+
+    @Test
     void shouldKeepTheActuatorClosedToCredentialsThatAreNotItsOwn() {
         assertThat(get("/actuator/metrics", asAdmin()).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
