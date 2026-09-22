@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import dev.emit.shared.multitenancy.TenantFilter;
 import dev.emit.shared.ratelimit.RateLimitFilter;
 import dev.emit.shared.web.ApiErrorWriter;
+import dev.emit.shared.web.RefusalMessages;
 import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 
@@ -52,10 +53,9 @@ public class SecurityConfig {
                 // share the API's error shape instead of Spring's default.
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> errorWriter.write(
-                                response, 401, "Authentication required."))
+                                response, 401, RefusalMessages.AUTHENTICATION_REQUIRED))
                         .accessDeniedHandler((request, response, deniedException) -> errorWriter.write(
-                                response, 403,
-                                "This credential cannot access this route. Tenant management needs an admin token; documents need a tenant API key.")))
+                                response, 403, RefusalMessages.WRONG_CREDENTIAL)))
                 .addFilterBefore(tenantFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(rateLimitFilter, TenantFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

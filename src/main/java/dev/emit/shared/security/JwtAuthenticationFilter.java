@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import dev.emit.shared.web.ApiErrorWriter;
+import dev.emit.shared.web.RefusalMessages;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
 
             if (!jwtService.isValid(token)) {
-                errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token.");
+                errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, RefusalMessages.INVALID_TOKEN);
                 return;
             }
 

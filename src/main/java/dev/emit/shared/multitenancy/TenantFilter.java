@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import dev.emit.shared.web.ApiErrorWriter;
+import dev.emit.shared.web.RefusalMessages;
 import dev.emit.tenant.domain.Tenant;
 import dev.emit.tenant.domain.TenantRepository;
 import jakarta.servlet.FilterChain;
@@ -40,14 +41,14 @@ public class TenantFilter extends OncePerRequestFilter {
                 Optional<Tenant> found = tenantRepository.findByApiKeyHash(hash);
 
                 if (found.isEmpty()) {
-                    errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key.");
+                    errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, RefusalMessages.INVALID_API_KEY);
                     return;
                 }
 
                 Tenant tenant = found.get();
 
                 if (!tenant.isActive()) {
-                    errorWriter.write(response, HttpServletResponse.SC_FORBIDDEN, "Tenant is inactive.");
+                    errorWriter.write(response, HttpServletResponse.SC_FORBIDDEN, RefusalMessages.TENANT_INACTIVE);
                     return;
                 }
 

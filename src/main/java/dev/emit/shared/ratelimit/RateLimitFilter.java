@@ -9,6 +9,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import dev.emit.shared.multitenancy.TenantContext;
 import dev.emit.shared.web.ApiErrorWriter;
+import dev.emit.shared.web.RefusalMessages;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,8 +47,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (!decision.allowed()) {
             response.setHeader(HttpHeaders.RETRY_AFTER, String.valueOf(decision.resetSeconds()));
             errorWriter.write(response, HttpStatus.TOO_MANY_REQUESTS.value(),
-                    "Rate limit exceeded. Try again in " + decision.resetSeconds()
-                            + (decision.resetSeconds() == 1 ? " second." : " seconds."));
+                    RefusalMessages.rateLimited(decision.resetSeconds()));
             return;
         }
 
