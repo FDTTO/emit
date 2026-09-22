@@ -1319,13 +1319,34 @@ body {
   color: var(--e-body);
 }
 
-/* Links column and media-type controls carry no meaning here. The child
-   path matters: the headers table is nested inside the responses table, so
-   a descendant selector hid its Type heading while its cells stayed. */
+/* Links column and media-type controls carry no meaning here: every
+   response is JSON. The example picker stays, since an error can have
+   several causes. The child path matters: the headers table is nested inside
+   the responses table, so a descendant selector hid its Type heading while
+   its cells stayed. */
 #emit-swagger .swagger-ui .response-col_links,
 #emit-swagger .swagger-ui .responses-table > thead > tr > th:last-child,
-#emit-swagger .swagger-ui .response-controls,
+#emit-swagger .swagger-ui .response-control-media-type,
 #emit-swagger .swagger-ui .content-type-wrapper { display: none; }
+#emit-swagger .swagger-ui .response-controls { margin: var(--sp-2) 0 0; padding: 0; }
+#emit-swagger .swagger-ui .response-control-examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+#emit-swagger .swagger-ui .response-control-examples__title {
+  font-family: var(--f-body);
+  font-size: var(--t-3xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--e-faint);
+}
+/* A picker with one choice picks nothing. */
+#emit-swagger .swagger-ui .response-control-examples:has(option:only-child) { display: none; }
+#emit-swagger .swagger-ui .response-control-examples .examples-select { margin: 0; max-width: 100%; }
+#emit-swagger .swagger-ui .response-control-examples select { max-width: 100%; }
 
 /* --------------------------------------------------------------------------
    10. TABS + CODE
@@ -2709,4 +2730,30 @@ body {
   #emit-swagger .swagger-ui .schemes-server-container .servers { flex: 1 1 0; min-width: 0; }
   #emit-swagger .swagger-ui .servers select { min-width: 0; width: 100%; }
   #emit-legend { bottom: var(--sp-3); right: var(--sp-3); }
+  /* A table sizes to its content, so the first column pushed parameters and
+     responses past the operation, which clips them. Each row stacks instead:
+     name or code above its description. The nested headers table scrolls in
+     place. */
+  #emit-swagger .swagger-ui .responses-table > thead,
+  #emit-swagger .swagger-ui table.parameters > thead { display: none; }
+  #emit-swagger .swagger-ui .responses-table,
+  #emit-swagger .swagger-ui .responses-table > tbody,
+  #emit-swagger .swagger-ui .responses-table > tbody > tr,
+  #emit-swagger .swagger-ui .responses-table > tbody > tr > td:not(.response-col_links),
+  #emit-swagger .swagger-ui table.parameters,
+  #emit-swagger .swagger-ui table.parameters > tbody,
+  #emit-swagger .swagger-ui table.parameters > tbody > tr,
+  #emit-swagger .swagger-ui table.parameters > tbody > tr > td { display: block; width: auto; }
+  #emit-swagger .swagger-ui .responses-table > tbody > tr > td.response-col_status,
+  #emit-swagger .swagger-ui table.parameters > tbody > tr > td.parameters-col_name {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  #emit-swagger .swagger-ui .headers-wrapper { overflow-x: auto; }
+}
+
+/* Icon, method, path, scope and arrow do not fit one row this narrow, and
+   the arrow is what got clipped. The icon repeats what the method says. */
+@media (max-width: 400px) {
+  #emit-swagger .swagger-ui .emit-op-icon { display: none; }
 }
