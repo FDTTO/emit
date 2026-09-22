@@ -8,9 +8,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 public record TenantCreatedResponse(
         UUID id,
+        @Schema(description = "Human-readable tenant name", example = "Acme Corp")
         String name,
+        @Schema(description = "PostgreSQL schema holding this tenant's data", example = "acme_corp")
         String schemaName,
+        @Schema(description = "Whether the tenant's API key is accepted")
         boolean active,
+        @Schema(example = "2026-01-15T10:30:00Z")
         OffsetDateTime createdAt,
         @Schema(
                 description = "Raw API key. Returned exactly once; store it securely immediately.",

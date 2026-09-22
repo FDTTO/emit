@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.emit.document.application.DocumentService;
 import dev.emit.document.domain.Document;
+import dev.emit.shared.openapi.ErrorCase;
 import dev.emit.shared.web.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -47,9 +47,6 @@ public class DocumentController {
             description = "Returns a paginated list of documents scoped to the authenticated tenant. "
                     + "Default: 20 per page, ordered by creation date descending.")
     @ApiResponse(responseCode = "200", description = "Document list returned")
-    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
-    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
-    @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
     public ResponseEntity<PageResponse<DocumentSummaryResponse>> listAll(
             @ParameterObject @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         PageResponse<DocumentSummaryResponse> page = PageResponse.from(
@@ -60,10 +57,8 @@ public class DocumentController {
     @GetMapping("/{id}")
     @Operation(operationId = "getDocument", summary = "Get document by ID")
     @ApiResponse(responseCode = "200", description = "Document found")
-    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
-    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
-    @ApiResponse(responseCode = "404", description = "Document not found", content = @Content)
-    @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
+    @ErrorCase(status = 404, name = "unknown-id", summary = "Document not found",
+            message = "Document not found: " + ErrorCase.EXAMPLE_ID)
     public ResponseEntity<DocumentResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(DocumentResponse.from(documentService.findById(id)));
     }
@@ -75,10 +70,8 @@ public class DocumentController {
             description = "Creates a document in PENDING status. "
                     + "The `content` field supports HTML and is rendered as-is into the final PDF.")
     @ApiResponse(responseCode = "201", description = "Document created successfully")
-    @ApiResponse(responseCode = "400", description = "Invalid request body", content = @Content)
-    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
-    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
-    @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
+    @ErrorCase(status = 400, name = "invalid-body", summary = "Invalid request body",
+            message = "content: must not be blank, title: must not be blank")
     public ResponseEntity<DocumentResponse> create(@Valid @RequestBody CreateDocumentRequest request) {
         Document saved = documentService.create(request.title(), request.content());
         return ResponseEntity.status(HttpStatus.CREATED).body(DocumentResponse.from(saved));
@@ -93,11 +86,10 @@ public class DocumentController {
                     + "with 1s + 2s backoff, then routed to the dead-letter queue). "
                     + "Poll GET /{id} to track status.")
     @ApiResponse(responseCode = "202", description = "PDF generation accepted")
-    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
-    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
-    @ApiResponse(responseCode = "404", description = "Document not found", content = @Content)
-    @ApiResponse(responseCode = "409", description = "Document is not in PENDING status", content = @Content)
-    @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
+    @ErrorCase(status = 404, name = "unknown-id", summary = "Document not found",
+            message = "Document not found: " + ErrorCase.EXAMPLE_ID)
+    @ErrorCase(status = 409, name = "not-pending", summary = "Document is not in PENDING status",
+            message = "Document must be PENDING but is DONE: " + ErrorCase.EXAMPLE_ID)
     public ResponseEntity<Void> generate(@PathVariable UUID id) {
         documentService.requestGeneration(id);
         return ResponseEntity.accepted().build();
@@ -109,11 +101,10 @@ public class DocumentController {
             summary = "Download PDF",
             description = "Returns the generated PDF as application/pdf. Returns 409 if the document status is not DONE.")
     @ApiResponse(responseCode = "200", description = "PDF file returned")
-    @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
-    @ApiResponse(responseCode = "403", description = "Wrong credential for this route", content = @Content)
-    @ApiResponse(responseCode = "404", description = "Document not found", content = @Content)
-    @ApiResponse(responseCode = "409", description = "PDF not yet ready: document is still PENDING or PROCESSING", content = @Content)
-    @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content)
+    @ErrorCase(status = 404, name = "unknown-id", summary = "Document not found",
+            message = "Document not found: " + ErrorCase.EXAMPLE_ID)
+    @ErrorCase(status = 409, name = "pdf-not-ready", summary = "PDF not yet ready: document is still PENDING or PROCESSING",
+            message = "PDF not yet available for document: " + ErrorCase.EXAMPLE_ID)
     public ResponseEntity<byte[]> downloadPdf(@PathVariable UUID id) {
         byte[] pdfBytes = documentService.getPdf(id);
         HttpHeaders headers = new HttpHeaders();

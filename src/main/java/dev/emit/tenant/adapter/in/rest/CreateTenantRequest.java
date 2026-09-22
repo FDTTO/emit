@@ -6,14 +6,16 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record CreateTenantRequest(
-        @Schema(description = "Human-readable tenant name", example = "Acme Corp")
+        @Schema(description = "Human-readable tenant name", example = "Acme Corp", minLength = 1)
         @NotBlank
         @Size(max = 100, message = "name must not exceed 100 characters")
         String name,
         @Schema(
-                description = "PostgreSQL schema name. Must match [a-z][a-z0-9_]{1,62}: "
-                        + "lowercase, starts with a letter, no hyphens, 2-63 chars.",
-                example = "acme_corp")
+                description = "PostgreSQL schema name: lowercase letters, digits and underscores, "
+                        + "starting with a letter.",
+                example = "acme_corp",
+                minLength = 2,
+                maxLength = 63)
         @NotBlank
         @Pattern(
                 regexp = "^[a-z][a-z0-9_]{1,62}$",

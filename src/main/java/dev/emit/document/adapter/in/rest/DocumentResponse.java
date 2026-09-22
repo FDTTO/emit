@@ -15,7 +15,9 @@ public record DocumentResponse(
         String content,
         @Schema(description = "Current processing status. PENDING → PROCESSING → DONE (or FAILED).")
         DocumentStatus status,
+        @Schema(example = "2026-01-15T10:30:00Z")
         OffsetDateTime createdAt,
+        @Schema(example = "2026-01-15T10:30:00Z")
         OffsetDateTime updatedAt) {
 
     public static DocumentResponse from(Document document) {

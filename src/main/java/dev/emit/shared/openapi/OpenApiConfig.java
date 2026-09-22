@@ -1,25 +1,39 @@
 package dev.emit.shared.openapi;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.MethodParameter;
+import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import dev.emit.shared.web.ErrorResponse;
+import dev.emit.shared.web.RefusalMessages;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.headers.Header;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.responses.ApiResponses;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
@@ -29,6 +43,8 @@ public class OpenApiConfig {
 
     private static final Set<String> ANSWERED_BEFORE_THE_LIMITER = Set.of("401", "403");
     private static final String ERROR_SCHEMA = "ErrorResponse";
+    private static final String EXAMPLE_TIMESTAMP = "2026-01-15T10:30:00Z";
+    private static final ParameterNameDiscoverer PARAMETER_NAMES = new DefaultParameterNameDiscoverer();
 
     @Value("${app.openapi.server-url:}")
     private String serverUrl;
@@ -73,6 +89,8 @@ public class OpenApiConfig {
                 // No document-level security requirement: the two credentials are not
                 // interchangeable, so each controller declares the scheme it accepts.
                 .components(new Components()
+                        .addSchemas(ERROR_SCHEMA, ModelConverters.getInstance()
+                                .readAllAsResolvedSchema(ErrorResponse.class).schema)
                         .addSecuritySchemes("bearerAuth", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
@@ -124,40 +142,83 @@ public class OpenApiConfig {
     }
 
     /*
-     * Every error the API writes, from a controller or from a security
-     * filter, is an ErrorResponse. Declared once here for every 4xx and 5xx
-     * that states no body of its own, with an example carrying that
-     * response's own status.
+     * Every error the API writes is an ErrorResponse, published with one
+     * named example per way the operation can fail, quoting the message the
+     * API writes. Refusals follow from the route's security scheme and use
+     * the filters' own messages; a malformed id follows from a UUID path
+     * variable; the rest is what the operation declares with @ErrorCase.
      */
     @Bean
-    public OpenApiCustomizer errorBodies() {
-        return api -> {
-            Schema<?> schema = ModelConverters.getInstance()
-                    .readAllAsResolvedSchema(ErrorResponse.class).schema;
-            api.getComponents().addSchemas(ERROR_SCHEMA, schema);
-
-            api.getPaths().values().forEach(path -> path.readOperations().forEach(operation -> {
-                if (operation.getResponses() == null) {
-                    return;
+    public OperationCustomizer errorResponses() {
+        return (operation, handlerMethod) -> {
+            List<Case> cases = new ArrayList<>(refusals(operation));
+            for (MethodParameter parameter : handlerMethod.getMethodParameters()) {
+                parameter.initParameterNameDiscovery(PARAMETER_NAMES);
+                PathVariable variable = parameter.getParameterAnnotation(PathVariable.class);
+                if (variable != null && parameter.getParameterType() == UUID.class) {
+                    String name = variable.value().isEmpty() ? parameter.getParameterName() : variable.value();
+                    cases.add(new Case(400, "invalid-id", "Malformed id", "'" + name + "' is not a valid UUID."));
                 }
-                operation.getResponses().forEach((code, response) -> {
-                    boolean error = code.startsWith("4") || code.startsWith("5");
-                    boolean bodyless = response.getContent() == null || response.getContent().isEmpty();
-                    if (error && bodyless) {
-                        response.setContent(new Content().addMediaType("application/json", new MediaType()
-                                .schema(new Schema<>().$ref("#/components/schemas/" + ERROR_SCHEMA))
-                                .example(errorExample(Integer.parseInt(code), response.getDescription()))));
-                    }
-                });
-            }));
+            }
+            for (ErrorCase declared : handlerMethod.getMethod().getAnnotationsByType(ErrorCase.class)) {
+                cases.add(new Case(declared.status(), declared.name(), declared.summary(), declared.message()));
+            }
+
+            Map<Integer, List<Case>> byStatus = new TreeMap<>();
+            cases.forEach(each -> byStatus.computeIfAbsent(each.status(), status -> new ArrayList<>()).add(each));
+            byStatus.forEach((status, group) -> operation.getResponses().addApiResponse(String.valueOf(status),
+                    errorResponse(group)));
+
+            ApiResponses sorted = new ApiResponses();
+            new TreeMap<>(operation.getResponses()).forEach(sorted::addApiResponse);
+            return operation.responses(sorted);
         };
     }
 
-    private static Map<String, Object> errorExample(int status, String message) {
+    private record Case(int status, String name, String summary, String message) {
+    }
+
+    private static List<Case> refusals(io.swagger.v3.oas.models.Operation operation) {
+        List<SecurityRequirement> security = operation.getSecurity();
+        if (security == null || security.isEmpty()) {
+            return List.of();
+        }
+        Case missing = new Case(401, "missing-credential", "No credential", RefusalMessages.AUTHENTICATION_REQUIRED);
+        Case wrong = new Case(403, "wrong-credential", "Credential for the other scope", RefusalMessages.WRONG_CREDENTIAL);
+        if (security.get(0).containsKey("apiKeyAuth")) {
+            return List.of(missing,
+                    new Case(401, "invalid-api-key", "Unknown API key", RefusalMessages.INVALID_API_KEY),
+                    wrong,
+                    new Case(403, "tenant-inactive", "Tenant deactivated", RefusalMessages.TENANT_INACTIVE),
+                    new Case(429, "rate-limited", "Rate limit exceeded", RefusalMessages.rateLimited(12)));
+        }
+        return List.of(missing,
+                new Case(401, "invalid-token", "Rejected token", RefusalMessages.INVALID_TOKEN),
+                wrong);
+    }
+
+    private static ApiResponse errorResponse(List<Case> group) {
+        MediaType body = new MediaType().schema(new Schema<>().$ref("#/components/schemas/" + ERROR_SCHEMA));
+        group.forEach(each -> body.addExamples(each.name(), new Example()
+                .summary(each.summary())
+                .value(errorExample(each))));
+        return new ApiResponse()
+                .description(describe(group))
+                .content(new Content().addMediaType("application/json", body));
+    }
+
+    /* "No credential or unknown API key": the first summary as written, the rest lower-cased. */
+    private static String describe(List<Case> group) {
+        return group.get(0).summary() + group.stream().skip(1)
+                .map(each -> " or " + Character.toLowerCase(each.summary().charAt(0)) + each.summary().substring(1))
+                .collect(Collectors.joining());
+    }
+
+    private static Map<String, Object> errorExample(Case error) {
         Map<String, Object> example = new LinkedHashMap<>();
-        example.put("status", status);
-        example.put("message", message);
-        example.put("timestamp", "2026-01-15T10:30:00Z");
+        example.put("status", error.status());
+        example.put("message", error.message());
+        example.put("timestamp", EXAMPLE_TIMESTAMP);
         return example;
     }
 

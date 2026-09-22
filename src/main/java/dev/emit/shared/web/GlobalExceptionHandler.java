@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import dev.emit.document.domain.DocumentNotFoundException;
 import dev.emit.document.domain.DocumentPdfNotReadyException;
 import dev.emit.document.domain.DocumentStatusException;
+import dev.emit.shared.auth.InvalidCredentialsException;
 import dev.emit.tenant.domain.TenantNotFoundException;
 
 @RestControllerAdvice
@@ -52,8 +53,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception) {
+        // Sorted, because the validator reports violations in no fixed order.
         String message = exception.getBindingResult().getFieldErrors().stream()
                 .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                .sorted()
                 .collect(Collectors.joining(", "));
         return ResponseEntity.badRequest().body(new ErrorResponse(400,
                 message.isEmpty() ? "Invalid data." : message, OffsetDateTime.now(ZoneOffset.UTC)));
@@ -63,6 +66,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(404, exception.getMessage(), OffsetDateTime.now(ZoneOffset.UTC)));
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException exception) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse(401, exception.getMessage(), OffsetDateTime.now(ZoneOffset.UTC)));
     }
 
     @ExceptionHandler(DocumentPdfNotReadyException.class)
