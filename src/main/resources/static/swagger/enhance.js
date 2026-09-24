@@ -1144,6 +1144,153 @@
     }
   }
 
+  /* --------------------------------------------------------- response index
+   * Responses read as an index: one line each, details on demand. Refusals
+   * that every guarded route shares are named by these example keys in the
+   * spec and are listed once per operation instead of one row per code.
+   */
+  var SHARED_REFUSALS = ['missing-credential', 'invalid-api-key', 'invalid-token',
+    'wrong-credential', 'tenant-inactive', 'rate-limited', 'invalid-id'];
+
+  function operationFor(block) {
+    var path = block.querySelector('.opblock-summary-path');
+    var method = block.querySelector('.opblock-summary-method');
+    var item = spec && path && spec.paths[path.getAttribute('data-path')];
+    return item && method ? item[method.textContent.trim().toLowerCase()] : null;
+  }
+
+  function examplesOf(response) {
+    var media = response && response.content && response.content['application/json'];
+    var examples = media && media.examples;
+    return examples ? Object.keys(examples).map(function (name) {
+      return { name: name, summary: examples[name].summary || name, value: examples[name].value || {} };
+    }) : [];
+  }
+
+  function paintResponseIndex() {
+    if (!spec) return;
+    document.querySelectorAll('.opblock.is-open').forEach(function (block) {
+      var operation = operationFor(block);
+      var table = block.querySelector('table.responses-table:not(.live-responses-table)');
+      if (!operation || !table) return;
+
+      var rows = table.querySelectorAll('tbody > tr.response');
+      rows.forEach(function (row) {
+        var code = row.getAttribute('data-code');
+        var response = operation.responses[code] || {};
+        var examples = examplesOf(response);
+        row.classList.toggle('emit-shared-member', examples.length > 0 && examples.every(function (e) {
+          return SHARED_REFUSALS.indexOf(e.name) !== -1;
+        }));
+
+        var inner = row.querySelector('.response-col_description__inner');
+        if (inner && !inner.querySelector('.emit-row-meta')) {
+          var meta = examples.length > 1 ? examples.length + ' causes' : response.content ? '' : 'no body';
+          inner.appendChild(el('span', 'emit-row-meta', meta));
+          inner.appendChild(el('span', 'emit-row-chevron'));
+        }
+        if (!row.dataset.emitIndexed) {
+          row.dataset.emitIndexed = 'true';
+          row.addEventListener('click', function (event) {
+            if (event.target.closest('.response-col_status, .response-col_description__inner')) row.classList.toggle('emit-open');
+          });
+        }
+      });
+      if (!table.querySelector('tr.emit-open') && !table.dataset.emitDefaulted) {
+        table.dataset.emitDefaulted = 'true';
+        var success = table.querySelector('tbody > tr.response[data-code^="2"]');
+        if (success) success.classList.add('emit-open');
+      }
+
+      paintSharedRefusals(block, table, operation);
+      paintHeadersOnce(block, table, operation);
+    });
+  }
+
+  function paintSharedRefusals(block, table, operation) {
+    if (block.querySelector('.emit-refusals')) return;
+    var causes = [];
+    Object.keys(operation.responses).sort().forEach(function (code) {
+      examplesOf(operation.responses[code]).forEach(function (example) {
+        if (SHARED_REFUSALS.indexOf(example.name) !== -1) {
+          causes.push({ code: code, summary: example.summary, message: example.value.message || '' });
+        }
+      });
+    });
+    if (!causes.length) return;
+
+    var tag = (operation.tags && operation.tags[0]) || '';
+    var group = el('div', 'emit-refusals');
+    var head = el('button', 'emit-refusals__head');
+    head.type = 'button';
+    head.appendChild(el('span', 'emit-refusals__dot'));
+    head.appendChild(el('span', 'emit-refusals__code', '4XX'));
+    head.appendChild(el('span', 'emit-refusals__title',
+      'Refusals every ' + tag.toLowerCase().replace(/s$/, '') + ' route shares'));
+    head.appendChild(el('span', 'emit-row-meta', causes.length + ' causes'));
+    head.appendChild(el('span', 'emit-row-chevron'));
+    head.addEventListener('click', function () { group.classList.toggle('emit-open'); });
+    group.appendChild(head);
+
+    var list = el('table', 'emit-refusals__table');
+    causes.forEach(function (cause) {
+      var tr = el('tr', cause.code === '429' ? 'emit-refusals__row--wait' : null);
+      tr.appendChild(el('td', 'emit-refusals__row-code', cause.code));
+      tr.appendChild(el('td', 'emit-refusals__row-cause', cause.summary));
+      tr.appendChild(el('td', 'emit-refusals__row-message', cause.message));
+      list.appendChild(tr);
+    });
+    group.appendChild(list);
+    table.parentNode.insertBefore(group, table.nextSibling);
+  }
+
+  /* Headers most responses share are said once, under the index. */
+  function paintHeadersOnce(block, table, operation) {
+    if (block.querySelector('.emit-headers-once')) return;
+    var codes = Object.keys(operation.responses);
+    var withHeaders = codes.filter(function (code) { return operation.responses[code].headers; });
+    if (!withHeaders.length) return;
+    var shared = Object.keys(operation.responses[withHeaders[0]].headers).filter(function (name) {
+      return withHeaders.every(function (code) { return operation.responses[code].headers[name]; });
+    });
+    var without = codes.filter(function (code) { return withHeaders.indexOf(code) === -1; });
+
+    var line = el('div', 'emit-headers-once');
+    line.appendChild(document.createTextNode((without.length ? 'Every response but ' + without.join(' and ') : 'Every response') + ' carries'));
+    shared.forEach(function (name) {
+      var header = operation.responses[withHeaders[0]].headers[name];
+      var chip = el('code', null, name);
+      chip.title = (header.description || '') + (header.schema && header.schema.type ? ' (' + header.schema.type + ')' : '');
+      line.appendChild(chip);
+    });
+    withHeaders.forEach(function (code) {
+      Object.keys(operation.responses[code].headers).forEach(function (name) {
+        if (shared.indexOf(name) !== -1) return;
+        line.appendChild(document.createTextNode(code + ' adds'));
+        var chip = el('code', null, name);
+        chip.title = operation.responses[code].headers[name].description || '';
+        line.appendChild(chip);
+      });
+    });
+    var after = block.querySelector('.emit-refusals') || table;
+    after.parentNode.insertBefore(line, after.nextSibling);
+  }
+
+  /* A parameter's type and format arrive as one element with the format
+     nested in it, "string($uuid)"; they become two chips, "string" and "uuid". */
+  function paintParameterTypes() {
+    document.querySelectorAll('.parameter__type:not([data-emit-type])').forEach(function (type) {
+      type.setAttribute('data-emit-type', '');
+      var text = type.firstChild;
+      if (text && text.nodeType === 3 && text.textContent.trim()) {
+        var chip = el('span', 'emit-type', text.textContent.trim());
+        type.replaceChild(chip, text);
+      }
+      var format = type.querySelector('.prop-format');
+      if (format) format.textContent = format.textContent.replace(/^\(\$?|\)$/g, '');
+    });
+  }
+
   /* The document lifecycle, drawn once under the info panel. */
   function lifecycleStatesMatchSpec() {
     if (!spec || !spec.components || !spec.components.schemas) return false;
@@ -1681,6 +1828,8 @@
     paintTitle();
     paintResponseRows();
     paintOperations();
+    paintParameterTypes();
+    paintResponseIndex();
     paintGroupCounts();
     paintAuthMatrix();
     paintEnums();
