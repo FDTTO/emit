@@ -30,6 +30,40 @@ V.until(function () { return !!link('requestDocumentGeneration') && !!pane() && 
       blockTop: Math.round(block.getBoundingClientRect().top), maxScroll: pane().scrollHeight - pane().clientHeight });
     var crumb = document.getElementById('emit-crumb').textContent;
     check('the titlebar names it', /POST \/v1\/documents\/\{id\}\/generate/.test(crumb), crumb);
-    done();
+    shortcuts();
   }, 15000);
 }, 20000);
+
+// Ctrl+K finds an operation by part of its name and opens it; Ctrl+B folds
+// the rail's column away and brings it back.
+var press = function (key, target) {
+  (target || document).dispatchEvent(new KeyboardEvent('keydown', { key: key, ctrlKey: key.length === 1, bubbles: true }));
+};
+function shortcuts() {
+  press('k');
+  var palette = document.querySelector('.emit-palette');
+  check('Ctrl+K opens the palette', !!palette && !palette.hidden);
+  var input = document.querySelector('.emit-palette__input');
+  input.value = 'tenant by';
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  var first = document.querySelector('.emit-palette__item[aria-selected="true"] .emit-palette__name');
+  check('typing narrows it to the match', !!first && first.textContent === 'Get tenant by ID', first && first.textContent);
+  press('Enter', input);
+  V.until(function () {
+    var block = document.getElementById('operations-Tenants-getTenant');
+    return block && block.classList.contains('is-open') && palette.hidden;
+  }, function () {
+    check('Enter opens it and closes the palette', palette.hidden && document.getElementById('operations-Tenants-getTenant').classList.contains('is-open'));
+    var rail = document.getElementById('emit-rail');
+    press('b');
+    V.until(function () { return rail.getBoundingClientRect().width < 2; }, function () {
+      check('Ctrl+B folds the rail', document.getElementById('emit-window').dataset.rail === 'closed' && rail.getBoundingClientRect().width < 2,
+            rail.getBoundingClientRect().width);
+      press('b');
+      V.until(function () { return rail.getBoundingClientRect().width > 200; }, function () {
+        check('and brings it back', rail.getBoundingClientRect().width > 200, rail.getBoundingClientRect().width);
+        done();
+      }, 3000);
+    }, 3000);
+  }, 10000);
+}

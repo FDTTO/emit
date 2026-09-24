@@ -167,6 +167,7 @@ body {
     border-radius: var(--r-window);
     overflow: hidden;
     box-shadow: 0 40px 100px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.15);
+    transition: grid-template-columns .3s var(--ease);
   }
   /* Specular rim: light on the top-left edge, fading along the sides. */
   #emit-window::after {
@@ -425,8 +426,10 @@ body {
   border-radius: var(--r-sm);
 }
 
+/* The cockpit's own parts live outside .swagger-ui, so they are listed. */
 @media (prefers-reduced-motion: reduce) {
-  #emit-swagger .swagger-ui * { transition: none; animation: none; }
+  #emit-swagger .swagger-ui *,
+  #emit-window, #emit-rail *, #emit-statusbar *, .emit-palette *, .emit-rail-toggle { transition: none; animation: none; }
 }
 
 /* --------------------------------------------------------------------------
@@ -488,6 +491,108 @@ body {
 }
 .emit-crumb b { font-weight: 500; color: var(--e-text); overflow: hidden; text-overflow: ellipsis; }
 .emit-crumb i { font-style: normal; color: var(--e-faint); }
+
+/* Fold control, at the right end of the brand cell. */
+.emit-rail-toggle {
+  position: absolute;
+  left: calc(var(--rail) - 38px);
+  top: calc((var(--titlebar-h) - 26px) / 2);
+  width: 26px; height: 26px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--e-faint);
+  cursor: pointer;
+  transition: transform .3s var(--ease), color .15s, background .15s;
+}
+.emit-rail-toggle svg { width: 14px; height: 14px; }
+.emit-rail-toggle:hover { color: var(--e-body); background: var(--e-raised); }
+#emit-swagger .swagger-ui .topbar .topbar-wrapper { position: relative; }
+
+/* Jump: the command palette's door, in the titlebar. */
+.emit-jump {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: 0 0 280px;
+  height: 32px;
+  padding: 0 8px 0 12px;
+  border: 0;
+  border-radius: var(--r-code);
+  background: var(--e-raised);
+  box-shadow: inset 0 0 0 1px var(--e-hair);
+  color: var(--e-faint);
+  font: 400 var(--t-md)/1 var(--f-body);
+  cursor: pointer;
+}
+.emit-jump:hover { background: var(--e-hover); color: var(--e-dim); }
+.emit-jump svg { width: 13px; height: 13px; }
+.emit-jump kbd, .emit-palette kbd {
+  margin-left: auto;
+  padding: 3px 6px;
+  border-radius: var(--r-sm);
+  background: var(--e-raised);
+  box-shadow: inset 0 0 0 1px var(--e-hair);
+  font: 500 var(--t-xs)/1 var(--f-mono);
+  color: var(--e-dim);
+}
+
+/* Folded: the rail's column closes, the brand cell keeps only the control. */
+@media (min-width: 901px) {
+  #emit-window[data-rail="closed"] { grid-template-columns: 0 minmax(0, 1fr); }
+  #emit-window[data-rail="closed"] #emit-rail { visibility: hidden; }
+  #emit-window[data-rail="closed"] .topbar .topbar-wrapper > a.link { width: 52px; padding-left: 0; }
+  #emit-window[data-rail="closed"] .topbar .topbar-wrapper > a.link .emit-brand { display: none; }
+  #emit-window[data-rail="closed"] .emit-rail-toggle { left: 13px; transform: rotate(180deg); }
+  #emit-window[data-rail="closed"] #emit-statusbar > .emit-status__server { width: auto; }
+}
+@media (max-width: 900px) {
+  .emit-rail-toggle, .emit-jump { display: none; }
+}
+
+/* The palette: a sheet of glass over the window. */
+.emit-palette { position: fixed; inset: 0; z-index: 9500; background: rgba(4,6,9,0.5); backdrop-filter: blur(4px); }
+.emit-palette[hidden] { display: none; }
+.emit-palette__box {
+  width: min(560px, calc(100vw - 32px));
+  margin: 12vh auto 0;
+  overflow: hidden;
+  border-radius: var(--r-panel);
+  background: linear-gradient(150deg, rgba(40,46,58,0.92), rgba(20,23,30,0.96));
+  backdrop-filter: blur(30px);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6), var(--e-spec);
+  animation: emit-rise .25s var(--ease);
+}
+.emit-palette__input {
+  width: 100%;
+  height: 54px;
+  padding: 0 var(--sp-5);
+  border: 0;
+  background: transparent;
+  box-shadow: inset 0 -1px 0 var(--e-hair);
+  color: var(--e-text);
+  font: 400 var(--t-xl)/1 var(--f-body);
+  outline: none;
+}
+.emit-palette__list { list-style: none; margin: 0; padding: var(--sp-2); max-height: 340px; overflow-y: auto; }
+.emit-palette__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 10px var(--sp-3);
+  border-radius: var(--r-code);
+  color: var(--e-body);
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+.emit-palette__item svg { width: 14px; height: 14px; color: var(--e-faint); }
+.emit-palette__item[aria-selected="true"] { background: var(--ui-bg); color: var(--e-text); }
+.emit-palette__item[aria-selected="true"] svg { color: var(--ui-c); }
+.emit-palette__path { margin-left: auto; font: 400 var(--t-sm)/1 var(--f-mono); color: var(--e-faint); white-space: nowrap; }
+.emit-palette__foot { display: flex; gap: var(--sp-4); padding: 10px var(--sp-5); box-shadow: inset 0 1px 0 var(--e-hair); font-size: var(--t-sm); color: var(--e-faint); }
 #emit-swagger .swagger-ui .topbar img,
 #emit-swagger .swagger-ui .topbar .download-url-wrapper { display: none; }
 #emit-swagger .swagger-ui .topbar a {
@@ -1191,6 +1296,9 @@ body {
   box-shadow: var(--e-lift);
   margin: var(--sp-5) 0 var(--sp-6);
 }
+/* The body unfolds under its header as the sheet rises. */
+#emit-swagger .swagger-ui .opblock.is-open .opblock-body { animation: emit-unfold .32s var(--ease); }
+@keyframes emit-unfold { from { opacity: 0; transform: translateY(-6px); } }
 
 /* Summary row. Counter: .opblock-summary{padding:5px} */
 #emit-swagger .swagger-ui .opblock .opblock-summary {

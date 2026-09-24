@@ -1033,6 +1033,26 @@
       crumb.id = 'emit-crumb';
       bar.insertBefore(crumb, link ? link.nextSibling : bar.firstChild);
     }
+    if (!document.getElementById('emit-rail-toggle')) {
+      var fold = el('button', 'emit-rail-toggle');
+      fold.id = 'emit-rail-toggle';
+      fold.type = 'button';
+      fold.title = 'Fold the rail (Ctrl B)';
+      fold.setAttribute('aria-label', 'Fold the rail');
+      fold.appendChild(icon('chevronLeft'));
+      fold.addEventListener('click', toggleRail);
+      bar.insertBefore(fold, document.getElementById('emit-crumb'));
+    }
+    if (!document.getElementById('emit-jump')) {
+      var jump = el('button', 'emit-jump');
+      jump.id = 'emit-jump';
+      jump.type = 'button';
+      jump.appendChild(icon('search'));
+      jump.appendChild(el('span', null, 'Jump to an operation'));
+      jump.appendChild(el('kbd', null, 'Ctrl K'));
+      jump.addEventListener('click', openPalette);
+      bar.insertBefore(jump, document.getElementById('emit-crumb').nextSibling);
+    }
 
     var source = document.querySelector('.scheme-container .auth-wrapper .authorize');
     var mirror = document.getElementById('emit-topbar-auth');
@@ -2138,6 +2158,115 @@
     });
   }
 
+  /* Ctrl+B folds the rail, as in an editor, and the choice is remembered. */
+  var RAIL_KEY = 'emit.rail';
+
+  function toggleRail() {
+    var win = document.getElementById('emit-window');
+    if (!win) return;
+    var folded = win.dataset.rail !== 'closed';
+    win.dataset.rail = folded ? 'closed' : 'open';
+    try { localStorage.setItem(RAIL_KEY, win.dataset.rail); } catch (ignored) { /* private mode */ }
+  }
+
+  function restoreRail() {
+    var win = document.getElementById('emit-window');
+    var saved = null;
+    try { saved = localStorage.getItem(RAIL_KEY); } catch (ignored) { /* private mode */ }
+    if (win) win.dataset.rail = saved === 'closed' ? 'closed' : 'open';
+  }
+
+  /* Ctrl+K: type part of a name or path, Enter lands on the operation. */
+  var palette = null;
+
+  function openPalette() {
+    if (!spec) return;
+    if (!palette) palette = buildPalette();
+    palette.back.hidden = false;
+    palette.input.value = '';
+    palette.selected = 0;
+    renderPalette();
+    palette.input.focus();
+  }
+
+  function closePalette() {
+    if (palette) palette.back.hidden = true;
+  }
+
+  function buildPalette() {
+    var back = el('div', 'emit-palette');
+    back.hidden = true;
+    var box = el('div', 'emit-palette__box');
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-label', 'Jump to an operation');
+    var input = el('input', 'emit-palette__input');
+    input.placeholder = 'Jump to an operation…';
+    input.setAttribute('aria-label', 'Operation name or path');
+    input.autocomplete = 'off';
+    var list = el('ul', 'emit-palette__list');
+    list.setAttribute('role', 'listbox');
+    var foot = el('div', 'emit-palette__foot');
+    ['↑↓ choose', 'Enter open', 'Esc close'].forEach(function (hint) { foot.appendChild(el('span', null, hint)); });
+    box.appendChild(input);
+    box.appendChild(list);
+    box.appendChild(foot);
+    back.appendChild(box);
+    document.body.appendChild(back);
+
+    var entries = [];
+    mapEntries().forEach(function (group) { entries = entries.concat(group.operations); });
+    var state = { back: back, input: input, list: list, entries: entries, shown: entries, selected: 0 };
+
+    back.addEventListener('click', function (event) { if (event.target === back) closePalette(); });
+    input.addEventListener('input', function () { state.selected = 0; renderPalette(); });
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowDown') { state.selected = Math.min(state.selected + 1, state.shown.length - 1); renderPalette(); event.preventDefault(); }
+      if (event.key === 'ArrowUp') { state.selected = Math.max(state.selected - 1, 0); renderPalette(); event.preventDefault(); }
+      if (event.key === 'Enter' && state.shown[state.selected]) choose(state.shown[state.selected]);
+      if (event.key === 'Escape') closePalette();
+    });
+    list.addEventListener('click', function (event) {
+      var item = event.target.closest('li');
+      if (item) choose(state.shown[Number(item.dataset.index)]);
+    });
+    return state;
+  }
+
+  function choose(operation) {
+    closePalette();
+    openOperation({ tag: operation.tag, id: operation.id });
+  }
+
+  function renderPalette() {
+    var query = palette.input.value.trim().toLowerCase();
+    palette.shown = palette.entries.filter(function (entry) {
+      return (entry.name + ' ' + entry.method + ' ' + entry.path).toLowerCase().indexOf(query) !== -1;
+    });
+    palette.selected = Math.min(palette.selected, Math.max(0, palette.shown.length - 1));
+    palette.list.textContent = '';
+    palette.shown.forEach(function (entry, index) {
+      var item = el('li', 'emit-palette__item');
+      item.dataset.index = String(index);
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', String(index === palette.selected));
+      item.appendChild(icon(iconFor(entry.method, entry.path)));
+      item.appendChild(el('span', 'emit-palette__name', entry.name));
+      item.appendChild(el('span', 'emit-palette__path', entry.method.toUpperCase() + ' ' + entry.path));
+      palette.list.appendChild(item);
+    });
+    var current = palette.list.children[palette.selected];
+    if (current) current.scrollIntoView({ block: 'nearest' });
+  }
+
+  function bindShortcuts() {
+    document.addEventListener('keydown', function (event) {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
+      var key = event.key.toLowerCase();
+      if (key === 'k') { event.preventDefault(); openPalette(); }
+      if (key === 'b' && document.getElementById('emit-window')) { event.preventDefault(); toggleRail(); }
+    });
+  }
+
   // -------------------------------------------------------------- scheduler
 
   function paint() {
@@ -2194,8 +2323,10 @@
 
   function start() {
     buildShell();
+    restoreRail();
     paint();
     bindLegend();
+    bindShortcuts();
 
     /* The content pane scrolls, not the page. Capture, because the pane is
        created by React after this runs. */
