@@ -103,6 +103,20 @@
     }
   };
 
+  /* -------------------------------------------------------------- journey
+   * The walkthrough the overview lists and the rail follows. A step is done
+   * when the page can see it happened: a credential held, the run reaching
+   * a state, or the operation answering with a 2xx. The first step not done
+   * is the next one.
+   */
+  var JOURNEY = [
+    { label: 'Log in', method: 'post', path: '/v1/auth/login', done: { held: 'bearerAuth' }, proof: 'token in Authorize' },
+    { label: 'Create a tenant', method: 'post', path: '/v1/tenants', done: { held: 'apiKeyAuth' }, proof: 'key in Authorize' },
+    { label: 'Create a document', method: 'post', path: '/v1/documents', done: { answered: true }, proof: 'id carried' },
+    { label: 'Generate its PDF', method: 'post', path: '/v1/documents/{id}/generate', done: { run: 'DONE' }, proof: 'pdf ready' },
+    { label: 'Download it', method: 'get', path: '/v1/documents/{id}/pdf', done: { answered: true }, proof: 'downloaded' }
+  ];
+
   /* ------------------------------------------------------------- formats
    * Swagger renders a `format` and a real constraint through the same class,
    * `__constraint--<type>`, so formats are recognised by value. The set of
@@ -348,6 +362,7 @@
       var response = ui.specSelectors.responseFor(source.path, source.method);
       if (!response || response === seenResponses[source.key]) return;
       seenResponses[source.key] = response;
+      rememberAnswer(source.key, response);
 
       var ok = response.get('ok');
       var body = ok ? jsonBody(response) : null;
@@ -360,6 +375,24 @@
       responseNotes[source.key] = notes.credential || notes.carry || notes.follow || notes.denied ? notes : null;
       schedule();
     });
+  }
+
+  /* The last answer each operation gave, and the latest of all: the rows, the
+     map and the statusbar read these. */
+  var lastAnswers = {};
+  var latestAnswer = null;
+
+  function rememberAnswer(key, response) {
+    var answer = {
+      key: key,
+      status: response.get('status'),
+      duration: response.get('duration'),
+      requestId: responseHeader(response, 'x-request-id'),
+      limit: parseInt(responseHeader(response, 'ratelimit-limit'), 10),
+      remaining: parseInt(responseHeader(response, 'ratelimit-remaining'), 10)
+    };
+    lastAnswers[key] = answer;
+    latestAnswer = answer;
   }
 
   function requiredSchemes(operation) {
@@ -558,8 +591,10 @@
     if (!start || source.method !== start.method || source.path !== start.path) return null;
     var id = idFromUrl(start.path, response.get('url'));
     if (!id) return null;
+    /* startedAt and endedAt are the browser's clock, for a timer that ticks;
+       acceptedAt and finishedAt are the server's, for the duration reported. */
     var follow = { id: id, state: LIFECYCLE.run[0].state, phase: 'following', reads: 0, run: 0,
-                   acceptedAt: serverTime(response) };
+                   acceptedAt: serverTime(response), startedAt: Date.now(), endedAt: null };
     restartFollow(follow);
     return follow;
   }
@@ -655,6 +690,7 @@
           if (typeof state === 'string' && lifecycleStep(state)) follow.state = state;
           if (isTerminal(follow.state)) {
             follow.phase = 'ended';
+            follow.endedAt = Date.now();
             var finished = Date.parse(result.body.updatedAt);
             follow.finishedAt = isNaN(finished) ? null : finished;
           } else if (result.budget.remaining !== null && result.budget.remaining <= FOLLOW_RESERVE) {
@@ -1687,18 +1723,64 @@
     var rail = el('aside');
     rail.id = 'emit-rail';
     rail.setAttribute('aria-label', 'Operations and progress');
+    var journey = el('section', 'emit-journey');
+    journey.id = 'emit-journey';
+    journey.hidden = true;
+    rail.appendChild(journey);
+
     var map = el('nav', 'emit-map');
     map.id = 'emit-map';
     map.setAttribute('aria-label', 'Operations');
     rail.appendChild(map);
+
+    var live = el('section', 'emit-live');
+    live.id = 'emit-live';
+    live.hidden = true;
+    live.setAttribute('role', 'status');
+    rail.appendChild(live);
 
     var status = el('footer');
     status.id = 'emit-statusbar';
     var server = el('span', 'emit-status__server');
     server.id = 'emit-status-server';
     status.appendChild(server);
-
+    var run = el('span', 'emit-status__run');
+    run.id = 'emit-status-run';
+    run.hidden = true;
+    status.appendChild(run);
     status.appendChild(el('span', 'emit-status__grow'));
+
+    var budget = el('span', 'emit-status__budget');
+    budget.id = 'emit-status-budget';
+    budget.hidden = true;
+    status.appendChild(budget);
+
+    var last = el('button', 'emit-status__last');
+    last.id = 'emit-status-last';
+    last.type = 'button';
+    last.hidden = true;
+    last.title = 'Go to the operation that answered';
+    last.addEventListener('click', function () {
+      var target = latestAnswer && operationIndex()[latestAnswer.key];
+      if (target) openOperation(target);
+    });
+    status.appendChild(last);
+
+    var requestId = el('button', 'emit-status__request');
+    requestId.id = 'emit-status-request';
+    requestId.type = 'button';
+    requestId.hidden = true;
+    requestId.title = 'Copy the request id';
+    requestId.addEventListener('click', function () {
+      var value = requestId.dataset.value;
+      if (!value || !navigator.clipboard) return;
+      navigator.clipboard.writeText(value).then(function () {
+        requestId.dataset.copied = 'true';
+        requestId.textContent = 'Request id copied';
+        setTimeout(function () { delete requestId.dataset.copied; paintStatusTelemetry(); }, 1400);
+      });
+    });
+    status.appendChild(requestId);
     var legend = document.getElementById('emit-legend');
     if (legend) status.appendChild(legend);
 
@@ -1818,6 +1900,212 @@
       + (first.description ? ' · ' + first.description : '')));
   }
 
+  function currentFollow() {
+    var follow = null;
+    Object.keys(responseNotes).forEach(function (key) {
+      if (responseNotes[key] && responseNotes[key].follow) follow = responseNotes[key].follow;
+    });
+    return follow;
+  }
+
+  function stepDone(step) {
+    if (step.done.held) return !!(window.ui && window.ui.authSelectors && heldCredential(step.done.held));
+    if (step.done.run) {
+      var follow = currentFollow();
+      return !!follow && follow.state === step.done.run;
+    }
+    var answer = lastAnswers[step.method.toUpperCase() + ' ' + step.path];
+    return !!answer && answer.status >= 200 && answer.status < 300;
+  }
+
+  function journeyState() {
+    var done = JOURNEY.map(stepDone);
+    return { done: done, next: done.indexOf(false) };
+  }
+
+  /* The rail's compact walkthrough: progress and the one step that is next. */
+  function paintJourney() {
+    var journey = document.getElementById('emit-journey');
+    if (!journey || !spec) return;
+    if (!journey.firstChild) {
+      var label = el('div', 'emit-rail__label', 'Getting started');
+      label.appendChild(el('small', 'emit-journey__count'));
+      journey.appendChild(label);
+      var bar = el('div', 'emit-journey__bar');
+      JOURNEY.forEach(function () { bar.appendChild(el('i')); });
+      journey.appendChild(bar);
+      var next = el('button', 'emit-journey__next');
+      next.type = 'button';
+      var words = el('span', 'emit-journey__words');
+      words.appendChild(el('small', null, 'Next'));
+      words.appendChild(el('span', 'emit-journey__step'));
+      next.appendChild(words);
+      next.appendChild(icon('goTo'));
+      next.addEventListener('click', function () {
+        var step = JOURNEY[journeyState().next];
+        var target = step && operationIndex()[step.method.toUpperCase() + ' ' + step.path];
+        if (target) openOperation(target);
+      });
+      journey.appendChild(next);
+      journey.hidden = false;
+    }
+    var state = journeyState();
+    var count = state.done.filter(Boolean).length;
+    var key = state.done.join() + state.next;
+    if (journey.dataset.key === key) return;
+    journey.dataset.key = key;
+    journey.querySelector('.emit-journey__count').textContent = count + ' / ' + JOURNEY.length;
+    journey.querySelectorAll('.emit-journey__bar i').forEach(function (segment, index) {
+      segment.className = state.done[index] ? 'is-done' : index === state.next ? 'is-next' : '';
+    });
+    var nextButton = journey.querySelector('.emit-journey__next');
+    nextButton.hidden = state.next < 0;
+    if (state.next >= 0) journey.querySelector('.emit-journey__step').textContent = JOURNEY[state.next].label;
+  }
+
+  /* The followed document, where the reader is: its stage, how long it has
+     run, and the download once the PDF is ready. Absent when nothing runs. */
+  var liveTicker = null;
+
+  function paintLive() {
+    var live = document.getElementById('emit-live');
+    if (!live) return;
+    var follow = currentFollow();
+    live.hidden = !follow;
+    var run = document.getElementById('emit-status-run');
+    if (run) run.hidden = !follow;
+    if (!follow) return;
+
+    var ended = follow.phase === 'ended';
+    var seconds = ((follow.endedAt || Date.now()) - follow.startedAt) / 1000;
+    var stages = [LIFECYCLE.run[0].state, LIFECYCLE.run[2].state, isTerminal(follow.state) ? follow.state : LIFECYCLE.outcomes[0].state];
+    var at = stages.indexOf(follow.state);
+
+    var key = follow.id + follow.state + follow.phase;
+    if (live.dataset.key !== key) {
+      live.dataset.key = key;
+      live.textContent = '';
+      var head = el('div', 'emit-live__head');
+      head.appendChild(el('i', 'emit-live__dot' + (ended ? '' : ' is-running')));
+      head.appendChild(document.createTextNode('Document ' + follow.id.slice(0, 8)));
+      head.appendChild(el('small', 'emit-live__elapsed'));
+      live.appendChild(head);
+
+      var track = el('div', 'emit-live__track');
+      stages.forEach(function (state, index) {
+        var stage = el('div', 'emit-live__stage');
+        if (index < at) stage.classList.add('is-past');
+        if (index === at) stage.classList.add(state === 'DONE' ? 'is-good' : state === 'FAILED' ? 'is-bad' : 'is-current');
+        stage.appendChild(el('i'));
+        stage.appendChild(el('b', null, state));
+        track.appendChild(stage);
+      });
+      live.appendChild(track);
+
+      var foot = el('div', 'emit-live__foot');
+      var said = { following: follow.state === 'PENDING' ? 'Queued in Kafka' : 'Rendering the PDF',
+                   ended: follow.state === 'DONE' ? 'PDF ready' : 'Generation failed',
+                   paused: 'Still ' + follow.state + ', paused',
+                   'rate-limited': 'Waiting for the rate limit',
+                   'saving-budget': 'Paused to save your requests',
+                   error: 'Reading it back failed',
+                   'no-credential': 'No key to read it back with' }[follow.phase] || '';
+      foot.appendChild(el('span', null, said));
+      if (ended && follow.state === 'DONE' && followOperation('result')) {
+        var download = el('button', 'emit-live__action', 'Download PDF');
+        download.type = 'button';
+        download.addEventListener('click', function () { openFollowed('result', follow.id); });
+        foot.appendChild(download);
+      }
+      live.appendChild(foot);
+
+      if (run) {
+        run.textContent = '';
+        run.appendChild(el('i', 'emit-live__dot' + (ended ? '' : ' is-running')));
+        run.appendChild(document.createTextNode('Document ' + follow.id.slice(0, 8) + ' · ' + follow.state));
+      }
+    }
+    live.querySelector('.emit-live__elapsed').textContent = seconds.toFixed(1) + 's';
+
+    if (!ended && !liveTicker) liveTicker = setInterval(schedule, 200);
+    if (ended && liveTicker) {
+      clearInterval(liveTicker);
+      liveTicker = null;
+    }
+  }
+
+  /* Telemetry of the latest answer: the tenant's budget, the status and time,
+     the request id to quote. */
+  function paintStatusTelemetry() {
+    var answer = latestAnswer;
+    var budget = document.getElementById('emit-status-budget');
+    var last = document.getElementById('emit-status-last');
+    var request = document.getElementById('emit-status-request');
+    if (!answer || !budget) return;
+
+    var hasBudget = !isNaN(answer.limit) && !isNaN(answer.remaining);
+    budget.hidden = !hasBudget;
+    if (hasBudget) {
+      budget.textContent = 'RateLimit ' + answer.remaining + ' / ' + answer.limit;
+      var meter = el('span', 'emit-status__meter');
+      var fill = el('i');
+      fill.style.width = Math.round(100 * answer.remaining / Math.max(1, answer.limit)) + '%';
+      meter.appendChild(fill);
+      budget.appendChild(meter);
+    }
+    last.hidden = false;
+    last.textContent = 'Last ' + answer.status + (typeof answer.duration === 'number' ? ' · ' + answer.duration + ' ms' : '');
+    last.className = 'emit-status__last ' + (answer.status < 400 ? 'is-ok' : 'is-bad');
+    if (request.dataset.copied) return;
+    request.hidden = !answer.requestId;
+    if (answer.requestId) {
+      request.dataset.value = answer.requestId;
+      request.textContent = 'X-Request-Id ' + answer.requestId.slice(0, 4) + '…' + answer.requestId.slice(-2);
+    }
+  }
+
+  /* What the page remembers: the last answer on each operation's row and a
+     dot beside it in the map. */
+  function paintLastAnswers() {
+    var index = operationIndex();
+    Object.keys(lastAnswers).forEach(function (key) {
+      var answer = lastAnswers[key];
+      var target = index[key];
+      if (!target) return;
+      var tone = answer.status < 400 ? 'is-ok' : 'is-bad';
+      var text = String(answer.status);
+      var took = typeof answer.duration === 'number' ? answer.duration + ' ms' : '';
+
+      var block = document.getElementById('operations-' + target.tag + '-' + target.id);
+      var summary = block && block.querySelector('.opblock-summary');
+      if (summary) {
+        var mark = summary.querySelector('.emit-last');
+        if (!mark) {
+          mark = el('span', 'emit-last');
+          var scopes = summary.querySelector('.emit-scopes');
+          summary.insertBefore(mark, scopes || null);
+        }
+        var markKey = text + took;
+        if (mark.dataset.key !== markKey) {
+          mark.dataset.key = markKey;
+          mark.className = 'emit-last ' + tone;
+          mark.textContent = text;
+          if (took) mark.appendChild(el('span', 'emit-last__time', took));
+        }
+      }
+
+      var link = document.querySelector('.emit-map__item[data-target="operations-' + target.tag + '-' + target.id + '"]');
+      if (link) {
+        var dot = link.querySelector('.emit-map__ran');
+        if (!dot) {
+          dot = el('i', 'emit-map__ran');
+          link.insertBefore(dot, link.querySelector('.emit-map__scope'));
+        }
+        dot.className = 'emit-map__ran ' + tone;
+      }
+    });
+  }
+
   // -------------------------------------------------------------- scheduler
 
   function paint() {
@@ -1842,6 +2130,10 @@
     paintScrollers();
     paintMap();
     paintStatusbar();
+    paintJourney();
+    paintLive();
+    paintStatusTelemetry();
+    paintLastAnswers();
     spyScroll();
   }
 
