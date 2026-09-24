@@ -1002,6 +1002,8 @@ body {
   white-space: nowrap;
 }
 .emit-step--next .emit-step-proof { color: var(--ui-c); }
+#emit-swagger .swagger-ui .info ol > li.emit-step--fresh::before { animation: emit-pop .5s var(--ease); }
+@keyframes emit-pop { 40% { transform: scale(1.35); } }
 /* Steps that name a real operation link to it (wired by enhance.js). */
 #emit-swagger .swagger-ui .info .emit-step-link {
   cursor: pointer;
@@ -2409,6 +2411,23 @@ body {
   font-size: var(--t-md);
 }
 #emit-swagger .swagger-ui .parameters-col_description input:focus { box-shadow: var(--e-well-edge), 0 0 0 1px var(--ui-b); }
+/* A carried id names where it came from, inside its own field. */
+#emit-swagger .swagger-ui .parameters tbody .parameters-col_description { position: relative; }
+.emit-carried {
+  position: absolute;
+  top: calc(var(--sp-3) + 9px);
+  right: calc(var(--gutter) + var(--sp-3));
+  padding: 5px 9px;
+  border-radius: var(--r-pill);
+  background: var(--ui-bg);
+  color: var(--ui-c);
+  font: 500 var(--t-xs)/1 var(--f-body);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: emit-rise .35s var(--ease);
+}
+.emit-carried[hidden] { display: none; }
+#emit-swagger .swagger-ui .parameters-col_description:has(.emit-carried:not([hidden])) input { padding-right: 190px; }
 
 /* --------------------------------------------------------------------------
    12. AUTHORIZE MODAL

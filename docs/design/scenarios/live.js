@@ -36,20 +36,26 @@ V.until(function () { return !!q('.emit-journey__count') && !!V.definition('apiK
       check('the statusbar names status and budget', /Last 201/.test(V.text('#emit-status-last') || '')
         && /RateLimit 17 \/ 20/.test(V.text('#emit-status-budget') || ''), [V.text('#emit-status-last'), V.text('#emit-status-budget')]);
       check('and the request id, shortened', /X-Request-Id 8c1f…a2/.test(V.text('#emit-status-request') || ''), V.text('#emit-status-request'));
-
-      V.fakeResponse('/v1/documents/{id}/generate', 'post', 202, null, 'http://localhost:8080/v1/documents/' + ID + '/generate',
-                     { date: ['Sat', '19 Sep 2026 12:00:00 GMT'] });
-      V.until(function () { return seen(q('#emit-live')); }, function () {
-        check('a run shows the live card', seen(q('#emit-live')) && /31f7dfab/.test(V.text('#emit-live') || ''));
-        V.until(function () { return !!q('#emit-live .emit-live__action'); }, function () {
-          check('it follows the run to DONE', !!q('#emit-live .emit-live__stage.is-good'));
-          check('and offers the PDF', /Download PDF/.test(V.text('#emit-live .emit-live__action') || ''));
-          check('the journey counts the run', count() === '4 / 5', count());
-          check('the budget outlives an answer that does not carry it', /RateLimit 17 \/ 20/.test(V.text('#emit-status-budget') || ''), V.text('#emit-status-budget'));
-          check('and points at the download', /Download it/.test(V.text('.emit-journey__step') || ''), V.text('.emit-journey__step'));
-          done();
-        }, 15000);
-      }, 8000);
+      V.open('Documents', 'getDocument', 0);
+      V.until(function () { return seen(q('#operations-Documents-getDocument .emit-carried')); }, generate, 8000);
     }, 8000);
   }, 8000);
 }, 20000);
+
+function generate() {
+  var chip = q('#operations-Documents-getDocument .emit-carried');
+  check('the carried id names its source in the field', seen(chip) && chip.textContent === 'from Create document', chip && chip.textContent);
+  V.fakeResponse('/v1/documents/{id}/generate', 'post', 202, null, 'http://localhost:8080/v1/documents/' + ID + '/generate',
+                 { date: ['Sat', '19 Sep 2026 12:00:00 GMT'] });
+  V.until(function () { return seen(q('#emit-live')); }, function () {
+    check('a run shows the live card', seen(q('#emit-live')) && /31f7dfab/.test(V.text('#emit-live') || ''));
+    V.until(function () { return !!q('#emit-live .emit-live__action'); }, function () {
+      check('it follows the run to DONE', !!q('#emit-live .emit-live__stage.is-good'));
+      check('and offers the PDF', /Download PDF/.test(V.text('#emit-live .emit-live__action') || ''));
+      check('the journey counts the run', count() === '4 / 5', count());
+      check('the budget outlives an answer that does not carry it', /RateLimit 17 \/ 20/.test(V.text('#emit-status-budget') || ''), V.text('#emit-status-budget'));
+      check('and points at the download', /Download it/.test(V.text('.emit-journey__step') || ''), V.text('.emit-journey__step'));
+      done();
+    }, 15000);
+  }, 8000);
+}

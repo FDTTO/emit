@@ -519,6 +519,8 @@
      after Try it out and would be overwritten by React. Never overwrites a value
      the reader typed. */
   var carriedIds = {};
+  /* Where each carried id came from, named on the field it filled. */
+  var carriedFrom = {};
 
   function carryId(collection, body) {
     var id = typeof body.id === 'string' && body.id ? body.id : null;
@@ -543,6 +545,8 @@
       }
       ui.specActions.changeParamByIdentity([target.path, target.method], parameter, id);
       carriedIds[key] = id;
+      var source = spec.paths[collection] && spec.paths[collection].post;
+      carriedFrom[key] = source ? source.summary || source.operationId : null;
       filled.push(target);
     });
     return filled.length || kept.length ? { id: id, filled: filled, kept: kept } : null;
@@ -837,6 +841,7 @@
     if (parameter) {
       ui.specActions.changeParamByIdentity([operation.path, operation.method], parameter, id);
       carriedIds[operation.method + ' ' + operation.path] = id;
+      carriedFrom[operation.method + ' ' + operation.path] = 'the followed run';
     }
     var target = operationIndex()[operation.method.toUpperCase() + ' ' + operation.path];
     if (target) openOperation(target);
@@ -1350,6 +1355,28 @@
     after.parentNode.insertBefore(line, after.nextSibling);
   }
 
+  /* A carried id names its source inside the field it filled, and the name
+     goes as soon as the reader types something else. */
+  function paintCarriedFields() {
+    Object.keys(carriedIds).forEach(function (key) {
+      var target = operationIndex()[key.split(' ')[0].toUpperCase() + ' ' + key.slice(key.indexOf(' ') + 1)];
+      var block = target && document.getElementById('operations-' + target.tag + '-' + target.id);
+      var cell = block && block.querySelector('tr[data-param-name="id"] .parameters-col_description');
+      var input = cell && cell.querySelector('input');
+      if (!input || !carriedFrom[key]) return;
+      var chip = cell.querySelector('.emit-carried');
+      if (!chip) {
+        chip = el('span', 'emit-carried');
+        cell.appendChild(chip);
+        input.addEventListener('input', function () { chip.hidden = input.value !== carriedIds[key]; });
+      }
+      chip.textContent = 'from ' + carriedFrom[key];
+      var path = key.slice(key.indexOf(' ') + 1);
+      var value = window.ui.specSelectors.parameterValues([path, key.split(' ')[0]]).get('path.id');
+      chip.hidden = value !== carriedIds[key];
+    });
+  }
+
   /* A parameter's type and format arrive as one element with the format
      nested in it, "string($uuid)"; they become two chips, "string" and "uuid". */
   function paintParameterTypes() {
@@ -1548,6 +1575,12 @@
     if (items.length === JOURNEY.length) {
       var state = journeyState();
       items.forEach(function (item, index) {
+        /* A step that has just been done marks itself with a short pulse. */
+        if (state.done[index] && item.dataset.emitDone === 'false') {
+          item.classList.add('emit-step--fresh');
+          setTimeout(function () { item.classList.remove('emit-step--fresh'); }, 600);
+        }
+        item.dataset.emitDone = String(state.done[index]);
         item.classList.toggle('emit-step--done', state.done[index]);
         item.classList.toggle('emit-step--next', index === state.next);
         var proof = item.querySelector('.emit-step-proof');
@@ -2278,6 +2311,7 @@
     paintResponseRows();
     paintOperations();
     paintParameterTypes();
+    paintCarriedFields();
     paintResponseIndex();
     paintGroupCounts();
     paintAuthMatrix();
