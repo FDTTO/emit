@@ -16,6 +16,7 @@ Everything here runs against the app on `localhost:8080` with headless Edge.
 | A long scenario that is mostly waiting? | `verify.py --virtual MS` |
 | A picture of a region, below the fold included | `verify.py --clip JS` |
 | Does a refactor leave the page looking the same? | `snapshot.js` + `pixdiff.py` |
+| Does the page still read as one family of components? | `inventory.js` (below) |
 | Did a Java change work on the running app? | a second instance on 8081 (below) |
 
 ## verify.py
@@ -116,6 +117,23 @@ generates per load, the timestamps inside schema examples, which `pixdiff`
 masks. Calibrate first: two runs of unchanged code must report `identical`. It
 executes nothing, because a token or a duration differs between runs and would
 read as a regression.
+
+## Interface inventory
+
+"It does not look like one family" is a feeling until it is counted.
+`inventory.js` opens operations, a live response and the schemas, then
+lists every distinct corner radius, type size and weight, font family and
+border colour the page renders, each with how often it occurs and one
+element that uses it:
+
+```
+python docs/design/verify.py docs/design/inventory.js --wait 30000
+```
+
+A coherent system has few values, and a value that occurs once or twice is
+usually a leftover; the example element says where to look. Rem sizes
+against the 14px root showed up this way as 11.06px and 10.08px, sizes
+nobody chose.
 
 ## Realtime or virtual
 

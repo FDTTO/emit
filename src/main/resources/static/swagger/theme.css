@@ -85,17 +85,18 @@
   --f-body:    'Inter', system-ui, -apple-system, sans-serif;
   --f-mono:    'JetBrains Mono', ui-monospace, monospace;
 
-  /* Type scale: ten steps against the 14px root. */
-  --t-3xs: 0.58rem;   /*  8px - micro marks */
-  --t-2xs: 0.65rem;   /*  9px - uppercase labels */
-  --t-xs:  0.72rem;   /* 10px - pills, constraints */
-  --t-sm:  0.79rem;   /* 11px - meta, table headers */
-  --t-md:  0.86rem;   /* 12px - inline code, property names */
-  --t-lg:  0.94rem;   /* 13px - body copy */
-  --t-xl:  1.06rem;   /* 15px - lead paragraph */
-  --t-2xl: 1.30rem;   /* 18px - subheads */
-  --t-3xl: 1.60rem;   /* 22px - section titles */
-  --t-4xl: 2.00rem;   /* 28px - brand display */
+  /* Type scale in whole pixels: rem against the 14px root rendered 11.06px
+     and 10.08px, sizes no one chose. The two smallest steps are one size. */
+  --t-3xs: 9px;    /* captions inside figures */
+  --t-2xs: 9px;
+  --t-xs:  10px;   /* uppercase labels, chips */
+  --t-sm:  11px;   /* metadata */
+  --t-md:  12px;   /* code, values */
+  --t-lg:  13px;   /* reading text, paths */
+  --t-xl:  15px;   /* the overview's lead paragraph */
+  --t-2xl: 18px;   /* subheads */
+  --t-3xl: 22px;   /* the title on a phone */
+  --t-4xl: 36px;   /* the title */
 
   /* radii: chip, control, panel, window */
   --r-pill: 999px; --r-panel: 16px; --r-code: 10px; --r-sm: 6px; --r-xs: 6px; --r-window: 18px;
@@ -730,7 +731,7 @@ body {
 #emit-swagger .swagger-ui .info .title {
   font-family: var(--f-body);
   font-size: var(--t-4xl);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.2;
   color: var(--e-text);
@@ -751,7 +752,7 @@ body {
   white-space: nowrap;
 }
 #emit-swagger .swagger-ui .info .title .emit-title-mark {
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.035em;
   color: var(--e-text);
 }
@@ -916,7 +917,7 @@ body {
 #emit-swagger .swagger-ui .info .markdown code,
 #emit-swagger .swagger-ui .info .renderedMarkdown code {
   font-family: var(--f-mono);
-  font-size: 0.84em;
+  font-size: var(--t-md);
   font-weight: 400;
   font-style: normal;
   background: var(--pt-bg);
@@ -1075,8 +1076,6 @@ body {
   padding: 0 var(--sp-4) var(--sp-3);
   border-bottom: 0;
 }
-#emit-swagger .swagger-ui .info table thead th:first-child { border-radius: 7px 0 0 0; }
-#emit-swagger .swagger-ui .info table thead th:last-child  { border-radius: 0 7px 0 0; }
 #emit-swagger .swagger-ui .info table tbody td {
   padding: var(--sp-3) var(--sp-4);
   color: var(--e-body);
@@ -1085,8 +1084,6 @@ body {
   box-shadow: inset 0 1px 0 var(--e-hair);
   vertical-align: middle;
 }
-#emit-swagger .swagger-ui .info table tbody tr:last-child td:first-child { border-radius: 0 0 0 7px; }
-#emit-swagger .swagger-ui .info table tbody tr:last-child td:last-child  { border-radius: 0 0 7px 0; }
 #emit-swagger .swagger-ui .info table tbody tr { transition: background 0.12s; }
 #emit-swagger .swagger-ui .info table tbody tr:hover td { background: rgba(255,255,255,0.018); }
 
@@ -1458,7 +1455,7 @@ body {
 #emit-swagger .swagger-ui .opblock-body .renderedMarkdown code:not([class*="language-"]),
 #emit-swagger .swagger-ui .opblock-body .markdown code:not([class*="language-"]) {
   font-family: var(--f-mono);
-  font-size: 0.84em;
+  font-size: var(--t-md);
   font-weight: 400;
   background: var(--pt-bg) !important;
   color: var(--pt-c) !important;
@@ -1546,7 +1543,7 @@ body {
   color: var(--e-dim);
   font-family: var(--f-body);
   font-size: var(--t-3xs);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.13em;
   text-transform: uppercase;
   text-align: left;
@@ -1953,7 +1950,7 @@ body {
   margin: 0;
   font-family: var(--f-body);
   font-size: var(--t-3xs);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--e-faint);
@@ -2496,7 +2493,7 @@ body {
   display: block;
   margin: 0 0 var(--sp-1);
   font-size: var(--t-3xs);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--e-dim);
@@ -2542,7 +2539,7 @@ body {
   padding: 10px 2px;
   font-family: var(--f-body);
   font-size: var(--t-xs);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--e-label);
@@ -2927,7 +2924,7 @@ body {
 .emit-legend-title {
   margin-bottom: 10px; padding-bottom: 7px;
   border-bottom: 1px solid var(--e-line);
-  font-size: var(--t-3xs); font-weight: 800; letter-spacing: 0.14em;
+  font-size: var(--t-3xs); font-weight: 600; letter-spacing: 0.14em;
   text-transform: uppercase; color: var(--e-dim);
 }
 .emit-legend-section + .emit-legend-section { margin-top: 10px; }
