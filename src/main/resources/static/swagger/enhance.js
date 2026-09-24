@@ -1215,7 +1215,9 @@
           for (var s = 0; s < scopes.length; s++) {
             group.appendChild(scopeBadge(scopes[s]));
           }
-          var anchor = summary.querySelector('.authorization__btn');
+          /* Before the arrow, so the badge sits in the same place on public
+             operations, which have no padlock button to anchor on. */
+          var anchor = summary.querySelector('.authorization__btn') || summary.querySelector('.opblock-control-arrow');
           if (anchor) summary.insertBefore(group, anchor);
           else summary.appendChild(group);
         }
