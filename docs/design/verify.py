@@ -63,7 +63,10 @@ def build(scenario, spec_url):
     with open(os.path.join(HERE, 'verify-harness.html'), encoding='utf-8') as f:
         page = f.read()
     if spec_url:
-        page = page.replace("url: '/v3/api-docs'", "url: '%s'" % spec_url)
+        marker = "url: '/v3/api-docs'"
+        if page.count(marker) != 1:
+            sys.exit('verify-harness.html must declare %s exactly once' % marker)
+        page = page.replace(marker, "url: '%s'" % spec_url)
     with open(scenario, encoding='utf-8-sig') as f:
         body = f.read()
     # Each scenario runs in its own function scope. At the top level of a

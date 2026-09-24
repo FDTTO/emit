@@ -44,28 +44,25 @@
     <script src="/swagger-ui/swagger-ui-bundle.js" charset="UTF-8"></script>
     <script src="/swagger-ui/swagger-ui-standalone-preset.js" charset="UTF-8"></script>
     <script>
+      /* Built from the config the app serves, so scenarios run under the
+         settings a reader gets. Only expansion is overridden, to put every
+         operation in the DOM; configUrl is dropped because Swagger would
+         fetch it again and undo that override. */
       window.onload = function () {
-        window.ui = SwaggerUIBundle({
-          dom_id: '#swagger-ui',
-          deepLinking: true,
-          syntaxHighlight: { theme: 'nord' },
-          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
-          plugins: [SwaggerUIBundle.plugins.DownloadUrl],
-          layout: 'StandaloneLayout',
-          /* The spec is read directly rather than through
-             /v3/api-docs/swagger-config, because the served config carries
-             docExpansion and would override the expansion set here. */
-          url: '/v3/api-docs',
-          displayRequestDuration: true,
-          /* Mirrors application-dev.properties. */
-          persistAuthorization: true,
-          docExpansion: 'list',
-          defaultModelsExpandDepth: 5,
-          defaultModelExpandDepth: 5,
-          filter: 'false',
-          operationsSorter: 'alpha',
-          tagsSorter: 'alpha',
-          validatorUrl: ''
+        fetch('/v3/api-docs/swagger-config').then(function (response) { return response.json(); }).then(function (served) {
+          delete served.configUrl;
+          window.ui = SwaggerUIBundle(Object.assign(served, {
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            syntaxHighlight: { theme: 'nord' },
+            presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+            plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+            layout: 'StandaloneLayout',
+            url: '/v3/api-docs',
+            docExpansion: 'list',
+            defaultModelsExpandDepth: 5,
+            defaultModelExpandDepth: 5
+          }));
         });
       };
     </script>
