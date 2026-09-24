@@ -1,16 +1,19 @@
 // @widths 1280,375
-// The topbar credential tag in every state, one 30px row inside the bar, and
-// a click that opens a dialog the reader can actually see. Each step waits
-// for the state it checks, not for a clock.
+// The topbar credential tag in every state, the same height whatever it holds
+// so the bar never twitches, inside the bar, and a click that opens a dialog
+// the reader can actually see. Each step waits for the state it checks, not
+// for a clock.
 var tag = function () { return document.getElementById('emit-topbar-auth'); };
 var state = function () { return tag().dataset.state; };
 var height = function () { return V.box('#emit-topbar-auth').height; };
 var isOpen = function (id) { var b = document.getElementById(id); return !!b && b.classList.contains('is-open'); };
 var reaches = function (expected) { return function () { return state() === expected; }; };
+var emptyHeight;
 
 V.until(function () { return !!tag() && !!V.definition('bearerAuth'); }, function () {
   check('empty: an invitation to authorize', state() === '' && /Authorize/.test(tag().textContent), state());
-  check('empty: 30px tall', height() === 30, height());
+  emptyHeight = height();
+  check('empty: a real control, not a sliver', emptyHeight >= 24, emptyHeight);
   V.authorize('bearerAuth', V.jwt(3600));
   V.until(reaches('ADMIN'), admin);
 }, 20000);
@@ -24,7 +27,7 @@ function admin() {
 function both() {
   var bar = V.box('.topbar'), box = V.box('#emit-topbar-auth');
   check('both: ADMIN,TENANT', state() === 'ADMIN,TENANT', state());
-  check('both: still 30px', height() === 30, height());
+  check('both: same height as empty', height() === emptyHeight, { empty: emptyHeight, both: height() });
   check('tag sits inside the bar', box.top >= bar.top && box.top + box.height <= bar.top + bar.height, { bar: bar, tag: box });
   V.logoutHeld();
   V.authorize('bearerAuth', V.jwt(-60));

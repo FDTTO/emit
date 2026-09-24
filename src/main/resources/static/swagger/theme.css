@@ -17,21 +17,27 @@
    rem values resolve against the 14px root set below.
    -------------------------------------------------------------------------- */
 :root {
-  /* surfaces */
-  --e-bg:        #0d0f15;
-  --e-surface:   rgba(255,255,255,0.042);
-  --e-shine:     linear-gradient(138deg, rgba(255,255,255,0.072) 0%, rgba(255,255,255,0.018) 100%);
-  --e-glass:     linear-gradient(138deg, rgba(255,255,255,0.072) 0%, rgba(255,255,255,0.018) 100%), rgba(255,255,255,0.042);
-  --e-raised:    rgba(255,255,255,0.025);
-  --e-bar:       rgba(0,0,0,0.22);
-  --e-well:      rgba(0,0,0,0.30);
+  /* Surfaces. The page is a scene of monochrome light; the window is a first
+     sheet of glass over it and panels are a second, lighter sheet. Edges are
+     light caught by the glass (--e-spec), not borders. */
+  --e-bg:        #07090d;
+  --e-window:    linear-gradient(160deg, rgba(34,40,52,0.48), rgba(13,16,22,0.62));
+  --e-surface:   rgba(255,255,255,0.03);
+  --e-shine:     linear-gradient(150deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02) 60%, rgba(255,255,255,0.032));
+  --e-glass:     var(--e-shine);
+  --e-raised:    rgba(255,255,255,0.03);
+  --e-hover:     rgba(255,255,255,0.055);
+  --e-bar:       rgba(0,0,0,0.26);
+  --e-well:      rgba(3,5,9,0.44);
+  --e-well-edge: inset 0 1px 2px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.04);
+  --e-spec:      inset 0 1px 0 rgba(255,255,255,0.13), inset 0 0 0 1px rgba(255,255,255,0.045);
 
-  /* text */
-  --e-text:      #dde6f0;
-  --e-body:      #96a4b2;
-  --e-label:     rgba(168,186,222,0.55);
-  --e-dim:       rgba(168,186,222,0.38);
-  --e-faint:     rgba(168,186,222,0.26);
+  /* Text: five solid steps. One hue at falling opacity reads as haze. */
+  --e-text:      #f1f5fb;
+  --e-body:      #aab6c6;
+  --e-label:     #8391a5;
+  --e-dim:       #6c788b;
+  --e-faint:     #4f5a6b;
 
   /* lines */
   --e-hair:      rgba(255,255,255,0.055);
@@ -40,42 +46,44 @@
   --e-rim:       rgba(255,255,255,0.2);
 
   /* elevation */
-  --e-lift:      0 8px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.05);
-  --e-lift-sm:   0 4px 20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05);
+  --e-lift:      0 18px 48px rgba(0,0,0,0.40), var(--e-spec);
+  --e-lift-sm:   0 6px 20px rgba(0,0,0,0.28), var(--e-spec);
 
   /* Methods: one desaturated steel family, told apart by luminance.
      Green, amber and red are reserved for outcomes. DELETE stays warm. */
-  --get-c:  rgba(140,168,205,0.92); --get-bg:  rgba(140,168,205,0.07); --get-b:  rgba(140,168,205,0.22);
-  --post-c: rgba(176,196,228,0.95); --post-bg: rgba(176,196,228,0.08); --post-b: rgba(176,196,228,0.26);
-  --put-c:  rgba(158,182,218,0.93); --put-bg:  rgba(158,182,218,0.07); --put-b:  rgba(158,182,218,0.24);
-  --del-c:  rgba(206,138,132,0.92); --del-bg:  rgba(206,138,132,0.07); --del-b:  rgba(206,138,132,0.24);
+  --get-c:  #9fb4d2; --get-bg:  rgba(159,180,210,0.10); --get-b:  rgba(159,180,210,0.28);
+  --post-c: #c0d0ea; --post-bg: rgba(192,208,234,0.10); --post-b: rgba(192,208,234,0.28);
+  --put-c:  #afc3e0; --put-bg:  rgba(175,195,224,0.10); --put-b:  rgba(175,195,224,0.28);
+  --del-c:  #e0a39c; --del-bg:  rgba(224,163,156,0.10); --del-b:  rgba(224,163,156,0.28);
 
-  /* Interaction: focus, active tab, links. */
-  --ui-c:  rgba(156,220,254,0.88); --ui-bg: rgba(156,220,254,0.07); --ui-b: rgba(156,220,254,0.30);
-  --ui-bg-hover: rgba(156,220,254,0.14); --ui-b-hover: rgba(156,220,254,0.50);
+  /* Interaction: focus, active tab, links. The only saturated colour at rest. */
+  --ui-c:  #8fdcff; --ui-bg: rgba(143,220,255,0.10); --ui-b: rgba(143,220,255,0.34);
+  --ui-bg-hover: rgba(143,220,255,0.16); --ui-b-hover: rgba(143,220,255,0.60);
+  --ui-glow: 0 0 0 1px rgba(143,220,255,0.35), 0 6px 22px rgba(80,180,255,0.20);
 
   /* Who may call: read off the spec, never inferred from the path. */
-  --sc-admin-c:  rgba(186,150,228,0.92); --sc-admin-bg:  rgba(150,110,210,0.10); --sc-admin-b:  rgba(186,150,228,0.24);
-  --sc-tenant-c: rgba(126,196,204,0.92); --sc-tenant-bg: rgba(80,160,170,0.10);  --sc-tenant-b: rgba(126,196,204,0.24);
+  --sc-admin-c:  #c4a4ec; --sc-admin-bg:  rgba(196,164,236,0.10); --sc-admin-b:  rgba(196,164,236,0.28);
+  --sc-tenant-c: #88cdd5; --sc-tenant-bg: rgba(136,205,213,0.10); --sc-tenant-b: rgba(136,205,213,0.28);
   /* Dimmed interaction colour: keyboard focus ring, quiet labels. */
-  --ui-c-dim: rgba(156,220,254,0.55);
+  --ui-c-dim: rgba(143,220,255,0.55);
 
   /* Pills. The type blue must stay distinct from the interaction cyan. */
-  --pt-c: rgba(156,200,240,0.90);  --pt-bg: rgba(120,170,230,0.08);  --pt-b: rgba(140,185,235,0.20);
-  --pf-c: rgba(206,170,120,0.88);  --pf-bg: rgba(190,150,90,0.09);   --pf-b: rgba(206,170,120,0.22);
-  --pc-c: rgba(168,186,222,0.55);  --pc-bg: rgba(168,186,222,0.05);  --pc-b: rgba(168,186,222,0.12);
-  --pr-c: rgba(210,100,90,0.9);    --pr-bg: rgba(210,80,70,0.07);    --pr-b: rgba(210,80,70,0.2);
-  --pe-c: rgba(160,120,240,0.88);  --pe-bg: rgba(140,100,220,0.07);  --pe-b: rgba(140,100,220,0.18);
+  --pt-c: #9ccaf2;  --pt-bg: rgba(156,202,242,0.10);  --pt-b: rgba(156,202,242,0.26);
+  --pf-c: #dcb57e;  --pf-bg: rgba(220,181,126,0.10);  --pf-b: rgba(220,181,126,0.26);
+  --pc-c: #8391a5;  --pc-bg: rgba(131,145,165,0.08);  --pc-b: rgba(131,145,165,0.18);
+  --pr-c: #ff8f84;  --pr-bg: rgba(255,143,132,0.08);  --pr-b: rgba(255,143,132,0.22);
+  --pe-c: #b8a0ee;  --pe-bg: rgba(184,160,238,0.08);  --pe-b: rgba(184,160,238,0.22);
 
-  /* Status: outcomes only. */
-  --s2-c: rgba(122,196,118,0.95);  --s2-bg: rgba(90,170,86,0.10);   --s2-b: rgba(122,196,118,0.26);
-  --s4-c: rgba(216,104,94,0.95);   --s4-bg: rgba(180,60,52,0.10);   --s4-b: rgba(216,104,94,0.26);
-  --s5-c: rgba(214,166,74,0.95);   --s5-bg: rgba(180,130,30,0.10);  --s5-b: rgba(214,166,74,0.26);
+  /* Status: outcomes only, lifted in luminance so they read as light. */
+  --s2-c: #8ee0a4;  --s2-bg: rgba(142,224,164,0.10);  --s2-b: rgba(142,224,164,0.28);
+  --s4-c: #ff8f84;  --s4-bg: rgba(255,143,132,0.10);  --s4-b: rgba(255,143,132,0.28);
+  --s5-c: #f3c56e;  --s5-bg: rgba(243,197,110,0.10);  --s5-b: rgba(243,197,110,0.28);
+  --run-c: #86b8ff;
 
-  /* type */
-  --f-display: 'IBM Plex Mono', ui-monospace, monospace;
+  /* type: two faces */
+  --f-display: 'JetBrains Mono', ui-monospace, monospace;
   --f-body:    'Inter', system-ui, -apple-system, sans-serif;
-  --f-mono:    'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  --f-mono:    'JetBrains Mono', ui-monospace, monospace;
 
   /* Type scale: ten steps against the 14px root. */
   --t-3xs: 0.58rem;   /*  8px - micro marks */
@@ -89,8 +97,8 @@
   --t-3xl: 1.60rem;   /* 22px - section titles */
   --t-4xl: 2.00rem;   /* 28px - brand display */
 
-  /* radii */
-  --r-pill: 100px; --r-panel: 10px; --r-code: 8px; --r-sm: 4px; --r-xs: 3px;
+  /* radii: chip, control, panel, window */
+  --r-pill: 999px; --r-panel: 16px; --r-code: 10px; --r-sm: 6px; --r-xs: 6px; --r-window: 18px;
 
   /* rhythm - one scale, used everywhere */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
@@ -102,7 +110,13 @@
 
   /* horizontal padding shared by every row inside an expanded operation,
      so section headers, tables and code blocks all align on one gutter */
-  --gutter: 22px;
+  --gutter: 28px;
+
+  /* Cockpit shell: the rail beside the page and the bars around it. */
+  --rail: 256px;
+  --titlebar-h: 48px;
+  --statusbar-h: 28px;
+  --ease: cubic-bezier(.2,.8,.2,1);
 }
 
 /* Swagger's own rules are px-based and unaffected. */
@@ -113,14 +127,147 @@ html { font-size: 14px; }
    -------------------------------------------------------------------------- */
 body {
   background-color: var(--e-bg);
-  background-image:
-    radial-gradient(ellipse 90% 50% at 50% -5%, rgba(80,130,200,0.13) 0%, transparent 65%),
-    radial-gradient(circle, rgba(175,198,235,0.04) 1px, transparent 1px);
-  background-size: auto, 34px 34px;
-  background-attachment: fixed, fixed;
   min-height: 100vh;
   color: var(--e-text);
+  font-family: var(--f-body);
 }
+
+/* The light behind the glass: monochrome glows and the diagonal streaks of
+   the brand's imagery, fixed behind everything. */
+.emit-scene { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.emit-scene__glow { position: absolute; border-radius: 50%; filter: blur(90px); }
+.emit-scene__glow--a { width: 900px; height: 640px; right: -160px; top: -220px; background: radial-gradient(circle, rgba(150,175,220,0.42), transparent 65%); }
+.emit-scene__glow--b { width: 760px; height: 700px; left: -240px; bottom: -300px; background: radial-gradient(circle, rgba(110,130,170,0.32), transparent 65%); }
+.emit-scene__streak { position: absolute; top: -35%; right: 18%; width: 200px; height: 170%; transform: rotate(28deg); filter: blur(26px);
+  background: linear-gradient(90deg, transparent, rgba(210,222,245,0.12), transparent); }
+.emit-scene__streak--thin { right: 6%; width: 90px; opacity: .6; }
+.emit-scene__grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .035; mix-blend-mode: overlay; }
+
+/* --------------------------------------------------------------------------
+   2b. COCKPIT WINDOW (built by enhance.js around #swagger-ui)
+   A grid of four cells: Swagger's topbar and content, the rail and the
+   statusbar. Swagger's wrappers become transparent to layout, so none of
+   React's nodes is moved. The content pane scrolls, not the page, which is
+   what keeps the rail and the bars in place; Swagger scrolls deep links in
+   the nearest scrollable ancestor, so they still land.
+   -------------------------------------------------------------------------- */
+@media (min-width: 901px) {
+  body#emit-swagger { height: 100vh; overflow: hidden; padding: var(--sp-4) var(--sp-5) var(--sp-5); box-sizing: border-box; }
+  #emit-window {
+    position: relative;
+    height: 100%;
+    max-width: 1480px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    grid-template-rows: var(--titlebar-h) minmax(0, 1fr) var(--statusbar-h);
+    grid-template-areas: "top top" "rail main" "status status";
+    background: var(--e-window);
+    backdrop-filter: blur(40px) saturate(150%);
+    border-radius: var(--r-window);
+    overflow: hidden;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  /* Specular rim: light on the top-left edge, fading along the sides. */
+  #emit-window::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 30;
+    background: linear-gradient(150deg, rgba(255,255,255,0.36), rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.02) 60%, rgba(255,255,255,0.12));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+  }
+  #emit-window #swagger-ui,
+  #emit-window .swagger-container { display: contents; }
+  #emit-window .swagger-container > .topbar { grid-area: top; }
+  #emit-window .swagger-container > .swagger-ui { grid-area: main; min-height: 0; overflow-y: auto; }
+  #emit-window .swagger-container > .wrapper { display: none; }
+  /* The server is named in the statusbar and Authorize lives in the titlebar
+     capsule. The bar collapses but stays rendered: Swagger mounts the
+     Authorize dialog inside .auth-wrapper, so hiding the bar would hide the
+     dialog with it. Only the server select and the stock button go. */
+  #emit-window .swagger-ui .scheme-container { height: 0; min-height: 0; padding: 0; margin: 0; border: 0; box-shadow: none; background: none; }
+  #emit-window .swagger-ui .scheme-container .schemes-server-container,
+  #emit-window .swagger-ui .scheme-container .auth-wrapper > .authorize { display: none; }
+  #emit-rail { grid-area: rail; }
+  #emit-statusbar { grid-area: status; }
+}
+/* Narrow: until the cockpit has a phone layout, the page reads as before and
+   only the legend survives from the statusbar, floating in its corner. */
+@media (max-width: 900px) {
+  #emit-rail, .emit-scene__glow, .emit-scene__streak { display: none; }
+  #emit-statusbar { display: contents; }
+  #emit-statusbar > :not(#emit-legend) { display: none; }
+}
+/* Wide: the legend is the statusbar's last item and opens upward. */
+@media (min-width: 901px) {
+  #emit-statusbar > .emit-status__grow { flex: 1 1 auto; padding: 0; }
+  #emit-statusbar #emit-legend { position: relative; bottom: auto; right: auto; padding: 0; }
+  #emit-statusbar #emit-legend-btn {
+    width: auto; height: var(--statusbar-h); padding: 0 var(--sp-4);
+    background: none; border: 0; border-radius: 0; box-shadow: none; backdrop-filter: none;
+    color: var(--e-dim); font: 500 var(--t-xs)/1 var(--f-mono);
+  }
+  #emit-statusbar #emit-legend-btn::after { content: "Legend"; margin-left: var(--sp-2); }
+  #emit-statusbar #emit-legend-btn:hover { background: var(--e-raised); color: var(--e-body); }
+  #emit-statusbar #emit-legend-panel { position: absolute; right: var(--sp-2); bottom: calc(100% + var(--sp-2)); }
+}
+
+/* Rail: quiet, it answers "where am I" and "what next" and steps back. */
+#emit-rail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: rgba(0,0,0,0.16);
+  box-shadow: inset -1px 0 0 var(--e-hair);
+}
+.emit-map { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--sp-4) var(--sp-3); }
+.emit-map__tag {
+  padding: var(--sp-4) var(--sp-3) 0;
+  margin-bottom: var(--sp-2);
+  font: 600 var(--t-xs)/1 var(--f-body);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--e-dim);
+}
+.emit-map__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px var(--sp-3);
+  border-radius: var(--r-sm);
+  color: var(--e-dim);
+  text-decoration: none;
+  font-size: var(--t-md);
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.emit-map__item svg { width: 13px; height: 13px; flex: 0 0 auto; color: var(--e-faint); }
+.emit-map__name { overflow: hidden; text-overflow: ellipsis; }
+.emit-map__item svg.emit-map__scope { margin-left: auto; width: 11px; height: 11px; opacity: .75; }
+.emit-map__scope--admin { color: var(--sc-admin-c); }
+.emit-map__scope--tenant { color: var(--sc-tenant-c); }
+.emit-map__item:hover { color: var(--e-body); background: var(--e-raised); }
+/* Where you are: a small pane of glass with a trace of the interaction cyan. */
+.emit-map__item.is-current {
+  color: var(--e-text);
+  background: linear-gradient(150deg, rgba(143,220,255,0.10), rgba(255,255,255,0.03) 70%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 0 0 1px rgba(143,220,255,0.16), 0 4px 14px rgba(0,0,0,0.25);
+}
+.emit-map__item.is-current svg:first-child { color: var(--ui-c); filter: drop-shadow(0 0 4px rgba(143,220,255,0.5)); }
+
+/* Statusbar: telemetry, grouped by space. The first item is as wide as the
+   rail so its text starts on the rail's own inset. */
+#emit-statusbar {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.26);
+  box-shadow: inset 0 1px 0 var(--e-hair);
+  font: 500 var(--t-xs)/1 var(--f-mono);
+  color: var(--e-dim);
+}
+#emit-statusbar > * { display: flex; align-items: center; gap: var(--sp-2); height: 100%; padding: 0 var(--sp-4); white-space: nowrap; }
+#emit-statusbar > .emit-status__server { width: var(--rail); padding-left: var(--sp-6); }
+.emit-status__led { width: 6px; height: 6px; border-radius: 50%; background: var(--s2-c); }
 
 #emit-swagger .swagger-ui,
 #emit-swagger .swagger-ui * { box-sizing: border-box; }
@@ -176,30 +323,60 @@ body {
    Counter: .topbar{background:#1b1b1b;padding:10px 0}
             .topbar a{flex:1;max-width:300px;font-size:1.5em}
    -------------------------------------------------------------------------- */
+/* The window's titlebar: brand over the rail, where you are, who you are. */
 #emit-swagger .swagger-ui .topbar {
-  background: rgba(6,8,14,0.88);
-  border-bottom: 1px solid var(--e-hair);
-  backdrop-filter: blur(16px);
+  background: rgba(255,255,255,0.022);
+  box-shadow: inset 0 -1px 0 var(--e-hair);
   padding: 0;
-  height: 52px;
+  height: var(--titlebar-h);
   display: flex;
   align-items: center;
-  position: sticky; top: 0; z-index: 100;
+  position: relative; z-index: 10;
 }
-/* Already inside `.topbar > .wrapper`, so no column or gutter here.
-   flex-direction counters stock, which stacks this into a column below 550px. */
+#emit-swagger .swagger-ui .topbar > .wrapper { max-width: none; padding: 0; width: 100%; }
+/* flex-direction counters stock, which stacks this into a column below 550px. */
 #emit-swagger .swagger-ui .topbar .topbar-wrapper {
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: 0;
+  padding: 0 var(--sp-6) 0 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   flex-direction: row;
-  gap: var(--sp-3);
+  gap: var(--sp-4);
   flex-wrap: nowrap;
 }
+/* Wide: the brand cell is exactly as wide as the rail below it. Narrow keeps
+   a plain sticky bar until the cockpit has a phone layout. */
+@media (min-width: 901px) {
+  #emit-swagger .swagger-ui .topbar .topbar-wrapper > a.link {
+    width: var(--rail);
+    height: var(--titlebar-h);
+    padding-left: var(--sp-6);
+    box-shadow: inset -1px 0 0 var(--e-hair);
+  }
+}
+/* An operation brought into view lands with its header clear of whatever
+   sits above it: a gap in the pane, the sticky topbar on a phone. */
+#emit-swagger .swagger-ui .opblock { scroll-margin-top: var(--sp-4); }
+@media (max-width: 900px) {
+  #emit-swagger .swagger-ui .opblock { scroll-margin-top: 64px; }
+  #emit-swagger .swagger-ui .topbar { position: sticky; top: 0; z-index: 100; height: 52px; background: rgba(6,8,14,0.88); backdrop-filter: blur(16px); }
+  #emit-swagger .swagger-ui .topbar .topbar-wrapper { padding: 0 var(--page-gutter); justify-content: space-between; }
+  .emit-crumb { display: none; }
+}
+.emit-crumb {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  flex: 1 1 auto;
+  font: 500 var(--t-md)/1 var(--f-mono);
+  color: var(--e-dim);
+  white-space: nowrap;
+}
+.emit-crumb b { font-weight: 500; color: var(--e-text); overflow: hidden; text-overflow: ellipsis; }
+.emit-crumb i { font-style: normal; color: var(--e-faint); }
 #emit-swagger .swagger-ui .topbar img,
 #emit-swagger .swagger-ui .topbar .download-url-wrapper { display: none; }
 #emit-swagger .swagger-ui .topbar a {
@@ -217,28 +394,33 @@ body {
 #emit-swagger .swagger-ui .topbar a span { margin: 0; padding: 0; }
 #emit-swagger .swagger-ui .topbar a .emit-brand {
   font-family: var(--f-body);
-  font-size: var(--t-2xl);
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--e-text);
   white-space: nowrap;
 }
+#emit-swagger .swagger-ui .topbar a .emit-brand__dot { color: var(--ui-c); }
 
 /* Mirror of the scheme-bar Authorize, injected into the topbar by JS. */
 /* Credential tag: the open padlock invites, the closed one lists held scopes. */
 /* Height comes from padding; min-height keeps the tag from shrinking when a
    credential arrives. */
+/* One capsule, a hairline between segments, each segment in its scope's
+   colour with its own glyph. */
 #emit-topbar-auth {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 30px;
-  padding: 6px var(--sp-4) 6px 10px;
-  background: var(--e-glass);
-  border: 1.5px solid var(--e-line);
+  align-items: stretch;
+  flex: 0 0 auto;
+  height: 28px;
+  padding: 0;
+  overflow: hidden;
+  background: rgba(255,255,255,0.03);
+  border: 0;
   border-radius: var(--r-pill);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10), inset 0 1px 0 rgba(255,255,255,0.08);
   cursor: pointer;
-  transition: filter 0.12s, border-color 0.15s, box-shadow 0.15s;
+  transition: filter 0.12s, box-shadow 0.15s;
 }
 /* Hover via filter: the state rules below set background and border at the
    same specificity and would beat a plain :hover by source order. */
@@ -253,53 +435,44 @@ body {
 }
 .emit-auth-icon svg { width: 16px; height: 16px; stroke-width: 1.9; }
 
+/* Holding nothing: an invitation in the interaction colour. */
 #emit-topbar-auth[data-state=""] {
-  background: rgba(156,220,254,0.10);
-  border-color: var(--ui-b);
-  box-shadow: 0 0 7px -3px var(--ui-c);
+  gap: 7px;
+  align-items: center;
+  padding: 0 14px 0 11px;
+  background: var(--ui-bg);
+  box-shadow: inset 0 0 0 1px var(--ui-b), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 #emit-topbar-auth[data-state=""] .emit-auth-icon { color: var(--ui-c); }
-#emit-topbar-auth[data-state=""] .emit-auth-cta { color: var(--ui-c-dim); }
+#emit-topbar-auth[data-state=""] .emit-auth-cta { color: var(--ui-c); }
+.emit-auth-icon svg { width: 13px; height: 13px; }
 .emit-auth-cta {
   font-family: var(--f-body);
   font-size: var(--t-md);
   font-weight: 600;
 }
 
-/* The tag takes the colour of the held scope, a gradient when both are held.
-   Strengths are local so the shared scope tokens stay untouched. */
-#emit-topbar-auth[data-state="ADMIN"] {
-  background: rgba(150,110,210,0.14);
-  border-color: rgba(186,150,228,0.5);
-  box-shadow: 0 0 7px -3px var(--sc-admin-c);
-}
-#emit-topbar-auth[data-state="TENANT"] {
-  background: rgba(80,160,170,0.14);
-  border-color: rgba(126,196,204,0.5);
-  box-shadow: 0 0 7px -3px var(--sc-tenant-c);
-}
-#emit-topbar-auth[data-state*="ADMIN"][data-state*="TENANT"] {
-  background: linear-gradient(100deg, rgba(150,110,210,0.22) 0%, rgba(80,160,170,0.22) 100%);
-  border-color: rgba(255,255,255,0.22);
-  box-shadow: 0 0 7px -3px var(--sc-admin-c), 0 0 7px -3px var(--sc-tenant-c);
-}
-/* Held scopes are segments of the capsule, not pills inside it. */
+/* Held scopes are segments of the capsule, each tinted by its scope. */
 .emit-auth-seg {
+  --c: var(--e-label);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  padding: 0 12px;
   font-family: var(--f-mono);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  letter-spacing: 0.09em;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
   line-height: 1;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 9%, transparent);
 }
-.emit-auth-seg svg { width: 13px; height: 13px; flex: 0 0 auto; }
-.emit-auth-seg--admin  { color: var(--sc-admin-c); }
-.emit-auth-seg--tenant { color: var(--sc-tenant-c); }
+.emit-auth-seg svg { width: 11px; height: 11px; flex: 0 0 auto; }
+.emit-auth-seg--admin  { --c: var(--sc-admin-c); }
+.emit-auth-seg--tenant { --c: var(--sc-tenant-c); }
 /* Expired credential: keeps its segment, loses its colour. Must stay after the
    scope colours (same specificity, wins by order). */
-.emit-auth-seg--expired { color: var(--e-dim); }
+.emit-auth-seg--expired { --c: var(--e-dim); }
 .emit-auth-seg__flag {
   font-family: var(--f-body);
   font-size: var(--t-3xs);
@@ -310,22 +483,9 @@ body {
 }
 /* Nothing valid held: red hairline. */
 #emit-topbar-auth[data-state="EXPIRED"] {
-  background: var(--e-glass);
-  border-color: var(--s4-b);
-  box-shadow: none;
+  box-shadow: inset 0 0 0 1px var(--s4-b);
 }
-.emit-auth-seg + .emit-auth-seg {
-  position: relative;
-  margin-left: 10px;
-  padding-left: 11px;
-}
-.emit-auth-seg + .emit-auth-seg::before {
-  content: '';
-  position: absolute;
-  left: 0; top: -5px; bottom: -5px;
-  width: 1px;
-  background: var(--e-line);
-}
+.emit-auth-seg + .emit-auth-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.10); }
 
 /* --------------------------------------------------------------------------
    4. INFO PANEL
@@ -2655,10 +2815,27 @@ body {
 /* --------------------------------------------------------------------------
    17. SCROLLBAR
    -------------------------------------------------------------------------- */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: rgba(0,0,0,0.25); }
-::-webkit-scrollbar-thumb { background: var(--e-line); border-radius: var(--r-xs); }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+/* A frosted thumb that keeps its distance from every edge: faint at rest,
+   clearer while the pane is hovered, brightest under the pointer or dragged.
+   Chromium ignores every ::-webkit-scrollbar rule once scrollbar-width or
+   scrollbar-color is set, so those are left to engines without them. */
+::-webkit-scrollbar { width: 14px; height: 14px; }
+::-webkit-scrollbar-button { display: none; }
+::-webkit-scrollbar-track { background: transparent; margin: var(--sp-3) 0; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.07);
+  border: 4px solid transparent;
+  border-radius: var(--r-pill);
+  background-clip: padding-box;
+  min-height: 40px;
+}
+:hover::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.14); }
+::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,0.26); }
+::-webkit-scrollbar-thumb:active { background-color: rgba(143,220,255,0.45); }
+::-webkit-scrollbar-corner { background: transparent; }
+@supports not selector(::-webkit-scrollbar) {
+  * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.14) transparent; }
+}
 
 /* --------------------------------------------------------------------------
    18. SPEC FAILURE

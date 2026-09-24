@@ -33,7 +33,11 @@
     lockOpen:   ['M5 11h14v9H5z', 'M9 11V7a3 3 0 0 1 6 0'],
     lockClosed: ['M5 11h14v9H5z', 'M9 11V7a3 3 0 0 1 6 0v4'],
     /* Marks a getting-started step that leads to the operation it names. */
-    goTo: ['M7 17L17 7', 'M8 7h9v9']
+    goTo: ['M7 17L17 7', 'M8 7h9v9'],
+    /* Rail: the overview entry and the collapse control. */
+    home: ['M4 11l8-7 8 7', 'M6 10v10h12V10'],
+    chevronLeft: ['M15 6l-6 6 6 6'],
+    search: ['M11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12z', 'M20 20l-4.5-4.5']
   };
 
   /* Action segments: the last path segment names what the call does. Verbs
@@ -968,7 +972,12 @@
 
     var link = bar.querySelector('a');
     if (link && !link.querySelector('.emit-brand')) {
-      link.innerHTML = '<span class="emit-brand">EMIT<span style="color:rgba(156,220,254,0.6)">.</span></span>';
+      link.innerHTML = '<span class="emit-brand">EMIT<span class="emit-brand__dot">.</span></span>';
+    }
+    if (!document.getElementById('emit-crumb')) {
+      var crumb = el('div', 'emit-crumb');
+      crumb.id = 'emit-crumb';
+      bar.insertBefore(crumb, link ? link.nextSibling : bar.firstChild);
     }
 
     var source = document.querySelector('.scheme-container .auth-wrapper .authorize');
@@ -1283,8 +1292,29 @@
         var control = block.querySelector('.opblock-summary-control');
         if (control) control.click();
       }
-      block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      bringIntoView(block);
     })();
+  }
+
+  /* A smooth scroll aims at where the block is when it starts. Content that
+     lands above it meanwhile (the lifecycle figure is drawn once the spec
+     arrives) leaves it short, so where the scroll ends is checked and
+     corrected. Only for a moment: after that the reader is scrolling. */
+  function bringIntoView(block) {
+    block.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var pane = contentPane();
+    if (!pane || !('onscrollend' in window)) return;
+    var started = Date.now();
+    var corrections = 0;
+    pane.addEventListener('scrollend', function settle() {
+      var margin = parseFloat(getComputedStyle(block).scrollMarginTop) || 0;
+      var off = block.getBoundingClientRect().top - pane.getBoundingClientRect().top - margin;
+      if (Date.now() - started < 4000 && Math.abs(off) > 4 && corrections++ < 2) {
+        block.scrollIntoView({ block: 'start' });
+        return;
+      }
+      pane.removeEventListener('scrollend', settle);
+    });
   }
 
   function paintSteps() {
@@ -1483,6 +1513,164 @@
     anchor.parent.insertBefore(section, anchor.before);
   }
 
+  // ------------------------------------------------------------------ shell
+  /* The cockpit around Swagger: a window over a lit scene, a rail beside the
+     operations and a statusbar under them. Built once, outside React's tree,
+     so no re-render touches it; Swagger's own topbar and content become cells
+     of the window's grid in theme.css. */
+  function buildShell() {
+    var root = document.getElementById('swagger-ui');
+    if (!root || document.getElementById('emit-window')) return;
+
+    var scene = el('div', 'emit-scene');
+    scene.setAttribute('aria-hidden', 'true');
+    ['emit-scene__glow emit-scene__glow--a', 'emit-scene__glow emit-scene__glow--b',
+     'emit-scene__streak', 'emit-scene__streak emit-scene__streak--thin'].forEach(function (cls) {
+      scene.appendChild(el('i', cls));
+    });
+    scene.insertAdjacentHTML('beforeend', '<svg class="emit-scene__grain"><filter id="emit-grain">'
+      + '<feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" stitchTiles="stitch"/></filter>'
+      + '<rect width="100%" height="100%" filter="url(#emit-grain)"/></svg>');
+    document.body.insertBefore(scene, document.body.firstChild);
+
+    var win = el('div');
+    win.id = 'emit-window';
+    root.parentNode.insertBefore(win, root);
+
+    var rail = el('aside');
+    rail.id = 'emit-rail';
+    rail.setAttribute('aria-label', 'Operations and progress');
+    var map = el('nav', 'emit-map');
+    map.id = 'emit-map';
+    map.setAttribute('aria-label', 'Operations');
+    rail.appendChild(map);
+
+    var status = el('footer');
+    status.id = 'emit-statusbar';
+    var server = el('span', 'emit-status__server');
+    server.id = 'emit-status-server';
+    status.appendChild(server);
+
+    status.appendChild(el('span', 'emit-status__grow'));
+    var legend = document.getElementById('emit-legend');
+    if (legend) status.appendChild(legend);
+
+    win.appendChild(rail);
+    win.appendChild(root);
+    win.appendChild(status);
+  }
+
+  /* Tags and operations in the order Swagger shows them: tags and paths
+     alphabetical, methods in their HTTP order. */
+  function mapEntries() {
+    var byTag = {};
+    Object.keys(spec.paths).sort().forEach(function (path) {
+      HTTP_METHODS.forEach(function (method) {
+        var operation = spec.paths[path][method];
+        if (!operation || !operation.operationId) return;
+        var tag = (operation.tags && operation.tags[0]) || 'default';
+        (byTag[tag] = byTag[tag] || []).push({ tag: tag, id: operation.operationId, method: method, path: path,
+          name: operation.summary || operation.operationId });
+      });
+    });
+    return Object.keys(byTag).sort().map(function (tag) { return { tag: tag, operations: byTag[tag] }; });
+  }
+
+  function paintMap() {
+    var map = document.getElementById('emit-map');
+    if (!map || !spec || map.dataset.built) return;
+    map.dataset.built = 'true';
+
+    var overview = el('a', 'emit-map__item emit-map__item--overview');
+    overview.href = '#';
+    overview.dataset.target = 'overview';
+    overview.appendChild(icon('home'));
+    overview.appendChild(el('span', 'emit-map__name', 'Overview'));
+    overview.addEventListener('click', function (event) {
+      event.preventDefault();
+      var info = document.querySelector('.information-container');
+      if (info) info.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    map.appendChild(overview);
+
+    mapEntries().forEach(function (group) {
+      map.appendChild(el('div', 'emit-map__tag', group.tag));
+      group.operations.forEach(function (operation) {
+        var link = el('a', 'emit-map__item');
+        link.href = '#/' + encodeURIComponent(operation.tag) + '/' + operation.id;
+        link.dataset.target = 'operations-' + operation.tag + '-' + operation.id;
+        link.title = operation.method.toUpperCase() + ' ' + operation.path;
+        link.appendChild(icon(iconFor(operation.method, operation.path)));
+        link.appendChild(el('span', 'emit-map__name', operation.name));
+        var scopes = scopesFor(operation.method, operation.path) || [];
+        if (scopes[0] && scopes[0].icon) {
+          var mark = icon(scopes[0].icon);
+          mark.setAttribute('class', 'emit-map__scope emit-map__scope--' + scopes[0].key);
+          link.appendChild(mark);
+        }
+        link.addEventListener('click', function (event) {
+          event.preventDefault();
+          openOperation({ tag: operation.tag, id: operation.id });
+        });
+        map.appendChild(link);
+      });
+    });
+    spyScroll();
+  }
+
+  /* Where the reader is: the last section whose top has passed under the
+     sticky operation header. */
+  function contentPane() {
+    return document.querySelector('#emit-window .swagger-container > .swagger-ui');
+  }
+
+  function spyScroll() {
+    var pane = contentPane();
+    var map = document.getElementById('emit-map');
+    if (!pane || !map) return;
+    var line = pane.getBoundingClientRect().top + 64;
+    var current = 'overview';
+    document.querySelectorAll('.opblock').forEach(function (block) {
+      if (block.getBoundingClientRect().top <= line) current = block.id;
+    });
+    map.querySelectorAll('.emit-map__item').forEach(function (link) {
+      link.classList.toggle('is-current', link.dataset.target === current);
+    });
+    paintCrumb(current);
+  }
+
+  function paintCrumb(current) {
+    var crumb = document.getElementById('emit-crumb');
+    if (!crumb) return;
+    var block = current === 'overview' ? null : document.getElementById(current);
+    var key = block ? current : 'overview';
+    if (crumb.dataset.key === key) return;
+    crumb.dataset.key = key;
+    crumb.textContent = '';
+    if (!block) {
+      crumb.appendChild(el('b', null, 'Overview'));
+      return;
+    }
+    var method = block.querySelector('.opblock-summary-method');
+    var path = block.querySelector('.opblock-summary-path');
+    var tag = block.closest('.opblock-tag-section');
+    var tagName = tag && tag.querySelector('h3.opblock-tag');
+    crumb.appendChild(el('i', null, tagName ? tagName.getAttribute('data-tag') : ''));
+    crumb.appendChild(el('i', null, '/'));
+    crumb.appendChild(el('b', null, (method ? method.textContent.trim() : '') + ' ' + (path ? path.getAttribute('data-path') : '')));
+  }
+
+  function paintStatusbar() {
+    var server = document.getElementById('emit-status-server');
+    if (!server || !spec || server.dataset.built) return;
+    var first = spec.servers && spec.servers[0];
+    if (!first) return;
+    server.dataset.built = 'true';
+    server.appendChild(el('i', 'emit-status__led'));
+    server.appendChild(document.createTextNode(first.url.replace(/^https?:\/\//, '')
+      + (first.description ? ' · ' + first.description : '')));
+  }
+
   // -------------------------------------------------------------- scheduler
 
   function paint() {
@@ -1503,6 +1691,9 @@
     paintExampleBoxes();
     paintLifecycle();
     paintScrollers();
+    paintMap();
+    paintStatusbar();
+    spyScroll();
   }
 
   /* React rebuilds these nodes on expand and collapse, so repaint on mutation,
@@ -1529,8 +1720,15 @@
   }
 
   function start() {
+    buildShell();
     paint();
     bindLegend();
+
+    /* The content pane scrolls, not the page. Capture, because the pane is
+       created by React after this runs. */
+    document.addEventListener('scroll', function (event) {
+      if (event.target === contentPane()) spyScroll();
+    }, true);
 
     var root = document.getElementById('swagger-ui');
     if (root) new MutationObserver(schedule).observe(root, { childList: true, subtree: true });

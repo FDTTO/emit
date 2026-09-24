@@ -35,7 +35,10 @@ setTimeout(function () {
   check('lifecycle runs down on a phone, across on a desktop', direction === (width < 600 ? 'column' : 'row'), direction);
 
   var bar = V.box('.topbar .topbar-wrapper');
-  check('topbar is one row', bar.height <= 32, bar);
+  var rows = Array.prototype.map.call(document.querySelector('.topbar .topbar-wrapper').children, function (c) {
+    var r = c.getBoundingClientRect(); return r.height ? Math.round(r.top + r.height / 2) : null;
+  }).filter(function (y) { return y !== null; });
+  check('topbar is one row', rows.every(function (y) { return Math.abs(y - rows[0]) <= 2; }) && bar.height <= 56, { bar: bar, centres: rows });
 
   var body = document.querySelector('#operations-Authentication-login .opblock-body').getBoundingClientRect();
   var gutter = Math.round(body.left) + parseInt(getComputedStyle(root).getPropertyValue('--gutter'), 10);
