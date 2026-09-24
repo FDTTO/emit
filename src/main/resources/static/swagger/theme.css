@@ -195,9 +195,9 @@ body {
 /* Narrow: until the cockpit has a phone layout, the page reads as before and
    only the legend survives from the statusbar, floating in its corner. */
 @media (max-width: 900px) {
-  #emit-rail, .emit-scene__glow, .emit-scene__streak { display: none; }
-  #emit-statusbar { display: contents; }
-  #emit-statusbar > :not(#emit-legend) { display: none; }
+  #emit-window > #emit-rail, .emit-scene__glow, .emit-scene__streak { display: none; }
+  #emit-window > #emit-statusbar { display: contents; }
+  #emit-window > #emit-statusbar > :not(#emit-legend) { display: none; }
 }
 /* Wide: the legend is the statusbar's last item and opens upward. */
 @media (min-width: 901px) {
@@ -267,12 +267,16 @@ body {
   font: 500 var(--t-xs)/1 var(--f-mono);
   color: var(--e-dim);
 }
-#emit-statusbar > * { display: flex; align-items: center; gap: var(--sp-2); height: 100%; padding: 0 var(--sp-4); white-space: nowrap; }
-#emit-statusbar > .emit-status__server { width: var(--rail); padding-left: var(--sp-6); }
+/* Wide only: on a phone the legend is the statusbar's one survivor, fixed in
+   its corner, and a full-height item would stretch it down the screen. */
+@media (min-width: 901px) {
+  #emit-statusbar > * { display: flex; align-items: center; gap: var(--sp-2); height: 100%; padding: 0 var(--sp-4); white-space: nowrap; }
+  #emit-statusbar > .emit-status__server { width: var(--rail); padding-left: var(--sp-6); }
+}
 .emit-status__led { width: 6px; height: 6px; border-radius: 50%; background: var(--s2-c); }
 #emit-statusbar > [hidden] { display: none; }
-#emit-statusbar button { height: 100%; padding: 0 var(--sp-4); border: 0; border-radius: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
-#emit-statusbar button:hover { color: var(--e-body); background: var(--e-raised); }
+#emit-statusbar > button { height: 100%; padding: 0 var(--sp-4); border: 0; border-radius: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+#emit-statusbar > button:hover { color: var(--e-body); background: var(--e-raised); }
 .emit-status__last.is-ok::before,
 .emit-status__last.is-bad::before { content: ""; width: 5px; height: 5px; margin-right: 6px; border-radius: 50%; display: inline-block; vertical-align: middle; }
 .emit-status__last.is-ok::before { background: var(--s2-c); }
@@ -478,7 +482,6 @@ body {
   #emit-swagger .swagger-ui .opblock { scroll-margin-top: 64px; }
   #emit-swagger .swagger-ui .topbar { position: sticky; top: 0; z-index: 100; height: 52px; background: rgba(6,8,14,0.88); backdrop-filter: blur(16px); }
   #emit-swagger .swagger-ui .topbar .topbar-wrapper { padding: 0 var(--page-gutter); justify-content: space-between; }
-  .emit-crumb { display: none; }
 }
 .emit-crumb {
   display: flex;
@@ -3395,4 +3398,16 @@ body {
    the arrow is what got clipped. The icon repeats what the method says. */
 @media (max-width: 400px) {
   #emit-swagger .swagger-ui .emit-op-icon { display: none; }
+}
+
+/* Narrow overrides of cockpit parts live here, last in the file: an override
+   written before the rule it overrides loses to it at equal specificity. */
+@media (max-width: 900px) {
+  /* A long path would push Authorize off the bar. */
+  .emit-crumb { display: none; }
+}
+@media (max-width: 560px) {
+  /* The proof moves under its step instead of reserving a column. */
+  #emit-swagger .swagger-ui .info ol > li { padding-right: var(--sp-3); }
+  .emit-step-proof { position: static; display: block; margin-top: var(--sp-1); transform: none; }
 }

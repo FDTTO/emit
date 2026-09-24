@@ -50,6 +50,13 @@ setTimeout(function () {
     var cs = getComputedStyle(document.querySelector('#operations-Authentication-login ' + s));
     check('well drawn: ' + s, cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.borderTopWidth !== '0px');
   });
+  if (width < 900) {
+    check('a phone shows no rail', getComputedStyle(document.getElementById('emit-rail')).display === 'none');
+    var legend = document.getElementById('emit-legend-btn').getBoundingClientRect();
+    check('the legend stays a small corner control', legend.height < 60 && legend.width < 60,
+          { width: Math.round(legend.width), height: Math.round(legend.height) });
+    check('the topbar keeps to brand and credentials', getComputedStyle(document.getElementById('emit-crumb')).display === 'none');
+  }
   var tenant = document.getElementById('operations-Tenants-createTenant');
   var execute = tenant && tenant.querySelector('button.execute');
   var cancel = tenant && tenant.querySelector('.try-out__btn.cancel');
