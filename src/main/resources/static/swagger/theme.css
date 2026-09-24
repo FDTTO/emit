@@ -277,7 +277,9 @@ body {
 .emit-status__last.is-bad::before { background: var(--s4-c); }
 .emit-status__meter { width: 44px; height: 3px; border-radius: var(--r-pill); background: rgba(255,255,255,0.08); overflow: hidden; }
 .emit-status__meter i { display: block; height: 100%; background: var(--e-label); }
+/* The run is in the rail; the statusbar takes it only when the rail is folded. */
 .emit-status__run { color: var(--run-c); }
+#emit-window:not([data-rail="closed"]) .emit-status__run { display: none; }
 
 /* Rail labels: the one uppercase style. */
 .emit-rail__label {
@@ -610,12 +612,11 @@ body {
   border: 0;
 }
 #emit-swagger .swagger-ui .information-container > section {
-  background: var(--e-glass);
-  border: 1px solid var(--e-rim);
+  background: var(--e-shine);
+  border: 0;
   border-radius: var(--r-panel);
-  padding: var(--sp-6) var(--sp-6) var(--sp-5);
+  padding: var(--sp-7) 40px var(--sp-7);
   box-shadow: var(--e-lift);
-  backdrop-filter: blur(8px);
 }
 #emit-swagger .swagger-ui .info { margin: 0; }
 #emit-swagger .swagger-ui .info > div { margin: 0; }
@@ -782,20 +783,29 @@ body {
   line-height: 1.75;
 }
 
+/* Section headings read like the lifecycle's label: small caps with a rule
+   running to the right, not an underline. */
 #emit-swagger .swagger-ui .info h1,
 #emit-swagger .swagger-ui .info h2,
 #emit-swagger .swagger-ui .info h3,
 #emit-swagger .swagger-ui .info h4 {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
   font-family: var(--f-body);
-  font-size: var(--t-2xs);
-  font-weight: 800;
+  font-size: var(--t-xs);
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--e-label);
-  border-bottom: 1px solid var(--e-line);
-  padding-bottom: var(--sp-2);
-  margin: var(--sp-6) 0 var(--sp-3);
+  color: var(--e-dim);
+  border-bottom: 0;
+  padding-bottom: 0;
+  margin: var(--sp-7) 0 var(--sp-3);
 }
+#emit-swagger .swagger-ui .info h1::after,
+#emit-swagger .swagger-ui .info h2::after,
+#emit-swagger .swagger-ui .info h3::after,
+#emit-swagger .swagger-ui .info h4::after { content: ""; flex: 1; height: 1px; background: var(--e-hair); }
 
 #emit-swagger .swagger-ui .info code,
 #emit-swagger .swagger-ui .info .markdown code,
@@ -829,36 +839,64 @@ body {
   padding-left: 0;
   margin: var(--sp-3) 0 var(--sp-5);
 }
+/* The steps are a checklist the page ticks (enhance.js marks each li done
+   or next from what it sees): a mark instead of a number, the next step
+   lit, and what proves a step on the right. */
 #emit-swagger .swagger-ui .info ol > li,
 #emit-swagger .swagger-ui .info .markdown ol > li,
 #emit-swagger .swagger-ui .info .renderedMarkdown ol > li {
   counter-increment: emit-step;
   list-style: none;
   position: relative;
-  padding-left: 32px;
-  margin: 0 0 var(--sp-3);
-  font-size: var(--t-md);
-  line-height: 1.85;
+  padding: 9px 150px 9px 44px;
+  margin: 0 0 2px;
+  border-radius: var(--r-code);
+  font-size: var(--t-lg);
+  line-height: 1.7;
   color: var(--e-body);
+  transition: background 0.3s var(--ease), color 0.3s var(--ease);
 }
 #emit-swagger .swagger-ui .info ol > li::before,
 #emit-swagger .swagger-ui .info .markdown ol > li::before,
 #emit-swagger .swagger-ui .info .renderedMarkdown ol > li::before {
-  content: counter(emit-step);
+  content: "";
   position: absolute;
-  left: 0; top: 4px;
-  display: block;
-  width: 18px;
-  line-height: 18px;
-  text-align: right;
-  font-family: var(--f-mono);
-  font-size: var(--t-xs);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  color: var(--e-faint);
+  left: 14px; top: 50%;
+  width: 14px; height: 14px;
+  margin-top: -7px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--e-faint);
   background: none;
-  border: 0;
 }
+#emit-swagger .swagger-ui .info ol > li.emit-step--done { color: var(--e-dim); }
+#emit-swagger .swagger-ui .info ol > li.emit-step--done::before {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--s2-c) 40%, transparent);
+  background: color-mix(in srgb, var(--s2-c) 12%, transparent);
+}
+#emit-swagger .swagger-ui .info ol > li.emit-step--done::after {
+  content: "";
+  position: absolute;
+  left: 19px; top: 50%;
+  width: 5px; height: 3px;
+  margin-top: -3px;
+  border: solid var(--s2-c);
+  border-width: 0 0 1.5px 1.5px;
+  transform: rotate(-45deg);
+}
+#emit-swagger .swagger-ui .info ol > li.emit-step--next { background: var(--ui-bg); color: var(--e-text); }
+#emit-swagger .swagger-ui .info ol > li.emit-step--next::before {
+  box-shadow: inset 0 0 0 1.5px var(--ui-c);
+  background: radial-gradient(circle, var(--ui-c) 0 2.5px, transparent 3px);
+}
+.emit-step-proof {
+  position: absolute;
+  right: var(--sp-4); top: 50%;
+  transform: translateY(-50%);
+  font: 400 var(--t-sm)/1 var(--f-mono);
+  color: var(--e-faint);
+  white-space: nowrap;
+}
+.emit-step--next .emit-step-proof { color: var(--ui-c); }
 /* Steps that name a real operation link to it (wired by enhance.js). */
 #emit-swagger .swagger-ui .info .emit-step-link {
   cursor: pointer;
@@ -904,41 +942,42 @@ body {
 
 /* border-collapse: separate is required for the radius, so the corner cells
    carry it. */
+/* A table on the panel needs no frame of its own: rows and hairlines. */
 #emit-swagger .swagger-ui .info table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: var(--r-code);
+  background: none;
+  border: 0;
+  border-radius: 0;
   margin: var(--sp-3) 0 var(--sp-5);
-  font-size: var(--t-md);
-  box-shadow: 0 2px 14px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+  font-size: var(--t-lg);
+  box-shadow: none;
   overflow: hidden;
   padding: 0;
 }
 #emit-swagger .swagger-ui .info table thead th {
-  background: var(--e-bar);
-  color: var(--e-dim);
+  background: none;
+  color: var(--e-faint);
   font-family: var(--f-body);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   text-align: left;
-  padding: var(--sp-2) var(--sp-4);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 0 var(--sp-4) var(--sp-3);
+  border-bottom: 0;
 }
 #emit-swagger .swagger-ui .info table thead th:first-child { border-radius: 7px 0 0 0; }
 #emit-swagger .swagger-ui .info table thead th:last-child  { border-radius: 0 7px 0 0; }
 #emit-swagger .swagger-ui .info table tbody td {
-  padding: 10px var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
   color: var(--e-body);
   background: transparent;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  vertical-align: top;
+  border-bottom: 0;
+  box-shadow: inset 0 1px 0 var(--e-hair);
+  vertical-align: middle;
 }
-#emit-swagger .swagger-ui .info table tbody tr:last-child td { border-bottom: 0; }
 #emit-swagger .swagger-ui .info table tbody tr:last-child td:first-child { border-radius: 0 0 0 7px; }
 #emit-swagger .swagger-ui .info table tbody tr:last-child td:last-child  { border-radius: 0 0 7px 0; }
 #emit-swagger .swagger-ui .info table tbody tr { transition: background 0.12s; }
@@ -2881,17 +2920,17 @@ body {
   gap: var(--sp-3);
   margin: 0 0 var(--sp-3);
   font-family: var(--f-body);
-  font-size: var(--t-2xs);
-  font-weight: 800;
+  font-size: var(--t-xs);
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--e-label);
+  color: var(--e-dim);
 }
 #emit-swagger .swagger-ui .emit-section-label::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--e-line);
+  background: var(--e-hair);
 }
 
 #emit-swagger .swagger-ui .emit-flow {
@@ -2900,8 +2939,9 @@ body {
   justify-content: center;
   padding: 64px var(--sp-5);
   background: var(--e-well);
-  border: 1px solid var(--e-line);
+  border: 0;
   border-radius: var(--r-code);
+  box-shadow: var(--e-well-edge);
   overflow-x: auto;
 }
 #emit-swagger .swagger-ui .emit-flow-node {
@@ -2913,11 +2953,12 @@ body {
   justify-content: center;
 }
 #emit-swagger .swagger-ui .emit-flow-dot {
-  width: 9px; height: 9px;
+  width: 11px; height: 11px;
   flex: 0 0 auto;
   border: 1.5px solid currentColor;
   border-radius: 50%;
-  background: var(--e-well);
+  background: #0b0e13;
+  box-shadow: 0 0 14px -3px currentColor;
 }
 #emit-swagger .swagger-ui .emit-flow-text {
   position: absolute;
@@ -2946,10 +2987,11 @@ body {
 /* Current state of the followed document. */
 #emit-swagger .swagger-ui .emit-flow-node.is-current .emit-flow-dot {
   background: currentColor;
-  box-shadow: 0 0 0 3px var(--e-well), 0 0 0 4px currentColor;
+  box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 14%, transparent), 0 0 20px currentColor;
+  animation: emit-ring .7s var(--ease);
 }
 #emit-swagger .swagger-ui .emit-flow-node--pending    { color: var(--s5-c); }
-#emit-swagger .swagger-ui .emit-flow-node--processing { color: var(--pt-c); }
+#emit-swagger .swagger-ui .emit-flow-node--processing { color: var(--run-c); }
 #emit-swagger .swagger-ui .emit-flow-node--done       { color: var(--s2-c); }
 #emit-swagger .swagger-ui .emit-flow-node--failed     { color: var(--s4-c); }
 
@@ -2978,10 +3020,41 @@ body {
   left: 0; right: 0; top: 11px;
   text-align: center;
   font-family: var(--f-mono);
-  font-size: var(--t-3xs);
+  font-size: var(--t-xs);
   letter-spacing: 0.05em;
   color: var(--e-faint);
 }
+/* The figure is the andon: the followed document's id rides on the stage it
+   is in, and light travels the edge it is crossing. */
+#emit-swagger .swagger-ui .emit-flow-id {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 7px;
+  border-radius: var(--r-pill);
+  background: rgba(255,255,255,0.08);
+  color: var(--e-text);
+  font: 500 9px/1 var(--f-mono);
+  white-space: nowrap;
+  animation: emit-rise .35s var(--ease);
+}
+/* The top outcome carries its words above the dot, so its id goes below. */
+#emit-swagger .swagger-ui .emit-flow-fork .emit-flow-node:first-child .emit-flow-id { bottom: auto; top: 18px; }
+#emit-swagger .swagger-ui .emit-flow-link.is-active .emit-flow-via { color: var(--run-c); }
+#emit-swagger .swagger-ui .emit-flow-link.is-active .emit-flow-line { background: linear-gradient(90deg, rgba(134,184,255,0.15), rgba(134,184,255,0.55)); }
+#emit-swagger .swagger-ui .emit-flow-link.is-active::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 0;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #d6e6ff;
+  box-shadow: 0 0 10px 2px var(--run-c);
+  animation: emit-travel 1.3s cubic-bezier(.5,0,.5,1) infinite;
+}
+@keyframes emit-travel { from { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } to { left: calc(100% - 7px); opacity: 0; } }
 
 /* Mirrored outcomes. The arm span is fixed on both sides, so the trunk meets
    the bracket exactly on the axis. */

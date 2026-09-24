@@ -76,11 +76,11 @@ public class OpenApiConfig {
 
                                 ## Getting started
 
-                                1. `POST /v1/auth/login` with admin credentials → copy the `token`
-                                2. Click **Authorize** and paste the token under **bearerAuth**
-                                3. `POST /v1/tenants` and copy the `apiKey` from the response *(returned exactly once)*
-                                4. Click **Authorize** and paste the key under **apiKeyAuth**
-                                5. `POST /v1/documents` → the document enters the async PDF pipeline""")
+                                1. `POST /v1/auth/login` with the admin credentials returns a `token` for **bearerAuth**
+                                2. `POST /v1/tenants` returns an `apiKey` for **apiKeyAuth**, exactly once
+                                3. `POST /v1/documents` creates a document in PENDING
+                                4. `POST /v1/documents/{id}/generate` sends it through the async PDF pipeline
+                                5. `GET /v1/documents/{id}/pdf` downloads the PDF once it is DONE""")
                         .version("v1"))
                 .tags(List.of(
                         new Tag().name("Authentication").description("Admin login. Returns a JWT required for all tenant management endpoints."),

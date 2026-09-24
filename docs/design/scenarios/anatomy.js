@@ -39,7 +39,9 @@ V.until(function () { return all('.opblock .emit-op-icon svg path').length === a
         && all('.emit-format').some(function (n) { return n.textContent === 'uuid'; }),
         [text('.emit-enum'), all('.emit-format').length]);
   var links = all('.info .emit-step-link');
-  check('three getting-started steps link to their operation', links.length === 3, links.map(function (a) { return a.textContent; }));
+  var steps = all('.info ol > li');
+  check('every getting-started step links to its operation', steps.length > 0 && links.length === steps.length,
+        { steps: steps.length, links: links.map(function (a) { return a.textContent; }) });
   var tenants = links.filter(function (a) { return a.textContent === 'POST /v1/tenants'; })[0];
   if (tenants) tenants.click();
   V.until(function () { return isOpen('operations-Tenants-createTenant'); }, rows, 15000);

@@ -45,6 +45,7 @@ V.until(function () { return !!q('.emit-journey__count') && !!V.definition('apiK
           check('it follows the run to DONE', !!q('#emit-live .emit-live__stage.is-good'));
           check('and offers the PDF', /Download PDF/.test(V.text('#emit-live .emit-live__action') || ''));
           check('the journey counts the run', count() === '4 / 5', count());
+          check('the budget outlives an answer that does not carry it', /RateLimit 17 \/ 20/.test(V.text('#emit-status-budget') || ''), V.text('#emit-status-budget'));
           check('and points at the download', /Download it/.test(V.text('.emit-journey__step') || ''), V.text('.emit-journey__step'));
           done();
         }, 15000);

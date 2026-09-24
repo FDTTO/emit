@@ -393,7 +393,13 @@
     };
     lastAnswers[key] = answer;
     latestAnswer = answer;
+    /* The budget and the id outlive an answer that does not carry them: the
+       budget is the tenant's, and a 202 says nothing about it. */
+    if (!isNaN(answer.limit) && !isNaN(answer.remaining)) latestBudget = answer;
+    if (answer.requestId) latestRequestId = answer.requestId;
   }
+  var latestBudget = null;
+  var latestRequestId = null;
 
   function requiredSchemes(operation) {
     var requirements = operation.security || spec.security || [];
@@ -844,7 +850,19 @@
     });
     var step = current ? lifecycleStep(current.state) : null;
     document.querySelectorAll('#emit-lifecycle .emit-flow-node').forEach(function (node) {
-      node.classList.toggle('is-current', !!step && node.classList.contains('emit-flow-node--' + step.kind));
+      var lit = !!step && node.classList.contains('emit-flow-node--' + step.kind);
+      node.classList.toggle('is-current', lit);
+      var tag = node.querySelector('.emit-flow-id');
+      if (lit && !tag) node.appendChild(tag = el('span', 'emit-flow-id'));
+      if (tag && !lit) tag.remove();
+      if (tag && lit) tag.textContent = current.id.slice(0, 8);
+    });
+    /* While it runs, light travels the edge the document is crossing: out of
+       PENDING along the first, out of PROCESSING along the second. */
+    var crossing = current && current.phase === 'following'
+      ? LIFECYCLE.run.filter(function (s) { return s.state; }).map(function (s) { return s.state; }).indexOf(current.state) : -1;
+    document.querySelectorAll('#emit-lifecycle .emit-flow-link').forEach(function (link, index) {
+      link.classList.toggle('is-active', index === crossing);
     });
   }
 
@@ -1504,6 +1522,21 @@
     var panel = document.querySelector('.information-container .info');
     if (!panel || !spec) return;
 
+    /* The listed steps are the journey's, in order: each is marked done or
+       next with the same evidence the rail uses. */
+    var items = panel.querySelectorAll('ol > li');
+    if (items.length === JOURNEY.length) {
+      var state = journeyState();
+      items.forEach(function (item, index) {
+        item.classList.toggle('emit-step--done', state.done[index]);
+        item.classList.toggle('emit-step--next', index === state.next);
+        var proof = item.querySelector('.emit-step-proof');
+        if (!proof) item.appendChild(proof = el('span', 'emit-step-proof'));
+        var said = state.done[index] ? JOURNEY[index].proof : index === state.next ? 'next' : '';
+        if (proof.textContent !== said) proof.textContent = said;
+      });
+    }
+
     var index = operationIndex();
     panel.querySelectorAll('li code').forEach(function (chip) {
       if (chip.dataset.emitStep) return;
@@ -2043,13 +2076,12 @@
     var request = document.getElementById('emit-status-request');
     if (!answer || !budget) return;
 
-    var hasBudget = !isNaN(answer.limit) && !isNaN(answer.remaining);
-    budget.hidden = !hasBudget;
-    if (hasBudget) {
-      budget.textContent = 'RateLimit ' + answer.remaining + ' / ' + answer.limit;
+    budget.hidden = !latestBudget;
+    if (latestBudget) {
+      budget.textContent = 'RateLimit ' + latestBudget.remaining + ' / ' + latestBudget.limit;
       var meter = el('span', 'emit-status__meter');
       var fill = el('i');
-      fill.style.width = Math.round(100 * answer.remaining / Math.max(1, answer.limit)) + '%';
+      fill.style.width = Math.round(100 * latestBudget.remaining / Math.max(1, latestBudget.limit)) + '%';
       meter.appendChild(fill);
       budget.appendChild(meter);
     }
@@ -2057,10 +2089,10 @@
     last.textContent = 'Last ' + answer.status + (typeof answer.duration === 'number' ? ' · ' + answer.duration + ' ms' : '');
     last.className = 'emit-status__last ' + (answer.status < 400 ? 'is-ok' : 'is-bad');
     if (request.dataset.copied) return;
-    request.hidden = !answer.requestId;
-    if (answer.requestId) {
-      request.dataset.value = answer.requestId;
-      request.textContent = 'X-Request-Id ' + answer.requestId.slice(0, 4) + '…' + answer.requestId.slice(-2);
+    request.hidden = !latestRequestId;
+    if (latestRequestId) {
+      request.dataset.value = latestRequestId;
+      request.textContent = 'X-Request-Id ' + latestRequestId.slice(0, 4) + '…' + latestRequestId.slice(-2);
     }
   }
 
