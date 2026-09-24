@@ -47,6 +47,11 @@ setTimeout(function () {
     var cs = getComputedStyle(document.querySelector('#operations-Authentication-login ' + s));
     check('well drawn: ' + s, cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.borderTopWidth !== '0px');
   });
+  var tenant = document.getElementById('operations-Tenants-createTenant');
+  var execute = tenant && tenant.querySelector('button.execute');
+  var cancel = tenant && tenant.querySelector('.try-out__btn.cancel');
+  check('an opened operation is ready to execute', !!execute && execute.getBoundingClientRect().height > 0
+    && (!cancel || cancel.getBoundingClientRect().height === 0));
   ['Authentication-login', 'Documents-getDocument', 'Tenants-createTenant'].forEach(function (id) {
     var op = document.getElementById('operations-' + id), cut = op && clipped(op);
     check('nothing clipped: ' + id, !!op && !cut, cut);

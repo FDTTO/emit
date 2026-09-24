@@ -1783,6 +1783,9 @@ body {
   background: var(--ui-bg-hover);
   border-color: var(--ui-b-hover);
 }
+/* With tryItOutEnabled every operation opens ready to execute, and Cancel
+   would only lock its inputs again. Reset, which restores the example, stays. */
+#emit-swagger .swagger-ui .btn.try-out__btn.cancel { display: none; }
 /* Undo actions: Cancel, Reset, Clear, Done. */
 #emit-swagger .swagger-ui .btn.cancel,
 #emit-swagger .swagger-ui .btn.try-out__btn.cancel,
