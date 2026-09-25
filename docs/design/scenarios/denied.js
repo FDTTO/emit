@@ -25,7 +25,7 @@ function missing() {
   check('missing: names the credential', /needs TENANT, and Authorize holds none/.test(textOf(DOCS)), textOf(DOCS));
   check('missing: in the 4xx colour', !!noteOf(DOCS) && noteOf(DOCS).classList.contains('emit-note--denied'));
   var way = noteOf(DOCS) && noteOf(DOCS).querySelector('.emit-note__action');
-  check('missing: offers the way to get it', !!way && way.textContent === 'Register a tenant', way && way.textContent);
+  check('missing: offers the way to get it', !!way && way.textContent === 'Create a tenant', way && way.textContent);
   var ref = noteOf(DOCS) && noteOf(DOCS).querySelector('.emit-note__ref');
   check('missing: names the request it was refused in',
         !!ref && ref.textContent === 'request 3fa85f64' && ref.dataset.requestId === REQUEST_ID,

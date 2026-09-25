@@ -185,14 +185,6 @@ body {
   #emit-window .swagger-container > .topbar { grid-area: top; }
   #emit-window .swagger-container > .swagger-ui { grid-area: main; min-height: 0; overflow-y: auto; }
   #emit-window .swagger-container > .wrapper { display: none; }
-  /* The server is named in the statusbar and Authorize lives in the titlebar
-     capsule. The bar collapses but stays rendered: Swagger mounts the
-     Authorize dialog inside .auth-wrapper, so hiding the bar would hide the
-     dialog with it. Only the server select and the stock button go. */
-  /* The ids outrank section 5's own rule for the bar, which comes later. */
-  #emit-swagger #emit-window .swagger-ui .scheme-container { height: 0; min-height: 0; padding: 0; margin: 0; border: 0; box-shadow: none; background: none; }
-  #emit-swagger #emit-window .swagger-ui .scheme-container .schemes-server-container,
-  #emit-swagger #emit-window .swagger-ui .scheme-container .auth-wrapper > .authorize { display: none; }
   #emit-rail { grid-area: rail; }
   #emit-statusbar { grid-area: status; }
 }
@@ -1053,102 +1045,10 @@ body {
 
 /* --------------------------------------------------------------------------
    5. SCHEME BAR
-   Counter: .servers>label{margin:-20px 15px 0 0}
-            .schemes-server-container>label{flex-direction:column}
-   Together they overlapped the label onto the select.
+   The server is named in the statusbar and credentials live in the
+   titlebar's capsule and the page's own dialog, so Swagger's bar is not drawn.
    -------------------------------------------------------------------------- */
-#emit-swagger .swagger-ui .scheme-container {
-  background: transparent;
-  box-shadow: none;
-  padding: var(--sp-4) 0;
-  margin: 0 0 var(--sp-2);
-  border-bottom: 1px solid var(--e-hair);
-}
-#emit-swagger .swagger-ui .scheme-container .schemes {
-  align-items: center;
-  gap: var(--sp-3);
-}
-#emit-swagger .swagger-ui .scheme-container .schemes > .schemes-server-container { align-items: center; }
-
-/* Real structure:
-     .schemes-server-container > div > span.servers-title  ("Servers")
-                                     > div.servers > label > select
-   The caption is a sibling of the select's label, not its text, so the row
-   is laid out on their shared parent and the status dot goes on the caption. */
-#emit-swagger .swagger-ui .schemes-server-container > div {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-}
-#emit-swagger .swagger-ui .servers-title {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-  margin: 0;
-  color: var(--e-dim);
-  font-family: var(--f-body);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-/* Live-server indicator. */
-#emit-swagger .swagger-ui .servers-title::before {
-  content: '';
-  flex: 0 0 auto;
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: rgba(110,185,80,0.72);
-  box-shadow: 0 0 6px rgba(110,185,80,0.38);
-}
-#emit-swagger .swagger-ui .servers > label,
-#emit-swagger .swagger-ui .schemes-server-container label {
-  display: block;
-  flex-direction: row;
-  margin: 0;
-  padding: 0;
-}
-#emit-swagger .swagger-ui .servers select,
-#emit-swagger .swagger-ui .scheme-container select {
-  background: var(--e-well);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: var(--r-sm);
-  color: var(--e-body);
-  font-family: var(--f-mono);
-  font-size: var(--t-sm);
-  text-transform: none;   /* counter: text-transform:uppercase */
-  padding: 5px 10px;
-  min-width: 240px;
-  box-shadow: none;
-}
-/* Only the button is hidden: the topbar tag replaces it. Swagger renders the
-   Authorize dialog inside .auth-wrapper, so hiding the wrapper hides the dialog. */
-#emit-swagger .swagger-ui .scheme-container .schemes .auth-wrapper > .authorize { display: none; }
-
-/* Counter: .btn.authorize{display:inline} + span{float:left} */
-#emit-swagger .swagger-ui .auth-wrapper .authorize,
-#emit-swagger .swagger-ui .btn.authorize {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--ui-bg);
-  border: 1px solid var(--ui-b);
-  border-radius: var(--r-sm);
-  color: var(--ui-c);
-  font-family: var(--f-body);
-  font-size: var(--t-sm);
-  font-weight: 500;
-  line-height: 1.4;
-  padding: 5px 14px;
-  box-shadow: none;
-}
-#emit-swagger .swagger-ui .auth-wrapper .authorize:hover,
-#emit-swagger .swagger-ui .btn.authorize:hover {
-  background: var(--ui-bg-hover);
-  border-color: var(--ui-b-hover);
-  box-shadow: none;
-}
+#emit-swagger .swagger-ui .scheme-container { display: none; }
 
 /* Filter box is not part of the mockup. */
 #emit-swagger .swagger-ui .filter-container,
@@ -2312,47 +2212,50 @@ body {
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 #emit-swagger .swagger-ui .btn:hover { box-shadow: none; }
-/* Execute is primary (filled accent); Cancel, Clear and Download are outlines. */
-#emit-swagger .swagger-ui .btn.modal-btn.auth.authorize {
-  background: var(--ui-bg);
-  border-color: var(--ui-b);
-  color: var(--ui-c);
-}
-#emit-swagger .swagger-ui .btn.modal-btn.auth.authorize:hover {
-  background: var(--ui-bg-hover);
-  border-color: var(--ui-b-hover);
-}
-/* The one primary action in an operation: lit, not outlined. */
-#emit-swagger .swagger-ui .btn.execute {
+/* The one lit button, and its quiet sibling. */
+#emit-swagger .swagger-ui .btn.execute,
+#emit-swagger .emit-primary {
+  display: inline-flex;
+  align-items: center;
   width: auto;
   height: 38px;
   padding: 0 22px;
   border: 0;
   border-radius: var(--r-code);
   color: #04121c;
-  font-family: var(--f-body);
-  font-size: var(--t-lg);
-  font-weight: 600;
+  font: 600 var(--t-lg)/1 var(--f-body);
   background: linear-gradient(180deg, #bdecff, #82cff5);
   box-shadow: var(--ui-glow), inset 0 1px 0 rgba(255,255,255,0.6);
+  cursor: pointer;
 }
-#emit-swagger .swagger-ui .btn.execute:hover { background: linear-gradient(180deg, #cff2ff, #92d8fa); box-shadow: var(--ui-glow), inset 0 1px 0 rgba(255,255,255,0.6); }
+#emit-swagger .swagger-ui .btn.execute:hover,
+#emit-swagger .emit-primary:hover { background: linear-gradient(180deg, #cff2ff, #92d8fa); box-shadow: var(--ui-glow), inset 0 1px 0 rgba(255,255,255,0.6); }
+#emit-swagger .emit-quiet {
+  height: 38px;
+  padding: 0 var(--sp-4);
+  border: 0;
+  border-radius: var(--r-code);
+  background: var(--e-raised);
+  box-shadow: inset 0 0 0 1px var(--e-hair);
+  color: var(--e-body);
+  font: 500 var(--t-md)/1 var(--f-body);
+  cursor: pointer;
+}
+#emit-swagger .emit-quiet:hover { background: var(--e-hover); }
 /* With tryItOutEnabled every operation opens ready to execute, and Cancel
    would only lock its inputs again. Reset, which restores the example, stays. */
 #emit-swagger .swagger-ui .btn.try-out__btn.cancel { display: none; }
-/* Undo actions: Cancel, Reset, Clear, Done. */
+/* Undo actions: Cancel, Reset, Clear. */
 #emit-swagger .swagger-ui .btn.cancel,
 #emit-swagger .swagger-ui .btn.try-out__btn.cancel,
-#emit-swagger .swagger-ui .btn.try-out__btn.reset,
-#emit-swagger .swagger-ui .btn.modal-btn.auth.btn-done {
+#emit-swagger .swagger-ui .btn.try-out__btn.reset {
   background: transparent;
   border-color: var(--e-line);
   color: var(--e-dim);
 }
 #emit-swagger .swagger-ui .btn.cancel:hover,
 #emit-swagger .swagger-ui .btn.try-out__btn.cancel:hover,
-#emit-swagger .swagger-ui .btn.try-out__btn.reset:hover,
-#emit-swagger .swagger-ui .btn.modal-btn.auth.btn-done:hover {
+#emit-swagger .swagger-ui .btn.try-out__btn.reset:hover {
   background: transparent;
   border-color: var(--e-edge);
   color: var(--e-body);
@@ -2644,92 +2547,69 @@ body {
 .emit-result__explain { margin: var(--sp-3) 0 0; font-size: var(--t-sm); color: var(--e-faint); }
 
 /* --------------------------------------------------------------------------
-   12. AUTHORIZE MODAL
+   12. CREDENTIALS (the page's own dialog, built by enhance.js)
+   One card per scheme over the window: its state first, then its value.
    -------------------------------------------------------------------------- */
-#emit-swagger .swagger-ui .dialog-ux .backdrop-ux { background: rgba(4,6,18,0.75); backdrop-filter: blur(6px); }
-#emit-swagger .swagger-ui .dialog-ux .modal-ux {
-  color: var(--e-body);
-  background: var(--e-glass);
-  backdrop-filter: blur(22px);
-  border: 1px solid rgba(255,255,255,0.22);
+.emit-auth {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: start center;
+  padding: 70px var(--sp-4) var(--sp-4);
+  background: rgba(4,6,9,0.55);
+  backdrop-filter: blur(4px);
+}
+.emit-auth[hidden] { display: none; }
+.emit-auth__box {
+  width: min(620px, 100%);
+  overflow: hidden;
   border-radius: var(--r-panel);
-  box-shadow: 0 12px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  background: linear-gradient(150deg, rgba(40,46,58,0.92), rgba(20,23,30,0.96));
+  backdrop-filter: blur(30px);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6), var(--e-spec);
+  animation: emit-rise .25s var(--ease);
 }
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-header {
-  background: var(--e-bar);
-  border-bottom: 1px solid var(--e-line);
-  border-radius: var(--r-panel) var(--r-panel) 0 0;
-  padding: var(--sp-3) var(--sp-5);
-}
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-header h3 {
-  color: var(--e-text);
-  font-family: var(--f-body);
-  font-size: var(--t-lg);
-  font-weight: 600;
-  /* Stock pads the title 0 20px, off the dialog gutter. */
-  padding: 0;
-}
-/* The close svg has no fill and is not a .btn, so it is coloured here. */
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-header .close-modal {
-  background: transparent;
-  border: 0;
-  padding: var(--sp-1);
-  color: var(--e-dim);
-  cursor: pointer;
-  transition: color 0.14s;
-}
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-header .close-modal:hover { color: var(--e-text); }
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-header .close-modal svg {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
-}
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-content { background: transparent; padding: var(--sp-5); }
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-content h4 { color: var(--e-text); font-family: var(--f-body); font-size: var(--t-md); font-weight: 600; }
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-content p,
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-content .renderedMarkdown p { color: var(--e-body); font-family: var(--f-body); font-size: var(--t-md); margin: 0 0 var(--sp-2); }
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-content label { color: var(--e-body); font-family: var(--f-body); font-size: var(--t-sm); }
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-content code { font-family: var(--f-mono); background: var(--pt-bg); color: var(--pt-c); border: 1px solid var(--pt-b); border-radius: var(--r-xs); padding: 1px 5px; }
-#emit-swagger .swagger-ui .dialog-ux .modal-ux-content .wrapper { background: transparent; padding: 0; max-width: none; }
-#emit-swagger .swagger-ui .auth-container { border-bottom: 1px solid var(--e-line); padding: 0 0 var(--sp-4); margin: 0 0 var(--sp-4); }
-#emit-swagger .swagger-ui .auth-container:last-of-type { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
-
-/* Scheme headline. The badge comes from paintAuthModal(); the scheme type is a
-   bare text node, hence the style on the h4. */
-#emit-swagger .swagger-ui .auth-container h4 {
+.emit-auth__head { display: flex; align-items: baseline; gap: var(--sp-3); padding: var(--sp-5) var(--sp-6) var(--sp-4); box-shadow: inset 0 -1px 0 var(--e-hair); }
+.emit-auth__head h2 { margin: 0; font: 600 var(--t-xl)/1 var(--f-body); color: var(--e-text); }
+.emit-auth__head p { margin: 0; font-size: var(--t-md); color: var(--e-dim); }
+.emit-auth__close { margin-left: auto; padding: 0; border: 0; background: none; color: var(--e-faint); font: 400 var(--t-lg)/1.55 var(--f-body); cursor: pointer; }
+.emit-auth__close:hover { color: var(--e-body); }
+.emit-auth__close svg { width: 14px; height: 14px; }
+.emit-auth__cred { padding: var(--sp-5) var(--sp-6); }
+.emit-auth__cred + .emit-auth__cred { box-shadow: inset 0 1px 0 var(--e-hair); }
+.emit-auth__top { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+.emit-auth__scheme { font: 500 var(--t-md)/1 var(--f-mono); color: var(--e-body); }
+.emit-auth__kind { font-size: var(--t-sm); color: var(--e-faint); }
+.emit-auth__state { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-3); font-size: var(--t-md); color: var(--e-body); }
+.emit-auth__state::before { content: ""; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--s2-c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s2-c) 14%, transparent); }
+.emit-auth__state.is-empty::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--e-faint); }
+.emit-auth__state.is-expired::before { background: var(--s4-c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s4-c) 14%, transparent); }
+.emit-auth__state small { font-size: var(--t-sm); color: var(--e-faint); }
+.emit-auth__source { margin-left: auto; padding: 0; border: 0; background: none; color: var(--ui-c); font: 500 var(--t-md)/1.55 var(--f-body); white-space: pre; cursor: pointer; }
+.emit-auth__source svg { width: 14px; height: 14px; }
+.emit-auth__row { display: flex; gap: var(--sp-2); }
+.emit-auth__field {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  margin: 0 0 var(--sp-2);
-  color: var(--e-dim);
-  font-size: var(--t-sm);
-  font-weight: 400;
+  gap: var(--sp-3);
+  min-width: 0;
+  height: 38px;
+  padding: 0 var(--sp-3) 0 var(--sp-4);
+  border-radius: var(--r-code);
+  background: var(--e-well);
+  box-shadow: var(--e-well-edge);
+  font: 400 var(--t-md)/1 var(--f-mono);
+  color: var(--e-text);
 }
-#emit-swagger .swagger-ui .auth-container .wrapper { margin: 0 0 var(--sp-3); padding: 0; }
-#emit-swagger .swagger-ui .auth-container label {
-  display: block;
-  margin: 0 0 var(--sp-1);
-  font-size: var(--t-3xs);
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--e-dim);
-}
-/* Wider field: it holds a JWT. */
-#emit-swagger .swagger-ui .auth-container input[type=text],
-#emit-swagger .swagger-ui .auth-container input[type=password] {
-  width: 100%;
-  max-width: none;
-}
-/* Stock centres this row. */
-#emit-swagger .swagger-ui .auth-btn-wrapper {
-  justify-content: flex-end;
-  gap: var(--sp-2);
-  padding: 0;
-}
-/* Stock gives the last button margin-right:1em. */
-#emit-swagger .swagger-ui .auth-btn-wrapper .btn-done { margin-right: 0; }
-#emit-swagger .swagger-ui .scopes h2 { color: var(--e-text); font-size: var(--t-sm); }
+.emit-auth__value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.emit-auth__eye { display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--e-text); cursor: pointer; }
+.emit-auth__eye svg { width: 14px; height: 14px; }
+.emit-auth__eye[aria-pressed="true"] { color: var(--ui-c); }
+.emit-auth__input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; background: none; outline: none; font: inherit; color: inherit; }
+.emit-auth__input::placeholder { color: var(--e-faint); }
+.emit-auth__foot { display: flex; justify-content: space-between; align-items: center; padding: var(--sp-4) var(--sp-6); box-shadow: inset 0 1px 0 var(--e-hair); font-size: var(--t-sm); color: var(--e-faint); }
 
 /* --------------------------------------------------------------------------
    13. SCHEMAS
@@ -3216,7 +3096,7 @@ body {
   margin-left: auto;
   flex: 0 0 auto;
 }
-#emit-swagger .swagger-ui .emit-scope {
+#emit-swagger .emit-scope {
   --c: var(--e-dim);
   display: inline-flex;
   align-items: center;
@@ -3234,9 +3114,9 @@ body {
 }
 /* The glyph inherits the badge's colour, so a scope never needs its icon
    coloured separately from its text. */
-#emit-swagger .swagger-ui .emit-scope svg { width: 11px; height: 11px; flex: 0 0 auto; }
-#emit-swagger .swagger-ui .emit-scope--admin  { --c: var(--sc-admin-c); }
-#emit-swagger .swagger-ui .emit-scope--tenant { --c: var(--sc-tenant-c); }
+#emit-swagger .emit-scope svg { width: 11px; height: 11px; flex: 0 0 auto; }
+#emit-swagger .emit-scope--admin  { --c: var(--sc-admin-c); }
+#emit-swagger .emit-scope--tenant { --c: var(--sc-tenant-c); }
 
 /* The stock padlock is replaced by the scope badge. */
 #emit-swagger .swagger-ui .opblock-summary .authorization__btn { display: none; }

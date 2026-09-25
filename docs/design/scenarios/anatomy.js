@@ -67,14 +67,14 @@ function legend() {
   check('the legend opens from its button',
         q('#emit-legend-panel').dataset.open === 'true' && q('#emit-legend-btn').getAttribute('aria-expanded') === 'true');
   q('#emit-legend-btn').click();
-  ui.authActions.showDefinitions(ui.authSelectors.definitionsToAuthorize());
-  V.until(function () { return all('.dialog-ux .emit-scope').length === 2; }, dialog, 8000);
+  q('#emit-topbar-auth').click();
+  V.until(function () { return all('#emit-auth:not([hidden]) .emit-scope').length === 2; }, dialog, 8000);
 }
 
 function dialog() {
-  check('the Authorize dialog badges each scheme', all('.dialog-ux .emit-scope').length === 2,
-        all('.dialog-ux .emit-scope').length);
-  ui.authActions.showDefinitions(false);
+  check('the credentials dialog badges each scheme', all('#emit-auth .emit-scope').length === 2,
+        all('#emit-auth .emit-scope').length);
+  q('#emit-auth .emit-auth__close').click();
   V.authorize('bearerAuth', V.jwt(4));
   V.until(function () { return q('#emit-topbar-auth').dataset.state === 'ADMIN'; }, function () {
     V.until(function () { return q('#emit-topbar-auth').dataset.state === 'EXPIRED'; }, function () {

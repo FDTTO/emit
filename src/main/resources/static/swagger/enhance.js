@@ -41,7 +41,9 @@
     copy: ['M8 8h11v11H8z', 'M5 16V5h11'],
     format: ['M4 6h10M4 12h16M4 18h12'],
     reset: ['M4 12a8 8 0 1 0 2.34-5.66', 'M4 4v5h5'],
-    pencil: ['M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z']
+    pencil: ['M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z'],
+    eye: ['M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z', 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'],
+    close: ['M6 6l12 12M18 6L6 18']
   };
 
   /* Action segments: the last path segment names what the call does. Verbs
@@ -69,15 +71,17 @@
    * Unmapped schemes are shown under their own name, never hidden.
    */
   var SCOPE_BY_SCHEME = {
-    bearerAuth: { key: 'admin', label: 'ADMIN', icon: 'shield' },
-    apiKeyAuth: { key: 'tenant', label: 'TENANT', icon: 'apiKey' }
+    bearerAuth: { key: 'admin', label: 'ADMIN', icon: 'shield', serves: 'tenant management',
+                  missing: 'the admin token, returned by Login' },
+    apiKeyAuth: { key: 'tenant', label: 'TENANT', icon: 'apiKey', serves: 'documents',
+                  missing: "a tenant's key, returned once when it is created" }
   };
 
   /* Responses that hand the reader a credential, and the scheme it is for.
      The spec cannot express that LoginResponse.token feeds bearerAuth. */
   var CREDENTIAL_SOURCES = [
     { method: 'post', path: '/v1/auth/login', field: 'token',  scheme: 'bearerAuth', noun: 'token', action: 'Log in' },
-    { method: 'post', path: '/v1/tenants',    field: 'apiKey', scheme: 'apiKeyAuth', noun: 'key',   action: 'Register a tenant' }
+    { method: 'post', path: '/v1/tenants',    field: 'apiKey', scheme: 'apiKeyAuth', noun: 'key',   action: 'Create a tenant' }
   ];
 
   /* -------------------------------------------------------------- lifecycle
@@ -208,7 +212,7 @@
   }
 
   /* One badge builder for operation rows, the Authentication table and the
-     Authorize dialog. */
+     credentials dialog. */
   function scopeBadge(scope) {
     var badge = el('span', 'emit-scope emit-scope--' + scope.key);
     var glyph = scope.icon ? icon(scope.icon) : null;
@@ -477,7 +481,7 @@
     return entry && entry.get ? entry.get('value') : null;
   }
 
-  /* Same call the Authorize dialog makes. `authorizeWithPersistOption` writes
+  /* Same call Swagger's own dialog makes. `authorizeWithPersistOption` writes
      the storage `persistAuthorization` restores from. The schema must be the
      store's immutable definition: persistence calls `schema.get("type")`. */
   function authorizeScheme(scheme, value) {
@@ -1094,8 +1098,6 @@
       mirror = document.createElement('button');
       mirror.id = 'emit-topbar-auth';
       mirror.type = 'button';
-      /* Opens the dialog through `authActions.showDefinitions`, the documented
-         entry point. Clicking the hidden stock button is only a fallback. */
       mirror.addEventListener('click', function () {
         /* Only expired credentials held: the way back is logging in again. */
         var held = authorizedScopes();
@@ -1104,15 +1106,7 @@
           var scheme = Object.keys(SCOPE_BY_SCHEME).filter(function (s) { return SCOPE_BY_SCHEME[s] === held[0].scope; })[0];
           if (openCredentialSource(scheme)) return;
         }
-        var ui = window.ui;
-        var actions = ui && ui.authActions;
-        var selectors = ui && ui.authSelectors;
-        if (actions && selectors && typeof selectors.definitionsToAuthorize === 'function') {
-          actions.showDefinitions(selectors.definitionsToAuthorize());
-          return;
-        }
-        var live = document.querySelector('.scheme-container .auth-wrapper .authorize');
-        if (live) live.click();
+        openCredentials();
       });
       bar.appendChild(mirror);
     }
@@ -1129,7 +1123,7 @@
     armExpiry(held, now);
     if (mirror.dataset.key === key) return;
     mirror.dataset.key = key;
-    /* Expired is not empty: the dialog still holds a token that will be rejected. */
+    /* Expired is not empty: Execute would still send a token that will be rejected. */
     mirror.dataset.state = held.length && !live.length ? 'EXPIRED' : labels(live).join(',');
     mirror.textContent = '';
 
@@ -1420,6 +1414,191 @@
     });
     var after = block.querySelector('.emit-refusals') || table;
     after.parentNode.insertBefore(line, after.nextSibling);
+  }
+
+  /* ----------------------------------------------------------- credentials
+   * Authorize as the credentials Execute sends: one card per scheme, its
+   * state first (held, where it came from, until when), and the way to get
+   * it when it is missing. The page draws it over the window and drives
+   * Swagger's own auth actions, so the store stays the one place a credential
+   * lives.
+   */
+  function kindOf(definition) {
+    var type = definition.get('type');
+    if (type === 'http') return 'HTTP ' + (definition.get('scheme') || '').replace(/^\w/, function (c) { return c.toUpperCase(); });
+    if (type === 'apiKey') return definition.get('name') + ' ' + definition.get('in');
+    return type;
+  }
+
+  /* Filled from a response when what is held is what that response handed
+     over; derived each time, like the notes, so a logout never leaves it. */
+  function heldFrom(scheme, value) {
+    var source = credentialSourceFor(scheme);
+    var notes = source && responseNotes[source.method.toUpperCase() + ' ' + source.path];
+    if (!notes || !notes.credential || notes.credential.value !== value) return null;
+    var operation = spec.paths[source.path] && spec.paths[source.path][source.method];
+    return operation ? operation.summary || operation.operationId : null;
+  }
+
+  function masked(value) {
+    return value.length > 40 ? value.slice(0, 20) + ' ··· ' + value.slice(-15)
+      : value.slice(0, 6) + ' ··· ' + value.slice(-4);
+  }
+
+  function credentialCard(scheme, scope, definition) {
+    var value = heldCredential(scheme);
+    var expiresAt = expiryOf(value);
+    var expired = expiresAt !== null && expiresAt <= Date.now();
+    var card = el('section', 'emit-auth__cred');
+    var top = el('div', 'emit-auth__top');
+    top.appendChild(scopeBadge(scope));
+    top.appendChild(el('span', 'emit-auth__scheme', scheme));
+    top.appendChild(el('span', 'emit-auth__kind', kindOf(definition) + (scope.serves ? ' · ' + scope.serves : '')));
+    card.appendChild(top);
+
+    var state = el('div', 'emit-auth__state' + (!value ? ' is-empty' : expired ? ' is-expired' : ''));
+    var from = value && heldFrom(scheme, value);
+    state.appendChild(document.createTextNode(!value ? 'Not held' : expired ? 'Expired' : from ? 'Held, filled from ' + from : 'Held'));
+    var detail = !value ? scope.missing
+      : expiresAt === null ? null
+      : expired ? 'Execute would be refused'
+      : 'expires in ' + Math.max(1, Math.round((expiresAt - Date.now()) / 60000)) + ' min';
+    if (detail) state.appendChild(el('small', null, ' · ' + detail));
+    var source = credentialSourceFor(scheme);
+    if ((!value || expired) && source) {
+      var link = el('button', 'emit-auth__source', (expired ? source.action + ' again' : source.action) + ' ');
+      link.type = 'button';
+      link.appendChild(icon('goTo'));
+      link.addEventListener('click', function () { closeCredentials(); openCredentialSource(scheme); });
+      state.appendChild(link);
+    }
+    card.appendChild(state);
+
+    var row = el('div', 'emit-auth__row');
+    var field = el('div', 'emit-auth__field');
+    if (value) {
+      var shown = el('span', 'emit-auth__value', masked(value));
+      field.appendChild(shown);
+      var eye = el('button', 'emit-auth__eye');
+      eye.type = 'button';
+      eye.setAttribute('aria-label', 'Show the whole ' + (source ? source.noun : 'value'));
+      eye.appendChild(icon('eye'));
+      eye.addEventListener('click', function () {
+        var whole = shown.textContent !== value;
+        shown.textContent = whole ? value : masked(value);
+        eye.setAttribute('aria-pressed', String(whole));
+      });
+      field.appendChild(eye);
+      row.appendChild(field);
+      var logout = el('button', 'emit-quiet', 'Log out');
+      logout.type = 'button';
+      logout.addEventListener('click', function () { window.ui.authActions.logout([scheme]); });
+      row.appendChild(logout);
+    } else {
+      var input = el('input', 'emit-auth__input');
+      input.type = 'text';
+      input.spellcheck = false;
+      input.placeholder = 'Paste ' + (source && source.noun === 'key' ? 'an API key' : 'a ' + (source ? source.noun : 'value'));
+      input.setAttribute('aria-label', scheme);
+      field.appendChild(input);
+      row.appendChild(field);
+      var authorize = el('button', 'emit-primary', 'Authorize');
+      authorize.type = 'button';
+      var submit = function () { if (input.value.trim()) authorizeScheme(scheme, input.value.trim()); };
+      authorize.addEventListener('click', submit);
+      input.addEventListener('keydown', function (event) { if (event.key === 'Enter') submit(); });
+      row.appendChild(authorize);
+    }
+    card.appendChild(row);
+    return card;
+  }
+
+  function credentialsSignature() {
+    return Object.keys(SCOPE_BY_SCHEME).map(function (scheme) {
+      var value = heldCredential(scheme);
+      var expiresAt = expiryOf(value);
+      return (value || '') + ':' + (expiresAt === null ? '' : Math.round((expiresAt - Date.now()) / 60000));
+    }).join('|');
+  }
+
+  function paintCredentials() {
+    var scrim = document.getElementById('emit-auth');
+    if (!scrim || scrim.hidden) return;
+    var signature = credentialsSignature();
+    if (scrim.dataset.signature === signature) return;
+    scrim.dataset.signature = signature;
+    var list = scrim.querySelector('.emit-auth__list');
+    list.textContent = '';
+    var definitions = window.ui.specSelectors.securityDefinitions();
+    Object.keys(SCOPE_BY_SCHEME).forEach(function (scheme) {
+      var definition = definitions && definitions.get(scheme);
+      if (definition) list.appendChild(credentialCard(scheme, SCOPE_BY_SCHEME[scheme], definition));
+    });
+  }
+
+  var credentialsOpener = null;
+  var credentialsTick = null;
+  function openCredentials() {
+    var host = document.getElementById('emit-window');
+    if (!host || !spec) return;
+    var scrim = document.getElementById('emit-auth');
+    if (!scrim) {
+      scrim = el('div', 'emit-auth');
+      scrim.id = 'emit-auth';
+      var box = el('div', 'emit-auth__box');
+      box.setAttribute('role', 'dialog');
+      box.setAttribute('aria-modal', 'true');
+      box.setAttribute('aria-labelledby', 'emit-auth-title');
+      var head = el('div', 'emit-auth__head');
+      var title = el('h2', null, 'Credentials');
+      title.id = 'emit-auth-title';
+      head.appendChild(title);
+      head.appendChild(el('p', null, 'What Execute sends with each call'));
+      var close = el('button', 'emit-auth__close');
+      close.type = 'button';
+      close.setAttribute('aria-label', 'Close');
+      close.appendChild(icon('close'));
+      close.addEventListener('click', closeCredentials);
+      head.appendChild(close);
+      box.appendChild(head);
+      box.appendChild(el('div', 'emit-auth__list'));
+      var foot = el('div', 'emit-auth__foot');
+      var persisted = window.ui.getConfigs && window.ui.getConfigs().persistAuthorization;
+      foot.appendChild(el('span', null, persisted ? 'Kept in this browser until you log out' : 'Kept on this page until it reloads'));
+      var doneButton = el('button', 'emit-quiet', 'Done');
+      doneButton.type = 'button';
+      doneButton.addEventListener('click', closeCredentials);
+      foot.appendChild(doneButton);
+      box.appendChild(foot);
+      scrim.appendChild(box);
+      scrim.addEventListener('click', function (event) { if (event.target === scrim) closeCredentials(); });
+      scrim.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeCredentials();
+        /* A modal keeps Tab inside it: past the last control, back to the first. */
+        if (event.key !== 'Tab') return;
+        var stops = scrim.querySelectorAll('button, input');
+        var first = stops[0], last = stops[stops.length - 1];
+        if (event.shiftKey && document.activeElement === first) { last.focus(); event.preventDefault(); }
+        else if (!event.shiftKey && document.activeElement === last) { first.focus(); event.preventDefault(); }
+      });
+      host.appendChild(scrim);
+    }
+    credentialsOpener = document.activeElement;
+    scrim.hidden = false;
+    scrim.dataset.signature = '';
+    paintCredentials();
+    /* The minutes to expiry count down while it is open. */
+    credentialsTick = setInterval(paintCredentials, 30000);
+    var first = scrim.querySelector('.emit-auth__input, .emit-auth__list button, .emit-quiet');
+    if (first) first.focus();
+  }
+
+  function closeCredentials() {
+    var scrim = document.getElementById('emit-auth');
+    if (!scrim || scrim.hidden) return;
+    scrim.hidden = true;
+    clearInterval(credentialsTick);
+    if (credentialsOpener && credentialsOpener.focus) credentialsOpener.focus();
   }
 
   /* ---------------------------------------------------------------- result
@@ -2085,19 +2264,7 @@
     });
   }
 
-  /* Scope badges in the Authorize dialog, keyed by the scheme name it prints. */
-  function paintAuthModal() {
-    document.querySelectorAll('.dialog-ux .auth-container').forEach(function (container) {
-      var head = container.querySelector('h4');
-      if (!head || head.querySelector('.emit-scope')) return;
 
-      var name = head.querySelector('code');
-      var scope = name && SCOPE_BY_SCHEME[(name.textContent || '').trim()];
-      if (!scope) return;
-
-      head.insertBefore(scopeBadge(scope), head.firstChild);
-    });
-  }
 
   /* Read-only example boxes: size the disabled textarea to its content.
    * Stock pins it at min-height 280px. Editable ones are left alone, since
@@ -2775,6 +2942,7 @@
     paintTopbar();
     paintResults();
     paintBodyEditors();
+    paintCredentials();
     paintResponseNotes();
     paintLifecycleCurrent();
     paintTitle();
@@ -2789,7 +2957,6 @@
     paintArrays();
     paintConstraintKinds();
     paintSteps();
-    paintAuthModal();
     paintExampleBoxes();
     paintLifecycle();
     paintScrollers();

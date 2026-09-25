@@ -47,7 +47,7 @@ function expired() {
 function dialog() {
   tag().click();
   var visible = function () {
-    var box = document.querySelector('.dialog-ux .modal-ux');
+    var box = document.querySelector('#emit-auth:not([hidden]) .emit-auth__box');
     var r = box && box.getBoundingClientRect();
     return r && r.width > 200 && r.height > 100 ? { box: box, r: r } : null;
   };
