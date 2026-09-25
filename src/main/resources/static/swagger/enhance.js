@@ -43,6 +43,7 @@
     pencil: ['M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z'],
     eye: ['M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z', 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'],
     close: ['M6 6l12 12M18 6L6 18'],
+    menu: ['M4 7h16M4 12h16M4 17h16'],
     alert: ['M12 8v5', 'M12 16.5v.5', 'M10.3 3.9L2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'],
     braces: ['M8 4c-2 0-2 2-2 4s-2 4-2 4 2 2 2 4 0 4 2 4', 'M16 4c2 0 2 2 2 4s2 4 2 4-2 2-2 4 0 4-2 4']
   };
@@ -1052,6 +1053,19 @@
     if (link && !link.querySelector('.emit-brand')) {
       link.innerHTML = '<span class="emit-brand">EMIT<span class="emit-brand__dot">.</span></span>';
     }
+    if (!document.getElementById('emit-menu')) {
+      var menu = el('button', 'emit-menu');
+      menu.id = 'emit-menu';
+      menu.type = 'button';
+      menu.setAttribute('aria-label', 'Open the map');
+      menu.setAttribute('aria-controls', 'emit-rail');
+      menu.setAttribute('aria-expanded', 'false');
+      menu.appendChild(icon('menu'));
+      menu.addEventListener('click', function () {
+        setDrawer(document.getElementById('emit-window').dataset.drawer !== 'open');
+      });
+      bar.insertBefore(menu, link || bar.firstChild);
+    }
     if (!document.getElementById('emit-crumb')) {
       var crumb = el('div', 'emit-crumb');
       crumb.id = 'emit-crumb';
@@ -1501,6 +1515,95 @@
     holder.parentNode.insertBefore(section, holder);
   }
 
+  /* ----------------------------------------------------------------- phone
+   * Below 900px the cockpit folds for a thumb: the journey becomes a strip
+   * under the bar, the run a pill over the page, and the rail a drawer the
+   * menu opens, with the statusbar's telemetry at its foot.
+   */
+  var PHONE = window.matchMedia('(max-width: 900px)');
+
+  /* The statusbar is the drawer's foot on a phone and the window's last row
+     otherwise; it is the page's own node, so it can move. */
+  function placeStatusbar() {
+    var win = document.getElementById('emit-window');
+    var rail = document.getElementById('emit-rail');
+    var status = document.getElementById('emit-statusbar');
+    if (!win || !rail || !status) return;
+    var home = PHONE.matches ? rail : win;
+    if (status.parentNode !== home) home.appendChild(status);
+    if (!PHONE.matches) setDrawer(false);
+  }
+
+  function setDrawer(open) {
+    var win = document.getElementById('emit-window');
+    if (!win) return;
+    win.dataset.drawer = open ? 'open' : '';
+    var menu = document.getElementById('emit-menu');
+    if (menu) menu.setAttribute('aria-expanded', String(open));
+    if (open) {
+      /* Focus waits a frame: the drawer is not focusable while still hidden. */
+      var here = document.querySelector('#emit-map .emit-map__item.is-current') || document.querySelector('#emit-map .emit-map__item');
+      if (here) requestAnimationFrame(function () { here.focus(); });
+    } else if (menu && document.getElementById('emit-rail').contains(document.activeElement)) {
+      menu.focus();
+    }
+  }
+
+  function paintStrip(state) {
+    var topbar = document.querySelector('.swagger-container > .topbar');
+    var strip = document.getElementById('emit-strip');
+    if (!topbar) return;
+    if (!strip) {
+      strip = el('div', 'emit-strip');
+      strip.id = 'emit-strip';
+      var bar = strip.appendChild(el('div', 'emit-strip__bar'));
+      JOURNEY.forEach(function () { bar.appendChild(el('i')); });
+      var next = strip.appendChild(el('button', 'emit-strip__next'));
+      next.type = 'button';
+      next.appendChild(el('small', null, 'NEXT'));
+      next.appendChild(el('span', 'emit-strip__step'));
+      next.appendChild(icon('goTo'));
+      next.addEventListener('click', function () { document.querySelector('.emit-journey__next').click(); });
+      topbar.parentNode.insertBefore(strip, topbar.nextSibling);
+    }
+    strip.querySelectorAll('.emit-strip__bar i').forEach(function (segment, index) {
+      segment.className = state.done[index] ? 'is-done' : index === state.next ? 'is-next' : '';
+    });
+    strip.querySelector('.emit-strip__next').hidden = state.next < 0;
+    if (state.next >= 0) strip.querySelector('.emit-strip__step').textContent = JOURNEY[state.next].label;
+  }
+
+  /* The run as a pill over the page: its id, the stages as dots, the state
+     it is in and how long it has run. */
+  function paintLivePill(follow, stages, at, seconds) {
+    var win = document.getElementById('emit-window');
+    var pill = document.getElementById('emit-live-pill');
+    if (!follow) {
+      if (pill) pill.hidden = true;
+      return;
+    }
+    if (!pill) {
+      pill = win.appendChild(el('div', 'emit-live-pill'));
+      pill.id = 'emit-live-pill';
+      pill.setAttribute('role', 'status');
+    }
+    pill.hidden = false;
+    var key = follow.id + follow.state + follow.phase;
+    if (pill.dataset.key !== key) {
+      pill.dataset.key = key;
+      pill.textContent = '';
+      pill.appendChild(el('i', 'emit-live__dot' + (follow.phase === 'ended' ? '' : ' is-running')));
+      pill.appendChild(document.createTextNode(follow.id.slice(0, 8)));
+      var dots = pill.appendChild(el('span', 'emit-live-pill__stages'));
+      stages.forEach(function (state, index) {
+        dots.appendChild(el('i', index < at ? 'is-past' : index === at ? (state === 'DONE' ? 'is-good' : state === 'FAILED' ? 'is-bad' : 'is-current') : ''));
+      });
+      pill.appendChild(el('em', 'emit-live-pill__state is-' + follow.state.toLowerCase(), follow.state));
+      pill.appendChild(el('span', 'emit-live-pill__elapsed'));
+    }
+    pill.querySelector('.emit-live-pill__elapsed').textContent = seconds.toFixed(1) + 's';
+  }
+
   /* ---------------------------------------------------------------- legend
    * How to read the page, in the page's own marks: what the colours of an
    * answer mean (amber is wait, then retry), who may call, how a field is
@@ -1524,8 +1627,7 @@
   }
 
   function buildLegend(win, status) {
-    var button = el('button', 'emit-legend-btn', '∷');
-    button.appendChild(el('span', 'emit-legend-btn__word', ' Legend'));
+    var button = el('button', 'emit-legend-btn', '∷ Legend');
     button.id = 'emit-legend-btn';
     button.type = 'button';
     button.setAttribute('aria-expanded', 'false');
@@ -2640,6 +2742,13 @@
     });
     status.appendChild(requestId);
     buildLegend(win, status);
+    var scrim = el('div', 'emit-drawer-scrim');
+    scrim.addEventListener('click', function () { setDrawer(false); });
+    win.appendChild(scrim);
+    /* On a phone, choosing where to go closes the drawer. */
+    rail.addEventListener('click', function (event) {
+      if (PHONE.matches && event.target.closest('a, .emit-journey__next, .emit-live__action')) setDrawer(false);
+    });
 
     win.appendChild(rail);
     win.appendChild(root);
@@ -2731,7 +2840,10 @@
     var pane = contentPane();
     var map = document.getElementById('emit-map');
     if (!pane || !map) return;
-    var line = pane.getBoundingClientRect().top + 64;
+    /* A phone scrolls the page under its sticky bar and strip. */
+    var strip = document.getElementById('emit-strip');
+    var under = PHONE.matches && strip ? strip.getBoundingClientRect().bottom : 0;
+    var line = Math.max(pane.getBoundingClientRect().top, under) + 64;
     var current = 'overview';
     document.querySelectorAll('.opblock').forEach(function (block) {
       if (block.getBoundingClientRect().top <= line) current = block.id;
@@ -2828,6 +2940,7 @@
       journey.hidden = false;
     }
     var state = journeyState();
+    paintStrip(state);
     var count = state.done.filter(Boolean).length;
     var key = state.done.join() + state.next;
     if (journey.dataset.key === key) return;
@@ -2852,7 +2965,10 @@
     live.hidden = !follow;
     var run = document.getElementById('emit-status-run');
     if (run) run.hidden = !follow;
-    if (!follow) return;
+    if (!follow) {
+      paintLivePill(null);
+      return;
+    }
 
     var ended = follow.phase === 'ended';
     var seconds = ((follow.endedAt || Date.now()) - follow.startedAt) / 1000;
@@ -2904,6 +3020,7 @@
       }
     }
     live.querySelector('.emit-live__elapsed').textContent = seconds.toFixed(1) + 's';
+    paintLivePill(follow, stages, at, seconds);
 
     if (!ended && !liveTicker) liveTicker = setInterval(schedule, 200);
     if (ended && liveTicker) {
@@ -2923,7 +3040,8 @@
 
     budget.hidden = !latestBudget;
     if (latestBudget) {
-      budget.textContent = 'RateLimit ' + latestBudget.remaining + ' / ' + latestBudget.limit;
+      budget.textContent = 'RateLimit ';
+      budget.appendChild(el('b', null, latestBudget.remaining + ' / ' + latestBudget.limit));
       var meter = el('span', 'emit-status__meter');
       var fill = el('i');
       fill.style.width = Math.round(100 * latestBudget.remaining / Math.max(1, latestBudget.limit)) + '%';
@@ -3085,6 +3203,8 @@
 
   function bindShortcuts() {
     document.addEventListener('keydown', function (event) {
+      var win = document.getElementById('emit-window');
+      if (event.key === 'Escape' && win && win.dataset.drawer === 'open') setDrawer(false);
       if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
       var key = event.key.toLowerCase();
       if (key === 'k') { event.preventDefault(); openPalette(); }
@@ -3151,12 +3271,14 @@
     buildShell();
     restoreRail();
     paint();
+    placeStatusbar();
+    PHONE.addEventListener('change', placeStatusbar);
     bindShortcuts();
 
     /* The content pane scrolls, not the page. Capture, because the pane is
        created by React after this runs. */
     document.addEventListener('scroll', function (event) {
-      if (event.target === contentPane()) spyScroll();
+      if (event.target === contentPane() || event.target === document) spyScroll();
     }, true);
 
     var root = document.getElementById('swagger-ui');

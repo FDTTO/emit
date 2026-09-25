@@ -54,11 +54,13 @@ setTimeout(function () {
   var stock = document.querySelector('#operations-Authentication-login .curl-command');
   check('the stock live blocks are out of sight', !!stock && !stock.getClientRects().length);
   if (width < 900) {
-    check('a phone shows no rail', getComputedStyle(document.getElementById('emit-rail')).display === 'none');
-    var legend = document.getElementById('emit-legend-btn').getBoundingClientRect();
-    check('the legend stays a small corner control', legend.height < 60 && legend.width < 60,
-          { width: Math.round(legend.width), height: Math.round(legend.height) });
-    check('the topbar keeps to brand and credentials', getComputedStyle(document.getElementById('emit-crumb')).display === 'none');
+    var rail = document.getElementById('emit-rail');
+    check('a phone keeps the rail as a closed drawer', getComputedStyle(rail).visibility === 'hidden' && rail.getBoundingClientRect().right <= 0);
+    var strip = document.getElementById('emit-strip');
+    check('the next step rides under the bar', !!strip && strip.getBoundingClientRect().height > 0 && /NEXT/.test(strip.textContent), strip && strip.textContent);
+    check('the topbar keeps to menu, brand and credentials', getComputedStyle(document.getElementById('emit-crumb')).display === 'none'
+          && document.getElementById('emit-menu').getBoundingClientRect().width > 0);
+    check('the legend waits in the foot of the drawer', rail.contains(document.getElementById('emit-legend-btn')));
   }
   var tenant = document.getElementById('operations-Tenants-createTenant');
   var execute = tenant && tenant.querySelector('button.execute');
@@ -69,5 +71,16 @@ setTimeout(function () {
     var op = document.getElementById('operations-' + id), cut = op && clipped(op);
     check('nothing clipped: ' + id, !!op && !cut, cut);
   });
-  done();
+  if (width >= 900) return done();
+  document.getElementById('emit-menu').click();
+  V.until(function () { var rail = document.getElementById('emit-rail'); return rail.getBoundingClientRect().left >= 0 && rail.contains(document.activeElement); }, function () {
+    var rail = document.getElementById('emit-rail').getBoundingClientRect();
+    check('the menu opens the drawer, focus inside', rail.left >= 0 && rail.width > 200
+          && document.getElementById('emit-rail').contains(document.activeElement), { left: rail.left, width: rail.width });
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    V.until(function () { return document.getElementById('emit-window').dataset.drawer !== 'open'; }, function () {
+      check('Escape closes it, focus back on the menu', document.activeElement === document.getElementById('emit-menu'));
+      done();
+    }, 3000);
+  }, 3000);
 }, 10500);

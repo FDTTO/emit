@@ -188,13 +188,6 @@ body {
   #emit-rail { grid-area: rail; }
   #emit-statusbar { grid-area: status; }
 }
-/* Narrow: until the cockpit has a phone layout, the page reads as before and
-   only the legend survives from the statusbar, floating in its corner. */
-@media (max-width: 900px) {
-  #emit-window > #emit-rail, .emit-scene__glow, .emit-scene__streak { display: none; }
-  #emit-window > #emit-statusbar { display: contents; }
-  #emit-window > #emit-statusbar > :not(#emit-legend-btn) { display: none; }
-}
 @media (min-width: 901px) {
   #emit-statusbar > .emit-status__grow { flex: 1 1 auto; padding: 0; }
 }
@@ -267,6 +260,9 @@ body {
 #emit-statusbar > [hidden] { display: none; }
 #emit-statusbar > button { height: 100%; padding: 0 var(--sp-4); border: 0; border-radius: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
 #emit-statusbar > button:hover { color: var(--e-body); background: var(--e-raised); }
+/* The budget's number reads as the rest of the bar; a phone's drawer sets it
+   apart on the right. */
+.emit-status__budget b { font-weight: inherit; }
 .emit-status__meter { width: 44px; height: 3px; border-radius: var(--r-pill); background: rgba(255,255,255,0.08); overflow: hidden; }
 .emit-status__meter i { display: block; height: 100%; background: var(--e-label); }
 /* The run is in the rail; the statusbar takes it only when the rail is folded. */
@@ -357,13 +353,9 @@ body {
 #emit-swagger .swagger-ui .opblock-summary .emit-last.is-bad { color: var(--s4-c); }
 #emit-swagger .swagger-ui .opblock-summary .emit-last__time { color: var(--e-faint); }
 #emit-swagger .swagger-ui .opblock-summary .emit-last + .emit-scopes { margin-left: var(--sp-3); }
-/* Narrow rows have no room to spare: first the time goes, then the code,
-   and the coloured dot alone remembers the answer. */
+/* A narrow row keeps the code and lets the time go. */
 @media (max-width: 560px) {
   #emit-swagger .swagger-ui .opblock-summary .emit-last__time { display: none; }
-}
-@media (max-width: 400px) {
-  #emit-swagger .swagger-ui .opblock-summary .emit-last { font-size: 0; gap: 0; }
 }
 .emit-map__ran { flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; }
 .emit-map__ran.is-ok { background: var(--s2-c); }
@@ -419,7 +411,7 @@ body {
 /* The cockpit's own parts live outside .swagger-ui, so they are listed. */
 @media (prefers-reduced-motion: reduce) {
   #emit-swagger .swagger-ui *,
-  #emit-window, #emit-rail *, #emit-statusbar *, .emit-palette *, .emit-rail-toggle { transition: none; animation: none; }
+  #emit-window, #emit-rail, #emit-rail *, #emit-statusbar *, .emit-palette *, .emit-rail-toggle { transition: none; animation: none; }
 }
 
 /* --------------------------------------------------------------------------
@@ -463,11 +455,6 @@ body {
 /* An operation brought into view lands with its header clear of whatever
    sits above it: a gap in the pane, the sticky topbar on a phone. */
 #emit-swagger .swagger-ui .opblock { scroll-margin-top: var(--sp-4); }
-@media (max-width: 900px) {
-  #emit-swagger .swagger-ui .opblock { scroll-margin-top: 64px; }
-  #emit-swagger .swagger-ui .topbar { position: sticky; top: 0; z-index: 100; height: 52px; background: rgba(6,8,14,0.88); backdrop-filter: blur(16px); }
-  #emit-swagger .swagger-ui .topbar .topbar-wrapper { padding: 0 var(--page-gutter); justify-content: space-between; }
-}
 .emit-crumb {
   display: flex;
   align-items: center;
@@ -2963,29 +2950,12 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   #emit-swagger .swagger-ui .headers-wrapper { overflow-x: auto; }
 }
 
-/* Icon, method, path, scope and arrow do not fit one row this narrow, and
-   the arrow is what got clipped. The icon repeats what the method says. */
-@media (max-width: 400px) {
-  #emit-swagger .swagger-ui .emit-op-icon { display: none; }
-}
 
 /* Narrow overrides of cockpit parts live here, last in the file: an override
    written before the rule it overrides loses to it at equal specificity. */
 @media (max-width: 900px) {
   /* A long path would push Authorize off the bar. */
   .emit-crumb { display: none; }
-  /* The legend is the statusbar's one survivor: a small control in the
-     corner, its popover over it. */
-  #emit-statusbar > #emit-legend-btn {
-    position: fixed; right: var(--sp-3); bottom: var(--sp-3); z-index: 90;
-    width: 34px; height: 34px; padding: 0;
-    border: 0; border-radius: var(--r-code);
-    background: var(--e-raised); box-shadow: inset 0 0 0 1px var(--e-edge), 0 4px 16px rgba(0,0,0,0.28);
-    backdrop-filter: blur(8px);
-    color: var(--e-dim); font: 500 var(--t-md)/1 var(--f-mono);
-  }
-  .emit-legend-btn__word { display: none; }
-  .emit-legend { position: fixed; right: var(--sp-3); bottom: calc(var(--sp-3) + 44px); width: min(330px, calc(100vw - 2 * var(--sp-3))); max-height: calc(100vh - 80px); }
 }
 @media (max-width: 720px) {
   /* The label rows and the result's bar wrap: tools and tabs take a line of
@@ -3007,4 +2977,135 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   /* The proof moves under its step's words instead of reserving a column. */
   #emit-swagger .swagger-ui .info .renderedMarkdown ol > li { grid-template-columns: 20px 1fr; row-gap: var(--sp-1); }
   .emit-step-proof { grid-column: 2; }
+}
+
+/* --------------------------------------------------------------------------
+   20. PHONE (below 900px)
+   The cockpit folded for a thumb: the page scrolls under a bar and a strip
+   holding the next step, a run floats as a pill, and the menu opens the rail
+   as a drawer with the statusbar's telemetry at its foot.
+   -------------------------------------------------------------------------- */
+.emit-menu, #emit-strip, #emit-live-pill, .emit-drawer-scrim { display: none; }
+@media (max-width: 900px) {
+  :root { --page-gutter: var(--sp-4); }
+  #emit-window { min-height: 100vh; background: var(--e-window); }
+  #emit-swagger .swagger-ui .opblock { scroll-margin-top: 124px; }
+
+  #emit-swagger .swagger-ui .topbar { position: sticky; top: 0; z-index: 100; height: 56px; background: rgba(12,15,21,0.88); backdrop-filter: blur(16px); box-shadow: inset 0 -1px 0 var(--e-hair); }
+  #emit-swagger .swagger-ui .topbar .topbar-wrapper { gap: var(--sp-3); padding: 0 var(--sp-5); justify-content: flex-start; }
+  #emit-swagger .swagger-ui .topbar .topbar-wrapper > a.link { margin-right: auto; }
+  #emit-swagger .swagger-ui .topbar a .emit-brand { font-size: 18px; }
+  .emit-menu {
+    display: grid; place-items: center; flex: 0 0 auto;
+    width: 32px; height: 32px; padding: 0;
+    border: 0; border-radius: var(--r-code);
+    background: var(--e-raised); box-shadow: inset 0 0 0 1px var(--e-hair);
+    color: var(--e-body); cursor: pointer;
+  }
+  .emit-menu svg { width: 14px; height: 14px; }
+  /* Held credentials keep their glyph and colour without their word. */
+  .emit-auth-seg { width: 30px; padding: 0; justify-content: center; background: color-mix(in srgb, var(--c) 10%, transparent); }
+  .emit-auth-seg__label, .emit-auth-seg__flag { display: none; }
+  .emit-auth-seg svg { width: 12px; height: 12px; }
+
+  #emit-strip {
+    position: sticky; top: 56px; z-index: 99;
+    display: flex; align-items: center; gap: var(--sp-3);
+    padding: 10px var(--sp-5);
+    background: rgba(9,11,15,0.9); backdrop-filter: blur(16px);
+    box-shadow: inset 0 -1px 0 var(--e-hair);
+  }
+  .emit-strip__bar { flex: 0 0 64px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+  .emit-strip__bar i { height: 3px; border-radius: 3px; background: rgba(255,255,255,0.08); }
+  .emit-strip__bar i.is-done { background: var(--e-label); }
+  .emit-strip__bar i.is-next { background: var(--ui-c); }
+  .emit-strip__next {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center; gap: var(--sp-2);
+    padding: 7px 10px;
+    border: 0; border-radius: var(--r-code);
+    background: var(--ui-bg); box-shadow: inset 0 0 0 1px var(--ui-b);
+    color: var(--e-text); font: 400 var(--t-md)/1.55 var(--f-body); text-align: left; cursor: pointer;
+  }
+  .emit-strip__next[hidden] { display: none; }
+  .emit-strip__next small { font: 600 var(--t-xs)/1 var(--f-body); letter-spacing: .14em; color: var(--ui-c); }
+  .emit-strip__step { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .emit-strip__next svg { margin-left: auto; width: 12px; height: 12px; flex: 0 0 auto; color: var(--ui-c); }
+
+  /* A row at a thumb's width: the method says what the icon said, and the
+     scope keeps its glyph and colour without its word. */
+  #emit-swagger .swagger-ui .opblock .opblock-summary { padding: 11px var(--sp-3); gap: 10px; }
+  #emit-swagger .swagger-ui .opblock .opblock-summary-control { gap: 10px; min-width: 0; }
+  #emit-swagger .swagger-ui .emit-op-icon,
+  #emit-swagger .swagger-ui .opblock .opblock-summary-description,
+  #emit-swagger .swagger-ui .opblock-summary .emit-scope--public { display: none; }
+  /* The path gives way to what follows it and ends in an ellipsis; stock lays
+     it out as a flex row, which wraps its parts instead. */
+  #emit-swagger .swagger-ui .opblock .opblock-summary-path { display: block; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--t-md); }
+  #emit-swagger .swagger-ui .opblock-summary-path-description-wrapper { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; }
+  #emit-swagger .swagger-ui .opblock .opblock-summary-control { flex: 1 1 auto; }
+  /* Swagger marks a break after each segment, which Chrome takes even with
+     nowrap. */
+  #emit-swagger .swagger-ui .opblock-summary-path wbr { display: none; }
+  #emit-swagger .swagger-ui .opblock-summary .emit-scope { width: 26px; padding: 0; gap: 0; justify-content: center; font-size: 0; }
+  #emit-swagger .swagger-ui .opblock-summary .emit-scope__label { display: none; }
+  /* Section headings are plain labels over their rows. */
+  #emit-swagger .swagger-ui .opblock-tag { margin: var(--sp-5) 4px var(--sp-2); padding: 0; font-size: var(--t-xs); color: var(--e-dim); }
+  #emit-swagger .swagger-ui .opblock-tag::after,
+  #emit-swagger .swagger-ui .opblock-tag .emit-count { display: none; }
+
+  /* The rail as a drawer. */
+  #emit-window > #emit-rail {
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 200;
+    width: min(300px, 86vw);
+    padding-top: 18px;
+    background: linear-gradient(160deg, rgba(34,40,52,0.92), rgba(13,16,22,0.96));
+    backdrop-filter: blur(30px);
+    box-shadow: 20px 0 60px rgba(0,0,0,0.5), inset -1px 0 0 rgba(255,255,255,0.08);
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition: transform .3s var(--ease), visibility .3s;
+  }
+  #emit-window[data-drawer="open"] > #emit-rail { transform: none; visibility: visible; }
+  #emit-window[data-drawer="open"] > .emit-drawer-scrim { display: block; position: fixed; inset: 0; z-index: 190; background: rgba(4,6,9,0.5); backdrop-filter: blur(3px); }
+  #emit-rail #emit-live { display: none; }
+  #emit-rail .emit-map { padding-top: var(--sp-2); }
+  /* The statusbar's telemetry, one line each, at the drawer's foot. */
+  #emit-rail > #emit-statusbar {
+    flex: 0 0 auto;
+    display: grid; gap: var(--sp-2);
+    padding: var(--sp-4) var(--sp-5);
+    background: none; box-shadow: inset 0 1px 0 var(--e-hair);
+  }
+  #emit-rail > #emit-statusbar > * { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); height: auto; padding: 0; background: none; }
+  #emit-rail > #emit-statusbar > [hidden],
+  #emit-rail > #emit-statusbar > .emit-status__server,
+  #emit-rail > #emit-statusbar > .emit-status__run,
+  #emit-rail > #emit-statusbar > .emit-status__grow,
+  #emit-rail > #emit-statusbar .emit-status__meter { display: none; }
+  .emit-legend { position: fixed; left: var(--sp-3); right: var(--sp-3); bottom: var(--sp-3); width: auto; max-height: calc(100vh - 2 * var(--sp-3)); z-index: 210; }
+
+  /* The run over the page. */
+  #emit-live-pill {
+    position: fixed; left: 50%; bottom: 22px; z-index: 150;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px 9px 12px;
+    border-radius: var(--r-pill);
+    background: linear-gradient(150deg, rgba(40,46,58,0.94), rgba(20,23,30,0.96));
+    backdrop-filter: blur(20px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5), var(--e-spec);
+    font: 500 var(--t-sm)/1 var(--f-mono); color: var(--e-text); white-space: nowrap;
+  }
+  #emit-live-pill[hidden] { display: none; }
+  #emit-live-pill .emit-live__dot { width: 7px; height: 7px; }
+  .emit-live-pill__stages { display: flex; gap: 4px; }
+  .emit-live-pill__stages i { width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1.3px var(--e-faint); }
+  .emit-live-pill__stages i.is-past { background: var(--e-label); box-shadow: none; }
+  .emit-live-pill__stages i.is-current { box-shadow: inset 0 0 0 1.3px var(--run-c); }
+  .emit-live-pill__stages i.is-good { background: var(--s2-c); box-shadow: none; }
+  .emit-live-pill__stages i.is-bad { background: var(--s4-c); box-shadow: none; }
+  .emit-live-pill__state { font-style: normal; color: var(--run-c); }
+  .emit-live-pill__state.is-done { color: var(--s2-c); }
+  .emit-live-pill__state.is-failed { color: var(--s4-c); }
 }
