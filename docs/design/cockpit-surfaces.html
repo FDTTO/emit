@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EMIT Cockpit Surfaces</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="cockpit-system.css">
+<style>
+/* The surfaces beyond the main view, in the same system. Only what they add
+   lives here; tokens and components come from cockpit-system.css. */
+.picker { flex-wrap: wrap; }
+.canvas { flex: 1; min-height: 0; max-width: 1480px; width: 100%; margin: 0 auto; display: flex; }
+.canvas > .window { flex: 1; }
+.surface { display: none; }
+.surface.is-shown { display: contents; }
+.note-bar { display: flex; align-items: center; gap: var(--s3); margin: 0 var(--inset) var(--s4); padding: 10px var(--s4); border-radius: var(--r2);
+  font-size: var(--f-code); color: var(--body); background: color-mix(in srgb, var(--admin) 8%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--admin) 22%, transparent); }
+.note-bar svg.i { color: var(--admin); }
+
+/* 1. Result: one bar that says how it went, tabs for what came back. */
+.result-sheet { margin: 0 var(--inset) var(--s6); border-radius: var(--r2); background: rgba(0,0,0,0.16); box-shadow: inset 0 0 0 1px var(--hair); overflow: hidden; }
+.result-head { display: flex; align-items: center; gap: var(--s4); padding: var(--s3) var(--s4); box-shadow: inset 0 -1px 0 var(--hair); }
+.status-big { display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 12px; border-radius: var(--pill); font: 600 var(--f-code)/1 var(--mono);
+  color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 28%, transparent); }
+.status-big::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.meta { display: flex; align-items: center; gap: var(--s4); font: 500 var(--f-meta)/1 var(--mono); color: var(--dim); }
+.meta b { color: var(--body); font-weight: 500; }
+.rid { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: var(--r1); color: var(--dim); background: var(--fill); font: 500 var(--f-meta)/1 var(--mono); }
+.rid:hover { color: var(--body); }
+.tabs { margin-left: auto; display: inline-flex; padding: 3px; border-radius: var(--r2); background: var(--fill); box-shadow: inset 0 0 0 1px var(--hair); }
+.tabs button { padding: 6px 12px; border-radius: 7px; color: var(--dim); font: 500 var(--f-code)/1 var(--sans); }
+.tabs button small { margin-left: 5px; font: 500 var(--f-micro)/1 var(--mono); color: var(--faint); }
+.tabs button[aria-selected="true"] { background: rgba(255,255,255,0.07); color: var(--text); box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
+.tab-panel { display: none; position: relative; padding: var(--s4); }
+.tab-panel.is-shown { display: block; }
+.tab-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; padding-right: 160px; }
+.tools { position: absolute; top: calc(var(--s4) + 8px); right: calc(var(--s4) + 8px); display: flex; gap: 6px; }
+.tool { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: var(--r1); background: rgba(255,255,255,0.05); box-shadow: inset 0 0 0 1px var(--hair); color: var(--dim); font: 500 var(--f-meta)/1 var(--sans); }
+.tool:hover { color: var(--body); background: rgba(255,255,255,0.08); }
+.tool svg.i { width: 12px; height: 12px; }
+.kv { display: grid; grid-template-columns: 220px 1fr; font: 400 var(--f-code)/1.5 var(--mono); }
+.kv > div { padding: 7px var(--s3); box-shadow: inset 0 1px 0 var(--hair); }
+.kv > div:nth-child(-n+2) { box-shadow: none; }
+.kv .k { color: var(--dim); }
+.kv .v { color: var(--body); overflow-wrap: anywhere; }
+.kv .hot { color: var(--text); }
+.kv .hot.k::before { content: ""; display: inline-block; width: 5px; height: 5px; margin-right: 8px; border-radius: 50%; background: var(--ui); vertical-align: middle; }
+.explain { margin: var(--s3) 0 0; font-size: var(--f-meta); color: var(--faint); }
+
+/* 2. Body editor: numbered lines, tools on the label row, live validity. */
+.label-row { display: flex; align-items: center; gap: var(--s3); margin-bottom: var(--s3); }
+.label-row .label { margin: 0; }
+.label-row .right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.editor-well { display: grid; grid-template-columns: 44px 1fr; border-radius: var(--r2); overflow: hidden; }
+.gutter { padding: var(--s3) 0; text-align: right; padding-right: 12px; font: 400 var(--f-code)/1.75 var(--mono); color: var(--faint); background: rgba(0,0,0,0.18); box-shadow: inset -1px 0 0 var(--hair); user-select: none; }
+.code { margin: 0; padding: var(--s3) var(--s4); font: 400 var(--f-code)/1.75 var(--mono); color: #c9d4de; white-space: pre; outline: none; }
+.validity { display: flex; align-items: center; gap: 8px; margin-top: var(--s3); font: 500 var(--f-meta)/1 var(--mono); color: var(--ok); }
+.validity::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.validity.bad { color: var(--bad); }
+.validity span { color: var(--faint); }
+
+/* 3. Authorize: one card per credential, its state first. */
+.scrim { position: absolute; inset: 0; z-index: 40; background: rgba(4,6,9,0.55); backdrop-filter: blur(4px); display: grid; place-items: start center; padding-top: 70px; }
+.dialog { width: 620px; border-radius: var(--r3); overflow: hidden; background: linear-gradient(150deg, rgba(40,46,58,0.92), rgba(20,23,30,0.96)); backdrop-filter: blur(30px); box-shadow: 0 30px 80px rgba(0,0,0,0.6), var(--spec); }
+.dialog-head { display: flex; align-items: baseline; gap: var(--s3); padding: var(--s5) var(--s6) var(--s4); box-shadow: inset 0 -1px 0 var(--hair); }
+.dialog-head h2 { margin: 0; font: 600 var(--f-lead)/1 var(--sans); color: var(--text); }
+.dialog-head p { margin: 0; font-size: var(--f-code); color: var(--dim); }
+.dialog-head .x { margin-left: auto; color: var(--faint); }
+.cred { padding: var(--s5) var(--s6); }
+.cred + .cred { box-shadow: inset 0 1px 0 var(--hair); }
+.cred-top { display: flex; align-items: center; gap: var(--s3); margin-bottom: var(--s3); }
+.cred-top .scheme { font: 500 var(--f-code)/1 var(--mono); color: var(--body); }
+.cred-top .kind { font-size: var(--f-meta); color: var(--faint); }
+.state { display: flex; align-items: center; gap: 8px; margin-bottom: var(--s3); font-size: var(--f-code); color: var(--body); }
+.state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 14%, transparent); }
+.state.empty::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--faint); }
+.state small { color: var(--faint); font-size: var(--f-meta); }
+.state a { color: var(--ui); text-decoration: none; margin-left: auto; font-weight: 500; }
+.cred-field { display: flex; gap: var(--s2); }
+.cred-field .field { flex: 1; }
+.dialog-foot { display: flex; justify-content: space-between; align-items: center; padding: var(--s4) var(--s6); box-shadow: inset 0 1px 0 var(--hair); font-size: var(--f-meta); color: var(--faint); }
+.quiet-btn { height: 38px; padding: 0 16px; border-radius: var(--r2); background: var(--fill); box-shadow: inset 0 0 0 1px var(--hair); color: var(--body); font: 500 var(--f-code)/1 var(--sans); }
+.quiet-btn:hover { background: var(--fill-hover); }
+
+/* 4. Schemas: models as rows, one open with its fields and who uses it. */
+.model { border-radius: var(--r3); background: var(--fill); margin-bottom: 6px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.035); }
+.model.open { background: var(--glass-2); box-shadow: var(--lift); margin: var(--s4) 0 var(--s5); }
+.model-head { display: flex; align-items: center; gap: var(--s3); padding: 12px var(--s5); }
+.model-head .braces { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--r1); background: var(--fill); box-shadow: inset 0 0 0 1px var(--hair); font: 600 var(--f-code)/1 var(--mono); color: var(--dim); }
+.model-head .name { font: 600 var(--f-body)/1 var(--mono); color: var(--body); }
+.model.open .model-head .name { color: var(--text); }
+.model-head .count { margin-left: auto; font: 500 var(--f-meta)/1 var(--mono); color: var(--faint); }
+.model.open .model-head { box-shadow: inset 0 -1px 0 var(--hair); }
+.model.open .chev { transform: rotate(-135deg) translateY(-2px); }
+.fields { padding: var(--s2) var(--inset) var(--s4); }
+.field-row { display: grid; grid-template-columns: 170px 1fr; gap: var(--s4); padding: var(--s3) 0; box-shadow: inset 0 1px 0 var(--hair); }
+.field-row:first-child { box-shadow: none; }
+.field-row .fname { font: 600 var(--f-body)/1.4 var(--mono); color: var(--text); }
+.field-row .fname i { font-style: normal; color: var(--bad); margin-left: 2px; }
+.field-row .ftype { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.constraint { font: 400 var(--f-meta)/1 var(--mono); color: var(--faint); }
+.constraint::before { content: "\2022"; margin-right: 6px; }
+.fdesc { margin: 6px 0 0; font-size: var(--f-code); color: var(--body); }
+.fex { margin-top: 5px; font: 400 var(--f-meta)/1 var(--mono); color: var(--dim); }
+.fex b { font: 600 var(--f-micro)/1 var(--sans); letter-spacing: .14em; color: var(--faint); margin-right: 8px; }
+.used-by { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: var(--s3) var(--inset) var(--s5); font-size: var(--f-meta); color: var(--faint); box-shadow: inset 0 1px 0 var(--hair); }
+.used-by a { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: var(--r1); background: var(--fill); color: var(--body); text-decoration: none; font: 500 var(--f-meta)/1 var(--mono); }
+.used-by a:hover { background: var(--fill-hover); color: var(--text); }
+
+/* 5. Spec failure: a card that says what failed and what to try. */
+.failure { max-width: 560px; margin: 80px auto 0; padding: var(--s8); text-align: center; }
+.failure .mark { width: 52px; height: 52px; margin: 0 auto var(--s5); display: grid; place-items: center; border-radius: 50%; color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bad) 26%, transparent), 0 0 30px -8px var(--bad); }
+.failure .mark svg.i { width: 22px; height: 22px; }
+.failure h2 { margin: 0 0 var(--s3); font: 600 20px/1.3 var(--sans); color: var(--text); }
+.failure p { margin: 0 auto var(--s5); max-width: 44ch; color: var(--body); }
+.failure .well { display: inline-flex; gap: var(--s3); padding: 10px 14px; margin-bottom: var(--s6); font: 400 var(--f-code)/1 var(--mono); color: var(--body); }
+.failure .well b { color: var(--bad); font-weight: 600; }
+.failure .actions { display: flex; justify-content: center; gap: var(--s2); }
+.failure small { display: block; margin-top: var(--s5); font-size: var(--f-meta); color: var(--faint); }
+.empty-map { padding: var(--s5) var(--s6); font-size: var(--f-code); color: var(--faint); }
+
+/* 6. Legend: a popover over the statusbar item that opened it. */
+.popover { position: absolute; right: 12px; bottom: calc(28px + 10px); z-index: 30; width: 330px; padding: var(--s5); border-radius: var(--r3);
+  background: linear-gradient(150deg, rgba(40,46,58,0.92), rgba(20,23,30,0.96)); backdrop-filter: blur(30px); box-shadow: 0 24px 60px rgba(0,0,0,0.55), var(--spec); }
+.popover h3 { margin: 0 0 var(--s4); font: 600 var(--f-body)/1 var(--sans); color: var(--text); }
+.popover section + section { margin-top: var(--s4); padding-top: var(--s4); box-shadow: inset 0 1px 0 var(--hair); }
+.popover .label { margin-bottom: var(--s3); }
+.legend-grid { display: grid; grid-template-columns: auto 1fr; gap: 9px var(--s3); align-items: center; font-size: var(--f-code); color: var(--body); }
+.dotline { display: inline-flex; align-items: center; gap: 7px; font: 600 var(--f-code)/1 var(--mono); }
+.dotline::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.legend-grid small { color: var(--faint); font-size: var(--f-meta); }
+.statusbar .legend-on { color: var(--body); background: var(--fill); }
+
+/* 7. Phone: the rail becomes a drawer, the journey a strip, the run a pill. */
+.phones { flex: 1; display: flex; justify-content: center; gap: 56px; align-items: flex-start; padding-top: 8px; overflow: auto; }
+.phone { width: 390px; height: 800px; flex: 0 0 auto; position: relative; overflow: hidden; border-radius: 44px; background: var(--glass-1); backdrop-filter: blur(40px);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.14); display: flex; flex-direction: column; }
+.phone-caption { text-align: center; margin-top: var(--s3); font-size: var(--f-code); color: var(--dim); }
+.p-top { display: flex; align-items: center; gap: var(--s3); height: 56px; padding: 18px var(--s5) 0; box-shadow: inset 0 -1px 0 var(--hair); flex: 0 0 auto; }
+.p-top .brand-name { font: 700 18px/1 var(--sans); color: var(--text); letter-spacing: -.02em; }
+.p-top .brand-name span { color: var(--ui); }
+.menu { width: 32px; height: 32px; display: grid; place-items: center; border-radius: var(--r2); color: var(--body); background: var(--fill); box-shadow: inset 0 0 0 1px var(--hair); }
+.held-mini { margin-left: auto; display: inline-flex; border-radius: var(--pill); overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10); }
+.held-mini span { display: grid; place-items: center; width: 30px; height: 26px; }
+.held-mini .a { color: var(--admin); background: color-mix(in srgb, var(--admin) 10%, transparent); }
+.held-mini .t { color: var(--tenant); background: color-mix(in srgb, var(--tenant) 10%, transparent); box-shadow: inset 1px 0 0 rgba(255,255,255,0.10); }
+.held-mini svg.i { width: 12px; height: 12px; }
+.strip { display: flex; align-items: center; gap: var(--s3); padding: 10px var(--s5); box-shadow: inset 0 -1px 0 var(--hair); background: rgba(0,0,0,0.12); flex: 0 0 auto; }
+.strip .bar { flex: 0 0 64px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+.strip .bar i { height: 3px; border-radius: 3px; background: rgba(255,255,255,0.08); }
+.strip .bar i.d { background: var(--label); } .strip .bar i.n { background: var(--ui); }
+.strip .nx { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: var(--r2); background: var(--ui-fill); box-shadow: inset 0 0 0 1px var(--ui-edge); color: var(--text); font-size: var(--f-code); }
+.strip .nx small { font: 600 var(--f-micro)/1 var(--sans); letter-spacing: .14em; color: var(--ui); }
+.strip .nx svg.i { margin-left: auto; width: 12px; height: 12px; color: var(--ui); }
+.p-body { flex: 1; overflow: auto; padding: var(--s4); }
+.p-body .op { margin-bottom: 6px; }
+.p-body .summary { padding: 11px 12px; gap: 10px; }
+.p-body .summary .path { font-size: var(--f-code); }
+.p-body .summary .desc { display: none; }
+/* A thumb's width: the method says what the icon said, and the scope keeps
+   its glyph and colour without its word. */
+.p-body .summary .op-icon { display: none; }
+.p-body .summary .chip.round { font-size: 0; gap: 0; width: 26px; padding: 0; }
+.p-body .summary .chip.round.public { display: none; }
+.p-body .summary .path { overflow: hidden; text-overflow: ellipsis; }
+.p-tag { margin: var(--s5) 4px var(--s2); font: 600 var(--f-micro)/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.live-pill { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 9px 14px 9px 12px; border-radius: var(--pill);
+  background: linear-gradient(150deg, rgba(40,46,58,0.94), rgba(20,23,30,0.96)); backdrop-filter: blur(20px); box-shadow: 0 12px 30px rgba(0,0,0,0.5), var(--spec); font: 500 var(--f-meta)/1 var(--mono); color: var(--text); white-space: nowrap; }
+.live-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--run); animation: blink 1.4s infinite; }
+.live-pill .mini { display: flex; gap: 4px; }
+.live-pill .mini i { width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1.3px var(--faint); }
+.live-pill .mini i.p { background: var(--label); box-shadow: none; } .live-pill .mini i.c { box-shadow: inset 0 0 0 1.3px var(--run); }
+.live-pill em { font-style: normal; color: var(--run); }
+.drawer-scrim { position: absolute; inset: 0; background: rgba(4,6,9,0.5); backdrop-filter: blur(3px); }
+.drawer { position: absolute; top: 0; bottom: 0; left: 0; width: 300px; display: flex; flex-direction: column; background: linear-gradient(160deg, rgba(34,40,52,0.92), rgba(13,16,22,0.96)); backdrop-filter: blur(30px);
+  box-shadow: 20px 0 60px rgba(0,0,0,0.5), inset -1px 0 0 rgba(255,255,255,0.08); padding-top: 18px; }
+.drawer .map { padding-top: var(--s2); }
+.drawer-foot { padding: var(--s4) var(--s5); box-shadow: inset 0 1px 0 var(--hair); display: grid; gap: 8px; font: 500 var(--f-micro)/1 var(--mono); color: var(--dim); }
+.drawer-foot span { display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="scene" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="streak s1"></i><i class="streak s2"></i></div>
+<svg class="grain" aria-hidden="true"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+
+<div class="picker">
+  <h1>Cockpit surfaces</h1>
+  <div class="segmented" role="tablist" aria-label="Surface" id="picker">
+    <button type="button" data-s="result" aria-pressed="true">Result</button>
+    <button type="button" data-s="body" aria-pressed="false">Body editor</button>
+    <button type="button" data-s="auth" aria-pressed="false">Authorize</button>
+    <button type="button" data-s="schemas" aria-pressed="false">Schemas</button>
+    <button type="button" data-s="failure" aria-pressed="false">Spec failure</button>
+    <button type="button" data-s="legend" aria-pressed="false">Legend</button>
+    <button type="button" data-s="phone" aria-pressed="false">Phone</button>
+  </div>
+  <p id="note"></p>
+</div>
+
+<div class="canvas" id="stage"></div>
+
+<template id="t-window">
+  <div class="window" style="position:relative">
+    <header class="titlebar">
+      <div class="brand"><span class="brand-name">EMIT<span>.</span></span>
+        <button class="rail-toggle" type="button" aria-label="Fold the rail"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button></div>
+      <div class="where"><div class="crumb" data-crumb></div>
+        <button class="jump btn-quiet" type="button"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>Jump to an operation<kbd>Ctrl K</kbd></button></div>
+      <div class="who" data-who></div>
+    </header>
+    <div class="body">
+      <aside class="rail" data-rail></aside>
+      <main class="editor"><div class="content" data-content></div></main>
+    </div>
+    <footer class="statusbar" data-status></footer>
+  </div>
+</template>
+
+<script>
+(function () {
+  var PATHS = {
+    list: ['M4 6h16M4 12h16M4 18h10'], doc: ['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z', 'M14 3v5h5'],
+    docPlus: ['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z', 'M14 3v5h5', 'M12 11v6M9 14h6'], bolt: ['M13 2L4 14h7l-1 8 9-12h-7z'],
+    download: ['M12 3v12M7 11l5 5 5-5', 'M4 20h16'], key: ['M14 7a4 4 0 1 0-3.5 4L12 12.5V15h2v2h2v2h3v-3.5L14 11z'],
+    building: ['M4 21V6l7-3 7 3v15', 'M9 21v-5h6v5', 'M8 10h2M14 10h2'], buildingPlus: ['M3 21V7l6-3 6 3v14', 'M7 21v-4h4v4', 'M6 11h2M12 11h2', 'M16 6h6M19 3v6'],
+    powerOff: ['M12 4v8', 'M7.5 7a7 7 0 1 0 9 0'], restore: ['M20 12a8 8 0 1 1-2.34-5.66', 'M20 4v5h-5'],
+    shield: ['M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7z'], apiKey: ['M8 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z', 'M12 12h9M18 12v4'],
+    home: ['M4 11l8-7 8 7', 'M6 10v10h12V10'], braces: ['M8 4c-2 0-2 2-2 4s-2 4-2 4 2 2 2 4 0 4 2 4', 'M16 4c2 0 2 2 2 4s2 4 2 4-2 2-2 4 0 4-2 4'],
+    copy: ['M8 8h11v11H8z', 'M5 16V5h11'], alert: ['M12 8v5', 'M12 16.5v.5', 'M10.3 3.9L2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'],
+    eye: ['M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z', 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'], goTo: ['M7 17L17 7', 'M8 7h9v9'],
+    menu: ['M4 7h16M4 12h16M4 17h16'], close: ['M6 6l12 12M18 6L6 18'], format: ['M4 6h10M4 12h16M4 18h12'], reset: ['M4 12a8 8 0 1 0 2.34-5.66', 'M4 4v5h5']
+  };
+  function icon(n, c) { return '<svg class="i' + (c ? ' ' + c : '') + '" viewBox="0 0 24 24">' + PATHS[n].map(function (d) { return '<path d="' + d + '"/>'; }).join('') + '</svg>'; }
+  var OPS = [
+    ['Authentication', [['post', '/v1/auth/login', 'Login', 'key', 'public']]],
+    ['Documents', [['get', '/v1/documents', 'List documents', 'list', 'tenant'], ['post', '/v1/documents', 'Create document', 'docPlus', 'tenant'],
+      ['get', '/v1/documents/{id}', 'Get document by ID', 'doc', 'tenant'], ['post', '/v1/documents/{id}/generate', 'Request PDF generation', 'bolt', 'tenant'],
+      ['get', '/v1/documents/{id}/pdf', 'Download PDF', 'download', 'tenant']]],
+    ['Tenants', [['get', '/v1/tenants', 'List tenants', 'list', 'admin'], ['post', '/v1/tenants', 'Create tenant', 'buildingPlus', 'admin'],
+      ['get', '/v1/tenants/{id}', 'Get tenant by ID', 'building', 'admin'], ['post', '/v1/tenants/{id}/deactivate', 'Deactivate tenant', 'powerOff', 'admin'],
+      ['post', '/v1/tenants/{id}/reactivate', 'Reactivate tenant', 'restore', 'admin']]]
+  ];
+  var SCOPE = { admin: ['ADMIN', 'shield'], tenant: ['TENANT', 'apiKey'], public: ['PUBLIC', null] };
+
+  function map(current, extra) {
+    var h = '<nav class="map"><a href="#"' + (current === 'overview' ? ' class="inview"' : '') + '>' + icon('home') + '<span>Overview</span></a>';
+    OPS.forEach(function (g) {
+      h += '<div class="label">' + g[0] + '</div>';
+      g[1].forEach(function (o) { h += '<a href="#"' + (current === o[2] ? ' class="inview"' : '') + '>' + icon(o[3]) + '<span>' + o[2] + '</span>' + (SCOPE[o[4]][1] ? icon(SCOPE[o[4]][1], 'sc ' + o[4]) : '') + '</a>'; });
+    });
+    if (extra) h += extra;
+    return h + '</nav>';
+  }
+  function rail(current, extra, done) {
+    done = done || 1;
+    var steps = ['Log in', 'Create a tenant', 'Create a document', 'Generate the PDF', 'Download it'];
+    var bar = steps.map(function (_, i) { return '<i class="' + (i < done ? 'done' : i === done ? 'now' : '') + '"></i>'; }).join('');
+    return '<div class="journey"><div class="label">Getting started <small>' + done + ' / 5</small></div><div class="bar">' + bar + '</div>' +
+      '<button class="next btn-quiet" type="button"><span><small>Next</small>' + steps[done] + '</span>' + icon('goTo') + '</button></div>' + map(current, extra);
+  }
+  function held(admin, tenant) {
+    return '<div class="held">' + (admin ? '<span class="admin">' + icon('shield') + 'ADMIN</span>' : '') + (tenant ? '<span class="tenant">' + icon('apiKey') + 'TENANT</span>' : '') + '</div>';
+  }
+  function status(quiet) {
+    return '<div><span class="led"' + (quiet ? ' style="background:var(--bad)"' : '') + '></span>localhost:8080 · Local development</div><div class="grow"></div>' +
+      (quiet ? '' : '<button type="button">Last 200 · 108 ms</button><button type="button">X-Request-Id 09a7…3e</button>') + '<button type="button" data-legend>∷ Legend</button>';
+  }
+  function summary(o, open, last) {
+    return '<div class="summary"><span class="op-icon">' + icon(o[3]) + '</span><span class="chip ' + o[0] + '">' + o[0].toUpperCase() + '</span><span class="path">' + o[1] + '</span><span class="desc">' + o[2] + '</span>' +
+      (last ? '<span class="last ok">' + last + '</span>' : '') + '<span class="chip round ' + o[4] + '">' + (SCOPE[o[4]][1] ? icon(SCOPE[o[4]][1]) : '') + SCOPE[o[4]][0] + '</span><span class="chev"></span></div>';
+  }
+  var LOGIN = OPS[0][1][0], CREATE_TENANT = OPS[2][1][1];
+
+  var SURFACES = {
+    result: {
+      note: 'After Execute: one bar says how it went, tabs hold what came back.',
+      crumb: '<i>Authentication</i><i>/</i><b>POST /v1/auth/login</b>', who: held(true, false), current: 'Login',
+      content: '<article class="op open">' + summary(LOGIN, true, '200 <span>108 ms</span>') +
+        '<div class="op-body"><div class="op-inner"><div class="block"><div class="label">Request body</div><pre class="well">{ <span class="k">"username"</span>: <span class="s">"admin"</span>, <span class="k">"password"</span>: <span class="s">"admin123"</span> }</pre></div>' +
+        '<div class="note-bar">' + icon('shield') + 'Authorized as ADMIN with this token. Tenant operations will send it.</div>' +
+        '<div class="result-sheet"><div class="result-head"><span class="status-big">200 OK</span><span class="meta"><span><b>108</b> ms</span><span><b>241</b> B</span></span>' +
+        '<button class="rid" type="button" title="Copy the request id">' + icon('copy') + '09a7e9ad…c92a3e</button>' +
+        '<div class="tabs" role="tablist"><button type="button" data-tab="b" aria-selected="true">Body</button><button type="button" data-tab="h" aria-selected="false">Headers<small>12</small></button><button type="button" data-tab="c" aria-selected="false">curl</button></div></div>' +
+        '<div class="tab-panel is-shown" data-panel="b"><pre class="well">{\n  <span class="k">"token"</span>: <span class="s">"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc5MDI5MTIyNSwiZXhwIjoxNzkwMzc3NjI1fQ.8_hTZAOG0SBu6M8RFseQnIMy1rb6lus-iI38zfYBPwU"</span>\n}</pre>' +
+        '<div class="tools"><button class="tool" type="button">' + icon('copy') + 'Copy</button><button class="tool" type="button">' + icon('download') + 'Save</button></div></div>' +
+        '<div class="tab-panel" data-panel="h"><div class="kv">' +
+        [['content-type', 'application/json'], ['date', 'Thu, 24 Sep 2026 23:07:05 GMT'], ['x-request-id', '09a7e9ad-3c66-427e-93cb-97aba5c92a3e', true], ['cache-control', 'no-cache, no-store, max-age=0, must-revalidate'], ['x-frame-options', 'DENY'], ['x-content-type-options', 'nosniff']]
+          .map(function (r) { return '<div class="k' + (r[2] ? ' hot' : '') + '">' + r[0] + '</div><div class="v' + (r[2] ? ' hot' : '') + '">' + r[1] + '</div>'; }).join('') +
+        '</div><p class="explain">The API\'s own headers first: the id to quote, then the budget on tenant routes. The server\'s standard headers follow.</p></div>' +
+        '<div class="tab-panel" data-panel="c"><pre class="well">curl -X POST <span class="s">\'http://localhost:8080/v1/auth/login\'</span> \\\n  -H <span class="s">\'Content-Type: application/json\'</span> \\\n  -d <span class="s">\'{"username":"admin","password":"admin123"}\'</span></pre>' +
+        '<div class="tools"><button class="tool" type="button">' + icon('copy') + 'Copy</button></div></div></div>' +
+        '<div class="block"><div class="label">Responses</div><div class="rows"><div class="row ok"><button class="row-head"><span class="d"></span><span class="c">200</span><span class="t">JWT token returned</span><span class="n"></span><span class="x"></span></button></div>' +
+        '<div class="row bad"><button class="row-head"><span class="d"></span><span class="c">400</span><span class="t">Invalid request body</span><span class="n"></span><span class="x"></span></button></div>' +
+        '<div class="row bad"><button class="row-head"><span class="d"></span><span class="c">401</span><span class="t">Invalid credentials</span><span class="n"></span><span class="x"></span></button></div></div></div></div></div></article>'
+    },
+    body: {
+      note: 'The request body: numbered lines, Format and Reset on its label row, and whether it is valid JSON said as you type.',
+      crumb: '<i>Tenants</i><i>/</i><b>POST /v1/tenants</b>', who: held(true, false), current: 'Create tenant',
+      content: '<article class="op open">' + summary(CREATE_TENANT, true) +
+        '<div class="op-body"><div class="op-inner"><p class="lede">Creates a tenant with an isolated PostgreSQL schema provisioned and migrated via Liquibase. Returns a raw API key in the <code class="inline">apiKey</code> field exactly once.</p>' +
+        '<div class="block"><div class="label-row"><div class="label">Request body</div><span class="chip plain">REQUIRED</span><span class="constraint" style="margin-left:4px">application/json</span>' +
+        '<div class="right"><div class="tabs"><button type="button" aria-selected="true">Edit</button><button type="button" aria-selected="false">Schema</button></div>' +
+        '<button class="tool" type="button">' + icon('format') + 'Format</button><button class="tool" type="button">' + icon('reset') + 'Reset to example</button></div></div>' +
+        '<div class="editor-well well"><div class="gutter">1<br>2<br>3<br>4</div><pre class="code" contenteditable="true" spellcheck="false" id="body-code">{\n  "name": "Acme Corp",\n  "schemaName": "acme_corp"\n}</pre></div>' +
+        '<div class="validity" id="validity">Valid JSON <span>· 2 fields · matches CreateTenantRequest</span></div>' +
+        '<div style="display:flex;justify-content:flex-end;margin-top:var(--s5)"><button class="btn-primary" type="button">Execute</button></div></div>' +
+        '<div class="block"><div class="label">Responses</div><div class="rows"><div class="row ok"><button class="row-head"><span class="d"></span><span class="c">201</span><span class="t">Tenant created. The apiKey field is returned exactly once.</span><span class="n"></span><span class="x"></span></button></div>' +
+        '<div class="row bad"><button class="row-head"><span class="d"></span><span class="c">409</span><span class="t">Schema name already in use</span><span class="n"></span><span class="x"></span></button></div></div></div></div></div></article>'
+    },
+    auth: {
+      note: 'Authorize as the credentials Execute sends: each one\'s state first (held, where from, until when), the way to get it when it is missing.',
+      crumb: '<b>Overview</b>', who: held(true, false), current: 'overview', scrim: true,
+      content: '<div class="overview sheet"><h1 class="title">EMIT <span>API</span><span class="chip version">V1</span></h1><p>Multi-tenant document processing engine.</p></div>',
+      overlay: '<div class="scrim"><div class="dialog" role="dialog"><div class="dialog-head"><h2>Credentials</h2><p>What Execute sends with each call</p><button class="x" type="button">' + icon('close') + '</button></div>' +
+        '<div class="cred"><div class="cred-top"><span class="chip round admin">' + icon('shield') + 'ADMIN</span><span class="scheme">bearerAuth</span><span class="kind">HTTP Bearer · tenant management</span></div>' +
+        '<div class="state">Held, filled from Login <small>· expires in 58 min</small></div>' +
+        '<div class="cred-field"><div class="field well"><span class="value">eyJhbGciOiJIUzI1NiJ9 ··· 8_hTZAOG0SBu6M8</span>' + icon('eye') + '</div><button class="quiet-btn" type="button">Log out</button></div></div>' +
+        '<div class="cred"><div class="cred-top"><span class="chip round tenant">' + icon('apiKey') + 'TENANT</span><span class="scheme">apiKeyAuth</span><span class="kind">X-API-Key header · documents</span></div>' +
+        '<div class="state empty">Not held <small>· a tenant\'s key, returned once when it is created</small><a href="#">Create a tenant ' + icon('goTo') + '</a></div>' +
+        '<div class="cred-field"><div class="field well"><span class="value" style="color:var(--faint)">Paste an API key</span></div><button class="btn-primary" type="button">Authorize</button></div></div>' +
+        '<div class="dialog-foot"><span>Kept in this browser until you log out</span><button class="quiet-btn" type="button">Done</button></div></div></div>'
+    },
+    schemas: {
+      note: 'Schemas read like operations: rows until chosen, fields as rows, and which operations use the model, each a link. The map gains a Schemas entry.',
+      crumb: '<b>Schemas</b>', who: held(true, true), current: 'schemas',
+      extraMap: '<div class="label">Reference</div><a href="#" class="inview">' + icon('braces') + '<span>Schemas</span><span style="margin-left:auto;font:500 10px/1 var(--mono);color:var(--faint)">10</span></a>',
+      content: '<div class="tag-head"><div class="label rule">Schemas <small>10 models</small></div></div>' +
+        '<div class="model"><div class="model-head"><span class="braces">{}</span><span class="name">ErrorResponse</span><span class="count">3 fields</span><span class="chip type">object</span><span class="chev"></span></div></div>' +
+        '<div class="model open"><div class="model-head"><span class="braces">{}</span><span class="name">CreateTenantRequest</span><span class="count">2 fields</span><span class="chip type">object</span><span class="chev"></span></div><div class="fields">' +
+        '<div class="field-row"><div class="fname">name<i>*</i></div><div><div class="ftype"><span class="chip type">string</span><span class="constraint">1 to 100 characters</span></div><p class="fdesc">Human-readable tenant name</p><div class="fex"><b>EXAMPLE</b>"Acme Corp"</div></div></div>' +
+        '<div class="field-row"><div class="fname">schemaName<i>*</i></div><div><div class="ftype"><span class="chip type">string</span><span class="constraint">2 to 63 characters</span><span class="constraint">matches ^[a-z][a-z0-9_]{1,62}$</span></div><p class="fdesc">PostgreSQL schema name: lowercase letters, digits and underscores, starting with a letter.</p><div class="fex"><b>EXAMPLE</b>"acme_corp"</div></div></div>' +
+        '</div><div class="used-by">Used by <a href="#">' + icon('buildingPlus') + 'POST /v1/tenants</a></div></div>' +
+        '<div class="model"><div class="model-head"><span class="braces">{}</span><span class="name">TenantCreatedResponse</span><span class="count">6 fields</span><span class="chip type">object</span><span class="chev"></span></div></div>' +
+        '<div class="model"><div class="model-head"><span class="braces">{}</span><span class="name">CreateDocumentRequest</span><span class="count">2 fields</span><span class="chip type">object</span><span class="chev"></span></div></div>' +
+        '<div class="model"><div class="model-head"><span class="braces">{}</span><span class="name">DocumentResponse</span><span class="count">6 fields</span><span class="chip type">object</span><span class="chev"></span></div></div>'
+    },
+    failure: {
+      note: 'When the API description does not load: what failed, where, and what to try.',
+      crumb: '<b>No API description</b>', who: '', current: null, emptyRail: true,
+      content: '<div class="failure sheet"><div class="mark">' + icon('alert') + '</div><h2>The API description did not load</h2>' +
+        '<p>The console draws every operation from it, so there is nothing to show until it loads.</p>' +
+        '<div class="well"><b>404</b> GET /v3/api-docs</div><div class="actions"><button class="btn-primary" type="button">Try again</button><button class="quiet-btn" type="button">Open the raw description</button></div>' +
+        '<small>Running locally? The app must be up with the dev profile.</small></div>'
+    },
+    legend: {
+      note: 'The legend as a popover over its statusbar item, in the page\'s own marks. It names the amber band: wait, then retry.',
+      crumb: '<i>Documents</i><i>/</i><b>POST /v1/documents/{id}/generate</b>', who: held(true, true), current: 'Request PDF generation', legend: true,
+      content: '<article class="op open">' + summary(OPS[1][1][3], true) + '<div class="op-body"><div class="op-inner"><div class="block"><div class="label">Responses</div><div class="rows">' +
+        '<div class="row ok"><button class="row-head"><span class="d"></span><span class="c">202</span><span class="t">PDF generation accepted</span><span class="n">no body</span><span class="x"></span></button></div>' +
+        '<div class="row bad"><button class="row-head"><span class="d"></span><span class="c">409</span><span class="t">Document is not in PENDING status</span><span class="n"></span><span class="x"></span></button></div></div></div></div></div></article>',
+      overlay: '<div class="popover" role="dialog"><h3>Reading this page</h3>' +
+        '<section><div class="label">Outcomes</div><div class="legend-grid"><span class="dotline" style="color:var(--ok)">2xx</span><span>it worked</span>' +
+        '<span class="dotline" style="color:var(--bad)">4xx</span><span>the call was refused <small>· fix the request</small></span>' +
+        '<span class="dotline" style="color:var(--wait)">429</span><span>wait, then retry <small>· also 5xx and PENDING</small></span>' +
+        '<span class="dotline" style="color:var(--run)">RUN</span><span>work in progress</span></div></section>' +
+        '<section><div class="label">Who may call</div><div class="legend-grid"><span class="chip round admin">' + icon('shield') + 'ADMIN</span><span>admin token, tenant management</span>' +
+        '<span class="chip round tenant">' + icon('apiKey') + 'TENANT</span><span>a tenant\'s key, its documents</span></div></section>' +
+        '<section><div class="label">Fields</div><div class="legend-grid"><span class="chip type">string</span><span>what the value is</span><span class="chip format round">uuid</span><span>how it is written</span>' +
+        '<span class="constraint">1 to 100</span><span>a rule it must meet</span><span style="font:600 13px/1 var(--mono);color:var(--text)">name<i style="color:var(--bad);font-style:normal">*</i></span><span>required</span></div></section>' +
+        '<section><div class="label">Keys</div><div class="legend-grid"><kbd>Ctrl K</kbd><span>jump to an operation</span><kbd>Ctrl B</kbd><span>fold the rail</span></div></section></div>'
+    }
+  };
+
+  function renderWindow(key) {
+    var s = SURFACES[key];
+    var node = document.getElementById('t-window').content.cloneNode(true);
+    var win = node.querySelector('.window');
+    node.querySelector('[data-crumb]').innerHTML = s.crumb;
+    node.querySelector('[data-who]').innerHTML = s.who || '<button class="quiet-btn" style="height:28px;border-radius:999px;color:var(--ui)">Authorize</button>';
+    node.querySelector('[data-rail]').innerHTML = s.emptyRail ? '<div class="empty-map">No operations until the API description loads.</div>' : rail(s.current, s.extraMap);
+    node.querySelector('[data-content]').innerHTML = s.content;
+    node.querySelector('[data-status]').innerHTML = status(s.emptyRail);
+    if (s.overlay) win.insertAdjacentHTML('beforeend', s.overlay);
+    if (s.legend) node.querySelector('[data-legend]').classList.add('legend-on');
+    return node;
+  }
+
+  function renderPhones() {
+    var ops = '';
+    OPS.slice(1).forEach(function (g) {
+      ops += '<div class="p-tag">' + g[0] + '</div>';
+      g[1].forEach(function (o, i) { ops += '<article class="op">' + summary(o, false, g[0] === 'Documents' && i === 1 ? '201' : null) + '</article>'; });
+    });
+    var top = '<div class="p-top"><button class="menu" type="button" aria-label="Open the map">' + icon('menu') + '</button><span class="brand-name">EMIT<span>.</span></span>' +
+      '<div class="held-mini"><span class="a">' + icon('shield') + '</span><span class="t">' + icon('apiKey') + '</span></div></div>';
+    var strip = '<div class="strip"><div class="bar"><i class="d"></i><i class="d"></i><i class="d"></i><i class="n"></i><i></i></div><div class="nx"><small>NEXT</small>Generate the PDF' + icon('goTo') + '</div></div>';
+    var pill = '<div class="live-pill"><span class="dot"></span>31f7dfab<span class="mini"><i class="p"></i><i class="c"></i><i></i></span><em>PROCESSING</em>3.2s</div>';
+    var a = '<div><div class="phone">' + top + strip + '<div class="p-body">' + ops + '</div>' + pill + '</div><div class="phone-caption">The rail folds into a strip and a pill: next step on top, the run floating over the page.</div></div>';
+    var b = '<div><div class="phone">' + top + strip + '<div class="p-body">' + ops + '</div><div class="drawer-scrim"></div><div class="drawer">' + rail('Request PDF generation', null, 3) +
+      '<div class="drawer-foot"><span>RateLimit <b>17 / 20</b></span><span>Last 202 · 38 ms</span><span>X-Request-Id 8c1f…a2</span></div></div></div>' +
+      '<div class="phone-caption">The menu opens the rail as a drawer: journey, map with where you are, and the statusbar\'s telemetry at its foot.</div></div>';
+    var wrap = document.createElement('div');
+    wrap.className = 'phones';
+    wrap.innerHTML = a + b;
+    return wrap;
+  }
+
+  var stage = document.getElementById('stage');
+  function show(key) {
+    stage.textContent = '';
+    stage.appendChild(key === 'phone' ? renderPhones() : renderWindow(key));
+    document.getElementById('note').textContent = key === 'phone' ? 'Below 900px: the same cockpit, folded for a thumb.' : SURFACES[key].note;
+    document.querySelectorAll('#picker button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.s === key)); });
+    bind();
+  }
+  function bind() {
+    stage.querySelectorAll('.tabs[role="tablist"]').forEach(function (tabs) {
+      tabs.addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        tabs.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
+        var sheet = tabs.closest('.result-sheet');
+        sheet.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.toggle('is-shown', p.dataset.panel === b.dataset.tab); });
+      });
+    });
+    var code = document.getElementById('body-code'), validity = document.getElementById('validity');
+    if (code) code.addEventListener('input', function () {
+      try {
+        var v = JSON.parse(code.textContent);
+        validity.className = 'validity';
+        validity.innerHTML = 'Valid JSON <span>· ' + Object.keys(v).length + ' fields</span>';
+      } catch (err) {
+        validity.className = 'validity bad';
+        validity.innerHTML = 'Not valid JSON <span>· ' + err.message + '</span>';
+      }
+      code.previousElementSibling.innerHTML = code.textContent.split('\n').map(function (_, i) { return i + 1; }).join('<br>');
+    });
+  }
+  document.getElementById('picker').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) show(b.dataset.s); });
+  show(/^#\w+$/.test(location.hash) && SURFACES[location.hash.slice(1)] || location.hash === '#phone' ? location.hash.slice(1) : 'result');
+})();
+</script>
+</body>
+</html>

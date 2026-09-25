@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EMIT Cockpit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="cockpit-system.css">
+</head>
+<body>
+<div class="scene" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="streak s1"></i><i class="streak s2"></i></div>
+<svg class="grain" aria-hidden="true"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+
+<div class="picker">
+  <h1>Cockpit</h1>
+  <div class="segmented" role="group" aria-label="State">
+    <button type="button" data-run="off" aria-pressed="true">Before a run</button>
+    <button type="button" data-run="on" aria-pressed="false">During a run</button>
+  </div>
+  <p id="state-note"></p>
+</div>
+
+<div class="window" id="window" data-run="off" data-rail="open">
+  <header class="titlebar">
+    <div class="brand"><span class="brand-name">EMIT<span>.</span></span>
+      <button class="rail-toggle" type="button" id="rail-toggle" title="Hide the rail (Ctrl B)" aria-label="Hide the rail"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+    </div>
+    <div class="where">
+      <div class="crumb" id="crumb"><b>Overview</b></div>
+      <button class="jump btn-quiet" type="button" id="jump"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>Jump to an operation<kbd>Ctrl K</kbd></button>
+    </div>
+    <div class="who"><div class="held" title="Credentials held by Authorize">
+      <span class="admin" data-icon="shield">ADMIN</span><span class="tenant" data-icon="apiKey">TENANT</span>
+    </div></div>
+  </header>
+
+  <div class="body">
+    <aside class="rail" aria-label="Cockpit">
+      <div class="journey">
+        <div class="label">Getting started <small id="journey-count">3 / 5</small></div>
+        <div class="bar" id="bar"><i class="done"></i><i class="done"></i><i class="done"></i><i class="now"></i><i></i></div>
+        <button class="next btn-quiet" type="button" id="next">
+          <span><small>Next</small><span id="next-text">Generate the PDF</span></span>
+          <svg class="i" viewBox="0 0 24 24"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+        </button>
+      </div>
+      <nav class="map" id="map"></nav>
+      <section class="live">
+        <div class="live-head"><span class="dot"></span>Document 31f7dfab<small id="elapsed">0.0s</small></div>
+        <div class="track" id="track"><div class="stage"><i></i><b>PENDING</b></div><div class="stage"><i></i><b>PROCESSING</b></div><div class="stage"><i></i><b>DONE</b></div></div>
+        <div class="live-foot"><span id="live-text">Queued in Kafka</span><a href="#op-pdf" id="live-link" hidden>Download PDF</a></div>
+      </section>
+    </aside>
+
+    <main class="editor" id="editor">
+      <div class="content" id="content">
+
+        <section class="overview sheet" id="overview">
+          <h1 class="title">EMIT <span>API</span><span class="chip version">V1</span><span class="chip plain">OAS 3.1</span></h1>
+          <p>Multi-tenant document processing engine. Each tenant operates in complete data isolation via PostgreSQL schema separation. Authenticated requests trigger async PDF generation with tenant context propagated across thread boundaries via Kafka.</p>
+
+          <div class="label rule">Document lifecycle</div>
+          <div class="flow well" id="flow">
+            <div class="node pending" data-stage="0"><em>31f7dfab</em><i></i><b>PENDING</b><small>persisted on create</small></div>
+            <div class="edge">kafka</div>
+            <div class="node processing" data-stage="1"><em>31f7dfab</em><i></i><b>PROCESSING</b><small>worker picked up</small></div>
+            <div class="edge">render</div>
+            <div class="outcomes">
+              <div class="node done" data-stage="2"><em>31f7dfab</em><i></i><b>DONE</b><small>pdf ready</small></div>
+              <div class="node failed"><i></i><b>FAILED</b><small>retries exhausted</small></div>
+            </div>
+          </div>
+
+          <div class="label rule">Authentication</div>
+          <table class="auth">
+            <tr><th>Scope</th><th>Header</th><th>Grants</th></tr>
+            <tr><td><span class="chip round admin" data-icon="shield">ADMIN</span></td><td><code class="inline">Authorization: Bearer &lt;token&gt;</code></td><td>Create and manage tenants</td></tr>
+            <tr><td><span class="chip round tenant" data-icon="apiKey">TENANT</span></td><td><code class="inline">X-API-Key: &lt;key&gt;</code></td><td>Submit and retrieve documents</td></tr>
+          </table>
+
+          <div class="label rule">Getting started</div>
+          <ol class="steps" id="steps">
+            <li class="done"><span class="mark"></span><span>Log in with the admin credentials<span class="ref">POST /v1/auth/login</span></span><span class="proof">token in Authorize</span></li>
+            <li class="done"><span class="mark"></span><span>Create a tenant<span class="ref">POST /v1/tenants</span></span><span class="proof">key in Authorize</span></li>
+            <li class="done"><span class="mark"></span><span>Create a document<span class="ref">POST /v1/documents</span></span><span class="proof">id carried</span></li>
+            <li class="now"><span class="mark"></span><span>Generate its PDF<span class="ref">POST /v1/documents/{id}/generate</span></span><span class="proof">next</span></li>
+            <li><span class="mark"></span><span>Download it<span class="ref">GET /v1/documents/{id}/pdf</span></span><span class="proof"></span></li>
+          </ol>
+        </section>
+
+        <div class="tag-head" data-tag="Authentication"><div class="label rule">Authentication <small>1 endpoint</small></div></div>
+        <article class="op" id="op-login" data-icon="key" data-scope="public" data-last="ok 200 · 142 ms"><div class="summary"><span class="chip post">POST</span><span class="path">/v1/auth/login</span><span class="desc">Login</span></div></article>
+
+        <div class="tag-head" data-tag="Documents"><div class="label rule">Documents <small>5 endpoints</small></div></div>
+        <article class="op" id="op-list" data-icon="list" data-scope="tenant"><div class="summary"><span class="chip get">GET</span><span class="path">/v1/documents</span><span class="desc">List documents</span></div></article>
+        <article class="op" id="op-create" data-icon="docPlus" data-scope="tenant" data-last="ok 201 · 36 ms"><div class="summary"><span class="chip post">POST</span><span class="path">/v1/documents</span><span class="desc">Create document</span></div></article>
+
+        <article class="op" id="op-get" data-icon="doc" data-scope="tenant" data-last="bad 404 · 12 ms">
+          <div class="summary"><span class="chip get">GET</span><span class="path">/v1/documents/{id}</span><span class="desc">Get document by ID</span></div>
+          <div class="op-body"><div class="op-inner">
+            <div class="block">
+              <div class="label">Parameters</div>
+              <div class="param">
+                <div class="param-name"><b>id</b><div class="pills"><span class="chip type">string</span><span class="chip format round">uuid</span></div></div>
+                <div class="field well"><span class="value">31f7dfab-2c4e-4b1a-9d0e-7a5c3e8f1b20</span><span class="carry">from Create document</span></div>
+                <button class="btn-primary" type="button">Execute</button>
+              </div>
+            </div>
+            <div class="block">
+              <div class="label">Responses</div>
+              <div class="rows">
+                <div class="row ok open"><button class="row-head"><span class="d"></span><span class="c">200</span><span class="t">Document found</span><span class="n"></span><span class="x"></span></button>
+                  <div class="row-detail"><div><pre class="well">{
+  <span class="k">"id"</span>: <span class="s">"3fa85f64-5717-4562-b3fc-2c963f66afa6"</span>,
+  <span class="k">"title"</span>: <span class="s">"Q3 Invoice"</span>,
+  <span class="k">"status"</span>: <span class="s">"PENDING"</span>,
+  <span class="k">"updatedAt"</span>: <span class="s">"2026-01-15T10:30:00Z"</span>
+}</pre></div></div></div>
+                <div class="row bad"><button class="row-head"><span class="d"></span><span class="c">404</span><span class="t">Document not found</span><span class="n"></span><span class="x"></span></button><div class="row-detail"><div><pre class="well">{ <span class="k">"status"</span>: <span class="n">404</span>, <span class="k">"message"</span>: <span class="s">"Document not found: 3fa85f64-…"</span> }</pre></div></div></div>
+                <div class="row bad" data-shared><button class="row-head"><span class="d"></span><span class="c">4XX</span><span class="t">Refusals every document route shares</span><span class="n">6 causes</span><span class="x"></span></button><div class="row-detail"><div></div></div></div>
+              </div>
+              <div class="headers-once">Every response but 401 and 403 carries <code>RateLimit-Limit</code><code>RateLimit-Remaining</code><code>RateLimit-Reset</code></div>
+            </div>
+          </div></div>
+        </article>
+
+        <article class="op open" id="op-generate" data-icon="bolt" data-scope="tenant">
+          <div class="summary"><span class="chip post">POST</span><span class="path">/v1/documents/{id}/generate</span><span class="desc">Request PDF generation</span></div>
+          <div class="op-body"><div class="op-inner">
+            <p class="lede">Publishes the generation event to Kafka and answers <code class="inline">202</code> at once. The document then runs PENDING, PROCESSING, DONE, or FAILED after three attempts.</p>
+            <div class="block">
+              <div class="label">Parameters</div>
+              <div class="param">
+                <div class="param-name"><b>id</b><div class="pills"><span class="chip type">string</span><span class="chip format round">uuid</span></div></div>
+                <div class="field well"><span class="value">31f7dfab-2c4e-4b1a-9d0e-7a5c3e8f1b20</span><span class="carry">from Create document</span></div>
+                <button class="btn-primary" type="button" id="execute">Execute</button>
+              </div>
+              <div class="result"><b>202</b> Accepted in 38 ms. Followed in the rail and in the lifecycle above.</div>
+            </div>
+            <div class="block">
+              <div class="label">Responses</div>
+              <div class="rows">
+                <div class="row ok open"><button class="row-head"><span class="d"></span><span class="c">202</span><span class="t">PDF generation accepted</span><span class="n">no body</span><span class="x"></span></button>
+                  <div class="row-detail"><div style="color:var(--dim);font-size:var(--f-code)">The run starts now. Read its state with <span style="font-family:var(--mono);color:var(--body)">GET /v1/documents/{id}</span>.</div></div></div>
+                <div class="row bad"><button class="row-head"><span class="d"></span><span class="c">404</span><span class="t">Document not found</span><span class="n"></span><span class="x"></span></button><div class="row-detail"><div><pre class="well">{ <span class="k">"status"</span>: <span class="n">404</span>, <span class="k">"message"</span>: <span class="s">"Document not found: 3fa85f64-…"</span> }</pre></div></div></div>
+                <div class="row bad"><button class="row-head"><span class="d"></span><span class="c">409</span><span class="t">Document is not in PENDING status</span><span class="n"></span><span class="x"></span></button><div class="row-detail"><div><pre class="well">{ <span class="k">"status"</span>: <span class="n">409</span>, <span class="k">"message"</span>: <span class="s">"Document must be PENDING but is DONE: 3fa85f64-…"</span> }</pre></div></div></div>
+                <div class="row bad" data-shared><button class="row-head"><span class="d"></span><span class="c">4XX</span><span class="t">Refusals every document route shares</span><span class="n">6 causes</span><span class="x"></span></button><div class="row-detail"><div></div></div></div>
+              </div>
+              <div class="headers-once">Every response but 401 and 403 carries <code>RateLimit-Limit</code><code>RateLimit-Remaining</code><code>RateLimit-Reset</code></div>
+            </div>
+          </div></div>
+        </article>
+
+        <article class="op" id="op-pdf" data-icon="download" data-scope="tenant"><div class="summary"><span class="chip get">GET</span><span class="path">/v1/documents/{id}/pdf</span><span class="desc">Download PDF</span></div></article>
+
+        <div class="tag-head" data-tag="Tenants"><div class="label rule">Tenants <small>5 endpoints</small></div></div>
+        <article class="op" id="op-tenants" data-icon="list" data-scope="admin"><div class="summary"><span class="chip get">GET</span><span class="path">/v1/tenants</span><span class="desc">List tenants</span></div></article>
+        <article class="op" id="op-tenant-create" data-icon="buildingPlus" data-scope="admin" data-last="ok 201 · 480 ms"><div class="summary"><span class="chip post">POST</span><span class="path">/v1/tenants</span><span class="desc">Create tenant</span></div></article>
+        <article class="op" id="op-tenant-get" data-icon="building" data-scope="admin"><div class="summary"><span class="chip get">GET</span><span class="path">/v1/tenants/{id}</span><span class="desc">Get tenant by ID</span></div></article>
+        <article class="op" id="op-deactivate" data-icon="powerOff" data-scope="admin"><div class="summary"><span class="chip post">POST</span><span class="path">/v1/tenants/{id}/deactivate</span><span class="desc">Deactivate tenant</span></div></article>
+        <article class="op" id="op-reactivate" data-icon="restore" data-scope="admin"><div class="summary"><span class="chip post">POST</span><span class="path">/v1/tenants/{id}/reactivate</span><span class="desc">Reactivate tenant</span></div></article>
+      </div>
+    </main>
+  </div>
+
+  <footer class="statusbar">
+    <div><span class="led"></span>localhost:8080 · Local development</div>
+    <div class="run">Document 31f7dfab · <span id="status-stage">PENDING</span></div>
+    <div class="grow"></div>
+    <div>RateLimit 17 / 20 <span class="meter"><i></i></span></div>
+    <button type="button" id="status-last" title="Go to the operation that answered">Last 202 · 38 ms</button>
+    <button type="button" id="status-rid" title="Copy the request id">X-Request-Id 8c1f…a2</button>
+  </footer>
+</div>
+
+<div class="palette-back" id="palette-back" data-open="false">
+  <div class="palette" role="dialog" aria-label="Jump to an operation">
+    <input id="palette-input" placeholder="Jump to an operation…" autocomplete="off">
+    <ul id="palette-list" role="listbox"></ul>
+    <footer><span>↑↓ choose</span><span>Enter open</span><span>Esc close</span></footer>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* The console's own icon set: 24 grid, 1.8 stroke, no fills. */
+  var PATHS = {
+    list: ['M4 6h16M4 12h16M4 18h10'],
+    doc: ['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z', 'M14 3v5h5'],
+    docPlus: ['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z', 'M14 3v5h5', 'M12 11v6M9 14h6'],
+    bolt: ['M13 2L4 14h7l-1 8 9-12h-7z'],
+    download: ['M12 3v12M7 11l5 5 5-5', 'M4 20h16'],
+    key: ['M14 7a4 4 0 1 0-3.5 4L12 12.5V15h2v2h2v2h3v-3.5L14 11z'],
+    powerOff: ['M12 4v8', 'M7.5 7a7 7 0 1 0 9 0'],
+    restore: ['M20 12a8 8 0 1 1-2.34-5.66', 'M20 4v5h-5'],
+    building: ['M4 21V6l7-3 7 3v15', 'M9 21v-5h6v5', 'M8 10h2M14 10h2'],
+    buildingPlus: ['M3 21V7l6-3 6 3v14', 'M7 21v-4h4v4', 'M6 11h2M12 11h2', 'M16 6h6M19 3v6'],
+    shield: ['M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7z'],
+    apiKey: ['M8 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z', 'M12 12h9M18 12v4'],
+    home: ['M4 11l8-7 8 7', 'M6 10v10h12V10']
+  };
+  function icon(name, cls) {
+    return '<svg class="i' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24">' + PATHS[name].map(function (d) { return '<path d="' + d + '"/>'; }).join('') + '</svg>';
+  }
+  var SCOPES = { admin: { label: 'ADMIN', icon: 'shield' }, tenant: { label: 'TENANT', icon: 'apiKey' }, public: { label: 'PUBLIC', icon: null } };
+  var REFUSALS = '<table class="refusals">' + [
+    ['400', 'Malformed id', "'id' is not a valid UUID."], ['401', 'No credential', 'Authentication required.'],
+    ['401', 'Unknown API key', 'Invalid API key.'], ['403', 'Other scope', 'This credential cannot access this route. …'],
+    ['403', 'Tenant deactivated', 'Tenant is inactive.'], ['429', 'Rate limit', 'Rate limit exceeded. Try again in 12 seconds.']
+  ].map(function (r) { return '<tr' + (r[0] === '429' ? ' class="wait"' : '') + '><td>' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>'; }).join('') + '</table>';
+
+  var win = document.getElementById('window'), editor = document.getElementById('editor');
+  var ops = Array.prototype.slice.call(document.querySelectorAll('.op'));
+
+  document.querySelectorAll('[data-shared] .row-detail > div').forEach(function (d) { d.innerHTML = REFUSALS; });
+  document.querySelectorAll('.chip[data-icon], .held [data-icon]').forEach(function (s) { s.insertAdjacentHTML('afterbegin', icon(s.dataset.icon)); });
+
+  /* Rows as the console draws them, plus the last answer the operation gave. */
+  ops.forEach(function (op) {
+    var summary = op.querySelector('.summary'), scope = SCOPES[op.dataset.scope], last = op.dataset.last;
+    summary.insertAdjacentHTML('afterbegin', '<span class="op-icon">' + icon(op.dataset.icon) + '</span>');
+    var tail = '';
+    if (last) { var p = last.split(' '); tail += '<span class="last ' + p[0] + '">' + p[1] + ' <span>' + p.slice(3).join(' ') + '</span></span>'; }
+    tail += '<span class="chip round ' + op.dataset.scope + '">' + (scope.icon ? icon(scope.icon) : '') + scope.label + '</span><span class="chev"></span>';
+    summary.insertAdjacentHTML('beforeend', tail);
+    if (op.querySelector('.op-body')) summary.addEventListener('click', function () { op.classList.toggle('open'); refreshMap(); });
+  });
+
+  var map = document.getElementById('map');
+  function refreshMap() {
+    var html = '<a href="#overview">' + icon('home') + '<span>Overview</span></a>';
+    Array.prototype.forEach.call(document.getElementById('content').children, function (n) {
+      if (n.classList.contains('tag-head')) html += '<div class="label">' + n.dataset.tag + '</div>';
+      if (n.classList.contains('op')) {
+        var scope = SCOPES[n.dataset.scope], last = n.dataset.last ? n.dataset.last.split(' ')[0] : null;
+        html += '<a href="#' + n.id + '" title="' + n.querySelector('.chip').textContent + ' ' + n.querySelector('.path').textContent + '">' + icon(n.dataset.icon) + '<span>' + n.querySelector('.desc').textContent + '</span>' +
+          (last ? '<span class="ran ' + last + '"></span>' : '') + (scope.icon ? icon(scope.icon, 'sc ' + n.dataset.scope) : '') + '</a>';
+      }
+    });
+    map.innerHTML = html; spy();
+  }
+  map.addEventListener('click', function (e) {
+    var a = e.target.closest('a'); if (!a) return;
+    e.preventDefault(); document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.getElementById('next').addEventListener('click', function () {
+    var target = document.getElementById(win.dataset.done ? 'op-pdf' : 'op-generate');
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  function spy() {
+    var sections = [document.getElementById('overview')].concat(ops);
+    var line = editor.getBoundingClientRect().top + 64, current = sections[0];
+    sections.forEach(function (s) { if (s.getBoundingClientRect().top <= line) current = s; });
+    map.querySelectorAll('a').forEach(function (a) { a.classList.toggle('inview', a.getAttribute('href') === '#' + current.id); });
+    var crumb = document.getElementById('crumb');
+    if (current.id === 'overview') { crumb.innerHTML = '<b>Overview</b>'; return; }
+    var tag = current.previousElementSibling; while (tag && !tag.classList.contains('tag-head')) tag = tag.previousElementSibling;
+    crumb.innerHTML = '<i>' + tag.dataset.tag + '</i><i>/</i><b>' + current.querySelector('.chip').textContent + ' ' + current.querySelector('.path').textContent + '</b>';
+  }
+  editor.addEventListener('scroll', spy, { passive: true });
+
+  document.querySelectorAll('.row-head').forEach(function (h) { h.addEventListener('click', function () { h.parentElement.classList.toggle('open'); }); });
+
+  /* One run feeds the rail, the lifecycle figure, the journey and the statusbar. */
+  var notes = {
+    off: 'Nothing is running: the rail holds the walkthrough and the map, nothing else competes.',
+    on: 'A document is being followed: the rail shows the run, the lifecycle figure lights its stage.'
+  };
+  var t = 0, timer = null, shown = -1;
+  function paintRun() {
+    var at = t < 1.2 ? 0 : t < 7.6 ? 1 : 2;
+    if (at === shown) { document.getElementById('elapsed').textContent = Math.min(t, 7.6).toFixed(1) + 's'; return; }
+    shown = at;
+    document.querySelectorAll('#track .stage').forEach(function (s, i) { s.className = 'stage' + (i < at ? ' past' : i === at ? (at === 2 ? ' good' : ' current') : ''); });
+    document.querySelectorAll('#flow .node[data-stage]').forEach(function (n) { n.classList.toggle('lit', Number(n.dataset.stage) === at); });
+    document.querySelectorAll('#flow .edge').forEach(function (e, i) { e.classList.toggle('active', win.dataset.run === 'on' && i === at); });
+    document.getElementById('elapsed').textContent = Math.min(t, 7.6).toFixed(1) + 's';
+    document.getElementById('status-stage').textContent = ['PENDING', 'PROCESSING', 'DONE'][at];
+    document.getElementById('live-text').textContent = ['Queued in Kafka', 'Rendering the PDF', 'PDF ready in 7.6s'][at];
+    document.getElementById('live-link').hidden = at !== 2;
+    var done = at === 2;
+    win.dataset.done = done ? 'true' : '';
+    var bar = document.getElementById('bar').children;
+    bar[3].className = done ? 'done' : 'now'; bar[4].className = done ? 'now' : '';
+    var steps = document.getElementById('steps').children;
+    steps[3].className = done ? 'done fresh' : 'now'; steps[4].className = done ? 'now' : '';
+    steps[3].querySelector('.proof').textContent = done ? 'pdf ready' : 'next';
+    steps[4].querySelector('.proof').textContent = done ? 'next' : '';
+    document.getElementById('journey-count').textContent = (done ? 4 : 3) + ' / 5';
+    document.getElementById('next-text').textContent = done ? 'Download the PDF' : 'Generate the PDF';
+  }
+  function setRun(state) {
+    win.dataset.run = state;
+    document.querySelectorAll('.segmented button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.run === state)); });
+    document.getElementById('state-note').textContent = notes[state];
+    clearInterval(timer); t = 0; shown = -1; paintRun();
+    if (state === 'on') timer = setInterval(function () { t += 0.2; if (t > 12) { t = 0; } paintRun(); }, 200);
+  }
+  document.querySelectorAll('.segmented button').forEach(function (b) { b.addEventListener('click', function () { setRun(b.dataset.run); }); });
+  document.getElementById('execute').addEventListener('click', function (e) { e.stopPropagation(); setRun('on'); });
+
+  document.getElementById('status-last').addEventListener('click', function () {
+    document.getElementById('op-generate').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.getElementById('status-rid').addEventListener('click', function () {
+    var b = this, label = b.textContent;
+    if (navigator.clipboard) navigator.clipboard.writeText('8c1f3e2a-6b7d-4f10-9c55-2e8a1b4d07a2');
+    b.textContent = 'Request id copied'; setTimeout(function () { b.textContent = label; }, 1400);
+  });
+
+  function toggleRail() { win.dataset.rail = win.dataset.rail === 'open' ? 'closed' : 'open'; }
+  document.getElementById('rail-toggle').addEventListener('click', toggleRail);
+
+  var back = document.getElementById('palette-back'), input = document.getElementById('palette-input'), list = document.getElementById('palette-list');
+  var entries = ops.map(function (op) { return { id: op.id, icon: op.dataset.icon, path: op.querySelector('.chip').textContent + ' ' + op.querySelector('.path').textContent, name: op.querySelector('.desc').textContent }; });
+  var selected = 0, filtered = entries;
+  function render() {
+    var q = input.value.toLowerCase();
+    filtered = entries.filter(function (e) { return (e.name + ' ' + e.path).toLowerCase().indexOf(q) >= 0; });
+    selected = Math.min(selected, Math.max(0, filtered.length - 1));
+    list.innerHTML = filtered.map(function (e, i) { return '<li role="option" aria-selected="' + (i === selected) + '" data-id="' + e.id + '">' + icon(e.icon) + '<span>' + e.name + '</span><span class="p">' + e.path + '</span></li>'; }).join('');
+  }
+  function openPalette() { back.dataset.open = 'true'; input.value = ''; selected = 0; render(); input.focus(); }
+  function closePalette() { back.dataset.open = 'false'; }
+  function go(id) { closePalette(); var op = document.getElementById(id); if (op.querySelector('.op-body')) op.classList.add('open'); op.scrollIntoView({ block: 'start' }); }
+  document.getElementById('jump').addEventListener('click', openPalette);
+  back.addEventListener('click', function (e) { if (e.target === back) closePalette(); });
+  list.addEventListener('click', function (e) { var li = e.target.closest('li'); if (li) go(li.dataset.id); });
+  input.addEventListener('input', function () { selected = 0; render(); });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown') { selected = Math.min(selected + 1, filtered.length - 1); render(); e.preventDefault(); }
+    if (e.key === 'ArrowUp') { selected = Math.max(selected - 1, 0); render(); e.preventDefault(); }
+    if (e.key === 'Enter' && filtered[selected]) go(filtered[selected].id);
+    if (e.key === 'Escape') closePalette();
+  });
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') { e.preventDefault(); toggleRail(); }
+  });
+
+  refreshMap();
+  var start = location.hash.slice(1);
+  setRun(start.indexOf('run') === 0 ? 'on' : 'off');
+  if (start.indexOf('op') >= 0) document.getElementById('op-generate').scrollIntoView({ block: 'start' });
+  if (start === 'rows') document.getElementById('op-login').scrollIntoView({ block: 'center' });
+  spy();
+})();
+</script>
+</body>
+</html>

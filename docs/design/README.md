@@ -1,50 +1,90 @@
 # Design reference
 
-## `swagger-ui-target.html`
+## The cockpit
 
-The visual target for the Swagger UI theme. Open it in a browser: it
-is a standalone file with no build step and no dependencies beyond the two
-webfonts it links.
+The console at `/swagger-ui/index.html` is drawn to two reference pages in this
+folder. Open them in a browser: they are standalone, with no build step and
+no dependencies beyond two webfonts.
 
-This file is the specification. `src/main/resources/static/swagger/theme.css`
-and `swagger/enhance.js` exist to reproduce it on top of the markup Swagger UI
-actually renders, so when the two disagree, this file is right and the
-implementation is wrong.
+- `cockpit-mockup.html`: the window itself. The rail with the walkthrough and
+  the map, the titlebar, the statusbar, the overview with the document
+  lifecycle, and operations closed and open. Its hash picks a state: `#idle`,
+  `#run` (a document being followed), `#op` (an operation open at the top),
+  `#rows`.
+- `cockpit-surfaces.html`: everything the window shows in other moments. The
+  result of a call, the request body editor, the credentials dialog, the
+  schemas, a description that did not load, the legend, and the phone. The
+  hash picks one: `#result`, `#body`, `#auth`, `#schemas`, `#failure`,
+  `#legend`, `#phone`.
+- `cockpit-system.css`: the one system both are built from. Every component
+  uses its tokens and nothing else: five text steps, four radii, one type
+  scale in whole pixels, a 4px spacing grid, two faces.
 
-It is versioned with the code so the theme always has a reference to check
-against. Changes to the theme start here.
+These pages are the specification. `src/main/resources/static/swagger/theme.css`
+and `enhance.js` reproduce them on top of the markup Swagger UI renders, so
+when the two disagree, the reference is right and the implementation is
+wrong. A change to the console starts here.
 
-### The rules it encodes
-
-Four decisions carry most of the design. They are worth stating because a
-future change that violates one will look arbitrary rather than wrong.
+## The rules they encode
 
 **Colour means outcome, never structure.** Green, amber and red are spent only
-on results: response status, terminal document states. HTTP methods use one
-desaturated steel-blue family and are told apart by their label. Before this
-split, the green accent of a `POST` sat beside the green of a `201` and the two
-were indistinguishable despite meaning unrelated things.
+on results: a status, a terminal document state. Amber means wait, then retry:
+a 429, a server error, a document still pending. HTTP methods share one
+desaturated steel family and are told apart by their label, so the green of a
+`POST` never sits beside the green of a `201` meaning something else.
 
-**Shape means category.** A rectangle is a type, a capsule is a format, dim
-text behind a bullet is a constraint, and required is a typographic mark. A
-constraint is a note about a field rather than a label on it, so it is not
-given a box. Making every short string a pill was what flattened the page into
-a catalogue.
+**Interaction has one colour of its own.** The brand cyan marks what can be
+acted on and where the reader is: the next step, the current place in the
+map, a tab, focus. It is the only saturated colour at rest.
 
-**Monospace means machine output.** Paths, payloads, headers and identifiers
-are mono. Identity and prose are set in the grotesque. The API title follows
-this: a monospaced face at display size gives `I` the same advance as `M` and
-opens holes between the letters.
+**Shape means category.** A square chip is what a value is, a round one how it
+is written or who may call; dim text behind a bullet is a rule it must meet;
+required is a red mark on the name.
 
-**A figure has to show mechanism.** The lifecycle diagram earns its place by
-showing that a document is persisted before it is queued, that Kafka sits
-between acceptance and work, and that the two terminal states are exclusive.
-Every marker hangs from a single horizontal axis and the outcomes are mirrored
-across it, so the figure stays symmetric no matter how long the labels get.
+**Monospace means machine output.** Paths, payloads, headers, identifiers and
+telemetry are mono. Words written for a reader are set in the grotesque.
 
-### What it deliberately leaves out
+**A figure shows mechanism.** The lifecycle earns its place by showing that a
+document is persisted before it is queued, that Kafka sits between acceptance
+and work, and that the two outcomes are exclusive. While a run is followed it
+is also the andon: the document's id rides on the stage it is in, and light
+travels the edge it is crossing.
 
-The mockup shows one expanded operation, one collapsed one and two schemas.
-That is enough to pin down every component. It is not a full page render and
-should not grow into one: a reference that has to be maintained in parallel
-with the product stops being consulted.
+**Density is solved by hierarchy, not by cutting.** Everything the console
+knows stays on the page; what is not needed now waits one step away. A
+response is a row until chosen, a refusal every route shares is one row with
+its causes, the headers most answers carry are said once.
+
+**One family of components.** Glass over a monochrome light: the window is a
+first sheet, an open operation or a dialog a second, lit from above; machine
+output sits in a dark well. Nothing is drawn that is not built from the
+system's tokens.
+
+## Checking the console against it
+
+```
+python docs/design/fidelity.py STATE [--only ROLE,...] [--shots] [--exact] [--base URL]
+```
+
+opens a reference page and the console in the same state and viewport,
+measures each pair of elements named in `fidelity-roles.js`, and prints every
+property that differs, reference value first. `--shots` also saves both
+screenshots for `pixdiff.py`. The states are those of the two pages. See
+`VERIFY.md` for the rest of the tooling.
+
+## Where the console departs from them, on purpose
+
+- **After Execute, Edit.** The result shows the request as it was sent, with
+  no editor and no Execute, as `#result` draws it. A quiet Edit tool on the
+  request body's label row brings the editor back, so a call can be run again.
+- **Which answer opens by default.** An operation that sends nothing opens its
+  success row on its example (`#op`); one with a request body keeps its rows
+  closed, since its editor already fills the view (`#body`).
+- **The capsule's height.** Holding nothing, the capsule is the quiet
+  Authorize pill `#failure` draws, at the height it keeps when it holds
+  credentials, so the bar does not move when one arrives.
+- **The phone's top.** `#phone` draws the page inside a device frame that
+  reserves room for the phone's own status bar. A page in a browser starts
+  below it, so the bar starts at the top.
+- **Content.** The references show plausible data. The console shows what the
+  API and its description say: its own status codes, messages and models.

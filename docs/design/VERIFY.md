@@ -17,6 +17,8 @@ Everything here runs against the app on `localhost:8080` with headless Edge.
 | A picture of a region, below the fold included | `verify.py --clip JS` |
 | Does a refactor leave the page looking the same? | `snapshot.js` + `pixdiff.py` |
 | Does the page still read as one family of components? | `inventory.js` (below) |
+| Does it match its design, element by element? | `fidelity.py` (below) |
+| Why does a style not take? | `V.rules(selector, property)` in a scenario |
 | Did a Java change work on the running app? | a second instance on 8081 (below) |
 
 ## verify.py
@@ -52,6 +54,11 @@ on the page through `V`:
 - `V.response(path, method)` / `V.status(...)` / `V.json(...)` /
   `V.param(path, method, key)`
 - `V.text(selector)` / `V.box(selector)`
+- `V.rules(selector, property)`: every stylesheet rule that matches the
+  element and declares a property matching the pattern, in source order, with
+  the layer or media it sits in. The answer to "why does this value not take",
+  which each time was a rule nobody was looking at: a stock rule, a later rule
+  of equal specificity, a stock minimum a rewrite had stopped countering.
 
 Console errors and uncaught exceptions are collected into `errors` on their
 own, and a non-empty `errors` fails the run (exit code 1). The script builds
@@ -118,6 +125,38 @@ masks. Calibrate first: two runs of unchanged code must report `identical`. It
 executes nothing, because a token or a duration differs between runs and would
 read as a regression.
 
+## Matching the design
+
+```
+python docs/design/fidelity.py STATE [--only ROLE,...] [--all] [--shots] [--exact] [--base URL]
+```
+
+A screenshot says that two pages differ; this says which property of which
+element. It opens a reference page from `README.md` from disk and the console
+through the harness in the same state and viewport (1440x900), measures every
+role in `fidelity-roles.js` on both with `fidelity-probe.js`, and prints each
+property that differs, reference value first. Boxes are relative to the
+window. A role is a pair of selectors, one per page; `selector|n` picks the
+n-th match. A state names the reference page and hash, and the steps the
+console takes to reach it, which fake answers and runs where the reference
+shows them.
+
+- `--shots` saves both viewports, for `pixdiff.py` to say where pixels still
+  differ.
+- `--exact` measures boxes to a hundredth of a pixel. Half a pixel moves text
+  to another device pixel at 2x and reads as a different glyph; this finds
+  which box carries the fraction.
+- Text properties are compared only where text is drawn, and a colour mixed
+  with `color-mix()` compares equal to the same colour written as `rgba()`.
+
+Differences it cannot remove are the reference's content and pairs of
+elements that draw the same thing with different structure; the deliberate
+departures are listed in `README.md`.
+
+The runner under it takes `VIEW_H` for the viewport's height and `INJECT` for
+a script to run at the start of every document, so a probe can measure a
+page that does not load the harness.
+
 ## Interface inventory
 
 "It does not look like one family" is a feeling until it is counted.
@@ -175,6 +214,11 @@ takes eight.
   wrapper throws on one it does not hold.
 - **The harness must mirror production config** for whatever it checks. It
   lacked `persistAuthorization` once and could not see persistence at all.
+- **The harness must style the page as production does.** It once linked
+  Swagger's stylesheets outside the theme's cascade layer, and every check ran
+  against a cascade no reader is served. `verify.py` now compares the
+  stylesheets and inline styles of the harness with the served document's and
+  refuses to run when they differ.
 - **A comment that quotes the result tag is part of the dump.** Never write a
   result element's tag literally in a harness comment.
 - **Programmatic focus is not keyboard focus.** After any click, Chromium
