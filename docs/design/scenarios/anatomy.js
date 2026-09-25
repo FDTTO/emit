@@ -60,14 +60,19 @@ function rows() {
           /resp-s2/.test(band(200)) && /resp-s4/.test(band(404)) && /resp-s5/.test(band(429)),
           [band(200), band(404), band(429)]);
     q('#emit-legend-btn').click();
-    V.until(function () { return q('#emit-legend-panel').dataset.open === 'true'; }, legend, 5000);
+    V.until(function () { return !q('#emit-legend-panel').hidden; }, legend, 5000);
   });
 }
 
 function legend() {
   check('the legend opens from its button',
-        q('#emit-legend-panel').dataset.open === 'true' && q('#emit-legend-btn').getAttribute('aria-expanded') === 'true');
-  q('#emit-legend-btn').click();
+        !q('#emit-legend-panel').hidden && q('#emit-legend-btn').getAttribute('aria-expanded') === 'true');
+  var outcomes = all('#emit-legend-panel .emit-legend__outcome').map(function (n) { return n.textContent; });
+  check('the legend reads outcomes, callers, fields and keys, amber as wait then retry',
+        all('#emit-legend-panel section').length === 4 && outcomes.join(',') === '2xx,4xx,429,RUN'
+        && /wait, then retry/.test(q('#emit-legend-panel').textContent), outcomes);
+  q('#emit-legend-panel').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  check('Escape closes it', q('#emit-legend-panel').hidden && q('#emit-legend-btn').getAttribute('aria-expanded') === 'false');
   q('#emit-topbar-auth').click();
   V.until(function () { return all('#emit-auth:not([hidden]) .emit-scope').length === 2; }, dialog, 8000);
 }

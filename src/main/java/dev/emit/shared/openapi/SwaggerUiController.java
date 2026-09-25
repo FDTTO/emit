@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * Serves a replacement for the Swagger UI entry page.
  *
  * <p>This class owns the document and nothing else: the webfonts, the stock
- * Swagger bundles, the legend markup, and references to the two theme assets.
+ * Swagger bundles, and references to the two theme assets.
  * The theme itself lives in {@code /swagger/theme.css} and the behaviour that
  * CSS cannot express lives in {@code /swagger/enhance.js}, both served as
  * static resources so they stay lintable, cacheable, and reviewable as the
@@ -50,38 +50,6 @@ class SwaggerUiController {
                   </head>
                   <body id="emit-swagger">
                     <div id="swagger-ui"></div>
-
-                    <div id="emit-legend">
-                      <div id="emit-legend-panel" data-open="false">
-                        <div class="emit-legend-title">Reading this page</div>
-                        <div class="emit-legend-section">
-                          <div class="emit-legend-label">Schema notation</div>
-                          <div class="emit-legend-rows">
-                            <div class="emit-legend-row"><span class="emit-legend-pill p-type">string</span><span class="emit-legend-desc">data type</span></div>
-                            <div class="emit-legend-row"><span class="emit-legend-pill p-fmt">uuid</span><span class="emit-legend-desc">format</span></div>
-                            <div class="emit-legend-row"><span class="emit-legend-note">[1, 255] characters</span><span class="emit-legend-desc">constraint</span></div>
-                            <div class="emit-legend-row"><span class="emit-legend-note">PENDING | DONE</span><span class="emit-legend-desc">allowed values</span></div>
-                            <div class="emit-legend-row"><span class="emit-legend-mark">title<i>*</i></span><span class="emit-legend-desc">required field</span></div>
-                          </div>
-                        </div>
-                        <div class="emit-legend-section">
-                          <div class="emit-legend-label">Methods</div>
-                          <div class="emit-legend-rows">
-                            <div class="emit-legend-row"><span class="emit-legend-pill m-get">GET</span><span class="emit-legend-pill m-post">POST</span></div>
-                            <div class="emit-legend-row"><span class="emit-legend-pill m-put">PUT</span><span class="emit-legend-pill m-del">DELETE</span></div>
-                          </div>
-                        </div>
-                        <div class="emit-legend-section">
-                          <div class="emit-legend-label">Status codes</div>
-                          <div class="emit-legend-rows">
-                            <div class="emit-legend-row"><span class="emit-legend-pill s-2xx">2xx</span><span class="emit-legend-desc">success</span></div>
-                            <div class="emit-legend-row"><span class="emit-legend-pill s-4xx">4xx</span><span class="emit-legend-desc">client error</span></div>
-                            <div class="emit-legend-row"><span class="emit-legend-pill s-5xx">5xx</span><span class="emit-legend-desc">server error</span></div>
-                          </div>
-                        </div>
-                      </div>
-                      <button id="emit-legend-btn" type="button" aria-expanded="false" aria-controls="emit-legend-panel" title="Reading this page">&#8759;</button>
-                    </div>
 
                     <script src="./swagger-ui-bundle.js" charset="UTF-8"></script>
                     <script src="./swagger-ui-standalone-preset.js" charset="UTF-8"></script>

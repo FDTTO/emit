@@ -1501,6 +1501,81 @@
     holder.parentNode.insertBefore(section, holder);
   }
 
+  /* ---------------------------------------------------------------- legend
+   * How to read the page, in the page's own marks: what the colours of an
+   * answer mean (amber is wait, then retry), who may call, how a field is
+   * drawn, and the keys. A popover over the statusbar item that opens it.
+   */
+  function legendRow(grid, mark, words, aside) {
+    grid.appendChild(mark);
+    var said = el('span', null, aside ? words + ' ' : words);
+    if (aside) said.appendChild(el('small', null, '· ' + aside));
+    grid.appendChild(said);
+  }
+
+  function legendSection(panel, title) {
+    var section = panel.appendChild(el('section'));
+    section.appendChild(el('div', 'emit-rail__label', title));
+    return section.appendChild(el('div', 'emit-legend__grid'));
+  }
+
+  function outcome(label, tone) {
+    return el('span', 'emit-legend__outcome emit-legend__outcome--' + tone, label);
+  }
+
+  function buildLegend(win, status) {
+    var button = el('button', 'emit-legend-btn', '∷');
+    button.appendChild(el('span', 'emit-legend-btn__word', ' Legend'));
+    button.id = 'emit-legend-btn';
+    button.type = 'button';
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute('aria-controls', 'emit-legend-panel');
+    status.appendChild(button);
+
+    var panel = el('div', 'emit-legend');
+    panel.id = 'emit-legend-panel';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-label', 'Reading this page');
+    panel.hidden = true;
+    panel.appendChild(el('h3', null, 'Reading this page'));
+
+    var outcomes = legendSection(panel, 'Outcomes');
+    legendRow(outcomes, outcome('2xx', 'ok'), 'it worked');
+    legendRow(outcomes, outcome('4xx', 'bad'), 'the call was refused', 'fix the request');
+    legendRow(outcomes, outcome('429', 'wait'), 'wait, then retry', 'also 5xx and PENDING');
+    legendRow(outcomes, outcome('RUN', 'run'), 'work in progress');
+
+    var who = legendSection(panel, 'Who may call');
+    legendRow(who, scopeBadge(SCOPE_BY_SCHEME.bearerAuth), 'admin token, tenant management');
+    legendRow(who, scopeBadge(SCOPE_BY_SCHEME.apiKeyAuth), "a tenant's key, its documents");
+
+    var fields = legendSection(panel, 'Fields');
+    legendRow(fields, el('span', 'emit-chip emit-chip--type', 'string'), 'what the value is');
+    legendRow(fields, el('span', 'emit-chip emit-chip--format', 'uuid'), 'how it is written');
+    legendRow(fields, el('span', 'emit-constraint', '1 to 100'), 'a rule it must meet');
+    var required = el('span', 'emit-field__name', 'name');
+    required.appendChild(el('i', null, '*'));
+    legendRow(fields, required, 'required');
+
+    var keys = legendSection(panel, 'Keys');
+    legendRow(keys, el('kbd', null, 'Ctrl K'), 'jump to an operation');
+    legendRow(keys, el('kbd', null, 'Ctrl B'), 'fold the rail');
+    win.appendChild(panel);
+
+    var toggle = function (open) {
+      panel.hidden = !open;
+      button.setAttribute('aria-expanded', String(open));
+      button.classList.toggle('is-on', open);
+    };
+    button.addEventListener('click', function () { toggle(panel.hidden); });
+    panel.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') { toggle(false); button.focus(); }
+    });
+    document.addEventListener('click', function (event) {
+      if (!panel.hidden && !panel.contains(event.target) && event.target !== button) toggle(false);
+    });
+  }
+
   /* ----------------------------------------------------------- credentials
    * Authorize as the credentials Execute sends: one card per scheme, its
    * state first (held, where it came from, until when), and the way to get
@@ -2564,8 +2639,7 @@
       });
     });
     status.appendChild(requestId);
-    var legend = document.getElementById('emit-legend');
-    if (legend) status.appendChild(legend);
+    buildLegend(win, status);
 
     win.appendChild(rail);
     win.appendChild(root);
@@ -3073,22 +3147,10 @@
     });
   }
 
-  function bindLegend() {
-    var btn = document.getElementById('emit-legend-btn');
-    var panel = document.getElementById('emit-legend-panel');
-    if (!btn || !panel) return;
-    btn.addEventListener('click', function () {
-      var open = panel.dataset.open !== 'true';
-      panel.dataset.open = String(open);
-      btn.setAttribute('aria-expanded', String(open));
-    });
-  }
-
   function start() {
     buildShell();
     restoreRail();
     paint();
-    bindLegend();
     bindShortcuts();
 
     /* The content pane scrolls, not the page. Capture, because the pane is

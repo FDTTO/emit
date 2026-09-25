@@ -193,20 +193,10 @@ body {
 @media (max-width: 900px) {
   #emit-window > #emit-rail, .emit-scene__glow, .emit-scene__streak { display: none; }
   #emit-window > #emit-statusbar { display: contents; }
-  #emit-window > #emit-statusbar > :not(#emit-legend) { display: none; }
+  #emit-window > #emit-statusbar > :not(#emit-legend-btn) { display: none; }
 }
-/* Wide: the legend is the statusbar's last item and opens upward. */
 @media (min-width: 901px) {
   #emit-statusbar > .emit-status__grow { flex: 1 1 auto; padding: 0; }
-  #emit-statusbar #emit-legend { position: relative; bottom: auto; right: auto; padding: 0; }
-  #emit-statusbar #emit-legend-btn {
-    width: auto; height: var(--statusbar-h); padding: 0 var(--sp-4);
-    background: none; border: 0; border-radius: 0; box-shadow: none; backdrop-filter: none;
-    color: var(--e-dim); font: 500 var(--t-xs)/1 var(--f-mono);
-  }
-  #emit-statusbar #emit-legend-btn::after { content: "Legend"; margin-left: var(--sp-2); }
-  #emit-statusbar #emit-legend-btn:hover { background: var(--e-raised); color: var(--e-body); }
-  #emit-statusbar #emit-legend-panel { position: absolute; right: var(--sp-2); bottom: calc(100% + var(--sp-2)); }
 }
 
 /* Rail: quiet, it answers "where am I" and "what next" and steps back. */
@@ -410,13 +400,13 @@ body {
 
 /* Keyboard focus ring. The legend lives outside .swagger-ui, so it is listed. */
 #emit-swagger .swagger-ui :focus-visible,
-#emit-legend :focus-visible {
+#emit-window :focus-visible {
   outline: 2px solid var(--ui-c-dim);
   outline-offset: 2px;
 }
 /* Zero specificity via :where(): only controls without a radius of their own
    get one, so focus never reshapes an element. */
-:where(#emit-swagger .swagger-ui :focus-visible, #emit-legend :focus-visible) {
+:where(#emit-swagger .swagger-ui :focus-visible, #emit-window :focus-visible) {
   border-radius: var(--r-sm);
 }
 /* Stock shows `outline: auto` on mouse click too; hide it for pointer focus only. */
@@ -530,7 +520,7 @@ body {
 }
 .emit-jump:hover { background: var(--e-hover); color: var(--e-dim); }
 .emit-jump svg { width: 14px; height: 14px; }
-.emit-jump kbd, .emit-palette kbd {
+.emit-jump kbd, .emit-palette kbd, .emit-legend kbd {
   margin-left: auto;
   padding: 3px 6px;
   border-radius: var(--r-sm);
@@ -1191,8 +1181,7 @@ body {
 }
 
 /* Method badge. Counter: {background:#000;color:#fff;min-width:80px;text-shadow} */
-#emit-swagger .swagger-ui .opblock .opblock-summary-method,
-#emit-swagger .emit-legend-pill[class*="m-"] {
+#emit-swagger .swagger-ui .opblock .opblock-summary-method {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -1561,9 +1550,8 @@ body {
   width: 104px;
   white-space: nowrap;
 }
-/* The device: a status code, wherever one is drawn. */
-#emit-swagger .swagger-ui .response-col_status,
-#emit-swagger .emit-legend-pill[class*="s-"] {
+/* A status code, in mono, its digits aligned. */
+#emit-swagger .swagger-ui .response-col_status {
   color: var(--e-body);
   font-family: var(--f-mono);
   font-size: var(--t-md);
@@ -1571,8 +1559,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 /* The dot takes the row's status colour through currentColor. */
-#emit-swagger .swagger-ui tr.response .response-col_status::before,
-#emit-swagger .emit-legend-pill[class*="s-"]::before {
+#emit-swagger .swagger-ui tr.response .response-col_status::before {
   content: '';
   display: inline-block;
   width: 6px;
@@ -2660,93 +2647,38 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
 .emit-map__count { margin-left: auto; font: 500 var(--t-xs)/1 var(--f-mono); color: var(--e-faint); }
 
 /* --------------------------------------------------------------------------
-   14. LEGEND (markup injected by SwaggerUiController)
+   14. LEGEND (built by enhance.js)
+   A popover over the statusbar item that opens it, in the page's own marks.
    -------------------------------------------------------------------------- */
-#emit-legend {
-  position: fixed; bottom: var(--sp-5); right: var(--sp-5); z-index: 9000;
-  display: flex; flex-direction: column; align-items: flex-end; gap: var(--sp-2);
-  font-family: var(--f-body);
-}
-#emit-legend-btn {
-  width: 34px; height: 34px;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--e-surface);
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: var(--r-code);
-  color: rgba(168,186,222,0.5);
-  font-size: var(--t-md); cursor: pointer;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.28);
-  transition: background 0.14s, border-color 0.14s, color 0.14s;
-}
-#emit-legend-btn:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.28); color: rgba(168,186,222,0.85); }
-#emit-legend-panel {
-  display: none;
-  min-width: 232px;
-  /* The panel grows upward from a fixed anchor, so on a short window it would
-     run off the top of the screen. */
-  max-height: calc(100vh - 96px);
+.emit-legend {
+  position: absolute;
+  right: var(--sp-3);
+  bottom: calc(var(--statusbar-h) + 10px);
+  z-index: 30;
+  width: 330px;
+  max-height: calc(100% - var(--titlebar-h) - var(--statusbar-h) - 20px);
   overflow-y: auto;
-  padding: var(--sp-3) var(--sp-4);
-  background: var(--e-glass);
-  border: 1px solid var(--e-rim);
+  padding: var(--sp-5);
   border-radius: var(--r-panel);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 8px 36px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.06);
+  background: linear-gradient(150deg, rgba(40,46,58,0.92), rgba(20,23,30,0.96));
+  backdrop-filter: blur(30px);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55), var(--e-spec);
+  animation: emit-rise .25s var(--ease);
 }
-#emit-legend-panel[data-open="true"] { display: block; }
-.emit-legend-title {
-  margin-bottom: 10px; padding-bottom: 7px;
-  border-bottom: 1px solid var(--e-line);
-  font-size: var(--t-3xs); font-weight: 600; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--e-dim);
-}
-.emit-legend-section + .emit-legend-section { margin-top: 10px; }
-.emit-legend-label {
-  margin-bottom: 5px;
-  font-size: var(--t-3xs); font-weight: 700; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--e-faint);
-}
-/* Content-sized columns, so every description starts at the same x. */
-.emit-legend-rows {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  align-items: center;
-  /* Keep examples at their natural size. */
-  justify-items: start;
-  column-gap: var(--sp-2);
-  row-gap: var(--sp-1);
-}
-.emit-legend-row { display: contents; }
-/* Examples are styled by the rules they illustrate (named in those selectors),
-   so the legend cannot drift from the page. Only layout lives here. */
-.emit-legend-pill,
-.emit-legend-mark,
-.emit-legend-note { flex: 0 0 auto; min-width: 58px; text-align: center; }
-.emit-legend-pill { display: inline-block; }
-.emit-legend-mark {
-  display: inline-block;
-  font-family: var(--f-mono); font-size: var(--t-md); font-weight: 600;
-  color: var(--e-text);
-}
-.emit-legend-mark i { font-style: normal; font-weight: 700; color: var(--e-dim); margin-left: 2px; }
-.emit-legend-note {
-  display: inline-flex; align-items: baseline; gap: 5px;
-  font-family: var(--f-mono); font-size: var(--t-xs); color: var(--e-faint);
-}
-.emit-legend-note::before {
-  content: ''; flex: 0 0 auto; width: 3px; height: 3px;
-  border-radius: 50%; background: var(--e-faint); transform: translateY(-3px);
-}
-/* Only colour varies between method and status examples. */
-#emit-swagger .emit-legend-pill.m-get   { color: var(--get-c);  background: var(--get-bg);  border-color: var(--get-b); }
-#emit-swagger .emit-legend-pill.m-post  { color: var(--post-c); background: var(--post-bg); border-color: var(--post-b); }
-#emit-swagger .emit-legend-pill.m-del   { color: var(--del-c);  background: var(--del-bg);  border-color: var(--del-b); }
-#emit-swagger .emit-legend-pill.m-put   { color: var(--put-c);  background: var(--put-bg);  border-color: var(--put-b); }
-#emit-swagger .emit-legend-pill.s-2xx   { color: var(--s2-c); }
-#emit-swagger .emit-legend-pill.s-4xx   { color: var(--s4-c); }
-#emit-swagger .emit-legend-pill.s-5xx   { color: var(--s5-c); }
-.emit-legend-desc { font-size: var(--t-xs); color: var(--e-dim); }
+.emit-legend[hidden] { display: none; }
+.emit-legend h3 { margin: 0 0 var(--sp-4); font: 600 var(--t-lg)/1 var(--f-body); color: var(--e-text); }
+.emit-legend section + section { margin-top: var(--sp-4); padding-top: var(--sp-4); box-shadow: inset 0 1px 0 var(--e-hair); }
+.emit-legend .emit-rail__label { margin-bottom: var(--sp-3); }
+.emit-legend__grid { display: grid; grid-template-columns: auto 1fr; gap: 9px var(--sp-3); align-items: center; font-size: var(--t-md); color: var(--e-body); }
+.emit-legend__grid small { font-size: var(--t-sm); color: var(--e-faint); }
+.emit-legend__outcome { display: inline-flex; align-items: center; gap: 7px; font: 600 var(--t-md)/1 var(--f-mono); }
+.emit-legend__outcome::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.emit-legend__outcome--ok { color: var(--s2-c); }
+.emit-legend__outcome--bad { color: var(--s4-c); }
+.emit-legend__outcome--wait { color: var(--s5-c); }
+.emit-legend__outcome--run { color: var(--run-c); }
+.emit-legend .emit-field__name { line-height: 1; }
+#emit-statusbar > .emit-legend-btn.is-on { color: var(--e-body); background: var(--e-raised); }
 
 /* --------------------------------------------------------------------------
    15. OPERATION ICONS + SCOPE BADGES (markup injected by enhance.js)
@@ -3009,10 +2941,6 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
     padding-left: var(--sp-2);
     padding-right: var(--sp-2);
   }
-  /* Stock gives the select a 240px minimum width. */
-  #emit-swagger .swagger-ui .schemes-server-container .servers { flex: 1 1 0; min-width: 0; }
-  #emit-swagger .swagger-ui .servers select { min-width: 0; width: 100%; }
-  #emit-legend { bottom: var(--sp-3); right: var(--sp-3); }
   /* A table sizes to its content, so the first column pushed parameters and
      responses past the operation, which clips them. Each row stacks instead:
      name or code above its description. The nested headers table scrolls in
@@ -3046,6 +2974,18 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
 @media (max-width: 900px) {
   /* A long path would push Authorize off the bar. */
   .emit-crumb { display: none; }
+  /* The legend is the statusbar's one survivor: a small control in the
+     corner, its popover over it. */
+  #emit-statusbar > #emit-legend-btn {
+    position: fixed; right: var(--sp-3); bottom: var(--sp-3); z-index: 90;
+    width: 34px; height: 34px; padding: 0;
+    border: 0; border-radius: var(--r-code);
+    background: var(--e-raised); box-shadow: inset 0 0 0 1px var(--e-edge), 0 4px 16px rgba(0,0,0,0.28);
+    backdrop-filter: blur(8px);
+    color: var(--e-dim); font: 500 var(--t-md)/1 var(--f-mono);
+  }
+  .emit-legend-btn__word { display: none; }
+  .emit-legend { position: fixed; right: var(--sp-3); bottom: calc(var(--sp-3) + 44px); width: min(330px, calc(100vw - 2 * var(--sp-3))); max-height: calc(100vh - 80px); }
 }
 @media (max-width: 720px) {
   /* The label rows and the result's bar wrap: tools and tabs take a line of
