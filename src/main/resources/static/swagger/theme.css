@@ -1720,8 +1720,10 @@ body {
 .emit-refusals__code { font: 600 var(--t-md)/1 var(--f-mono); }
 .emit-refusals__title { font-family: var(--f-body); font-size: var(--t-lg); line-height: 1.55; color: var(--e-body); }
 .emit-refusals__head .emit-row-meta { margin: 0; }
-.emit-refusals__table { display: none; width: calc(100% - 92px); margin: 0 var(--sp-3) var(--sp-3) 80px; border-collapse: collapse; font-size: var(--t-md); }
-.emit-refusals.emit-open .emit-refusals__table { display: table; }
+/* Ids: `.opblock table{width:100%}` would outrank the class and push the
+   causes past the panel. */
+#emit-swagger .swagger-ui .emit-refusals .emit-refusals__table { display: none; width: calc(100% - 92px); margin: 0 var(--sp-3) var(--sp-3) 80px; border-collapse: collapse; font-size: var(--t-md); }
+#emit-swagger .swagger-ui .emit-refusals.emit-open .emit-refusals__table { display: table; }
 .emit-refusals__table td { padding: 7px 0; box-shadow: inset 0 1px 0 var(--e-hair); vertical-align: top; }
 .emit-refusals__table tr:first-child td { box-shadow: none; }
 .emit-refusals__row-code { width: 44px; font: 600 var(--t-md)/1.4 var(--f-mono); color: var(--s4-c); }

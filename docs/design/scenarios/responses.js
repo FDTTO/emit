@@ -40,6 +40,12 @@ V.until(function () { return !!q('.emit-refusals') && !!q('.emit-headers-once');
   }), said.length + ' headers');
   check('no per-response headers table is shown', !seen(q('table.responses-table:not(.live-responses-table) .headers-wrapper')));
 
+  q('.emit-refusals__head').click();
+  var group = q('.emit-refusals').getBoundingClientRect(), causes = q('.emit-refusals__table').getBoundingClientRect();
+  check('the causes stay inside their row, long ones wrapping', causes.width > 0 && causes.right <= group.right - 11,
+        { causes: causes.right, row: group.right });
+  q('.emit-refusals__head').click();
+
   row('404').querySelector('.response-col_description__inner').click();
   V.until(function () { return seen(row('404').querySelector('.emit-example')); }, function () {
     check('choosing a line opens it', seen(row('404').querySelector('.emit-example')));
