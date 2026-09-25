@@ -37,7 +37,11 @@
     /* Rail: the overview entry and the collapse control. */
     home: ['M4 11l8-7 8 7', 'M6 10v10h12V10'],
     chevronLeft: ['M15 6l-6 6 6 6'],
-    search: ['M11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12z', 'M20 20l-4.5-4.5']
+    search: ['M11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12z', 'M20 20l-4.5-4.5'],
+    copy: ['M8 8h11v11H8z', 'M5 16V5h11'],
+    format: ['M4 6h10M4 12h16M4 18h12'],
+    reset: ['M4 12a8 8 0 1 0 2.34-5.66', 'M4 4v5h5'],
+    pencil: ['M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z']
   };
 
   /* Action segments: the last path segment names what the call does. Verbs
@@ -909,7 +913,10 @@
       if (credentialState) slot.appendChild(credentialNote(notes.credential, credentialState));
       if (carry) slot.appendChild(carryNote(carry));
       if (follow) slot.appendChild(followNote(follow));
-      table.parentNode.insertBefore(slot, table);
+      /* Over the result sheet, where the eye is after Execute. */
+      var sheet = block.querySelector('.emit-result');
+      if (sheet) sheet.parentNode.insertBefore(slot, sheet);
+      else table.parentNode.insertBefore(slot, table);
     });
   }
 
@@ -976,8 +983,10 @@
     bar.appendChild(icon(scope.icon));
 
     if (state === 'applied') {
+      var senders = sendersOf(note.source.scheme);
       bar.appendChild(el('span', 'emit-note__text',
-        'Authorized as ' + scope.label + ' with this ' + note.source.noun + '.'));
+        'Authorized as ' + scope.label + ' with this ' + note.source.noun + '.' +
+        (senders ? ' ' + senders + ' operations will send it.' : '')));
       return bar;
     }
 
@@ -991,6 +1000,21 @@
     });
     bar.appendChild(action);
     return bar;
+  }
+
+  /* The sections whose operations require a scheme, named the way a reader
+     says them: "Tenant", "Document". */
+  function sendersOf(scheme) {
+    var tags = [];
+    Object.keys(spec.paths).forEach(function (path) {
+      HTTP_METHODS.forEach(function (method) {
+        var operation = spec.paths[path][method];
+        if (!operation || requiredSchemes(operation).indexOf(scheme) === -1) return;
+        var tag = ((operation.tags && operation.tags[0]) || '').replace(/s$/, '');
+        if (tag && tags.indexOf(tag) === -1) tags.push(tag);
+      });
+    });
+    return tags.join(' and ');
   }
 
   /* Each operation named links to it, with the id already in place. */
@@ -1286,15 +1310,33 @@
           });
         }
       });
+      /* What comes back is worth seeing at once where nothing is sent; an
+         operation with a body already shows its editor. */
       if (!table.querySelector('tr.emit-open') && !table.dataset.emitDefaulted) {
         table.dataset.emitDefaulted = 'true';
         var success = table.querySelector('tbody > tr.response[data-code^="2"]');
-        if (success) success.classList.add('emit-open');
+        if (success && !block.querySelector('.opblock-section-request-body')) success.classList.add('emit-open');
       }
+      table.querySelectorAll('tbody > tr.response.emit-open').forEach(paintRowExample);
 
       paintSharedRefusals(block, table, operation);
       paintHeadersOnce(block, table, operation);
     });
+  }
+
+  /* An open row's example, drawn in the page's own well from the text
+     Swagger renders, so it takes the page's token colours; Swagger's block
+     stays for the example picker to drive. */
+  function paintRowExample(row) {
+    var source = row.querySelector('.model-example pre');
+    var cell = row.querySelector('.response-col_description');
+    if (!source || !cell) return;
+    var text = source.textContent;
+    var well = cell.querySelector('.emit-example');
+    if (well && well.dataset.text === text) return;
+    if (!well) well = cell.appendChild(el('pre', 'emit-well emit-example'));
+    well.dataset.text = text;
+    highlightJson(well, prettyJson(text) || text);
   }
 
   function isFollowStart(block) {
@@ -1378,6 +1420,399 @@
     });
     var after = block.querySelector('.emit-refusals') || table;
     after.parentNode.insertBefore(line, after.nextSibling);
+  }
+
+  /* ---------------------------------------------------------------- result
+   * After Execute, one sheet says how the call went and tabs hold what came
+   * back: the body, the headers, the curl. It is the page's own markup, fed
+   * from Swagger's store; Swagger's live blocks stay mounted but hidden, as
+   * the source of the curl and of a binary body's download link. An operation
+   * with a request body then shows the request as it was sent, and Edit
+   * brings the editor back.
+   */
+  var REASONS = { 200: 'OK', 201: 'Created', 202: 'Accepted', 204: 'No Content', 400: 'Bad Request',
+    401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found', 409: 'Conflict', 415: 'Unsupported Media Type',
+    429: 'Too Many Requests', 500: 'Internal Server Error', 503: 'Service Unavailable' };
+  /* The API's own headers lead: the id to quote, then the budget. */
+  var OWN_HEADERS = ['x-request-id', 'ratelimit-limit', 'ratelimit-remaining', 'ratelimit-reset', 'retry-after'];
+
+  /* Amber is "wait, then retry": a 429 or a server error. */
+  function toneOf(status) {
+    return status === 429 || status >= 500 ? 'wait' : status >= 400 ? 'bad' : 'ok';
+  }
+
+  function routeOf(block) {
+    var path = block.querySelector('.opblock-summary-path');
+    var method = HTTP_METHODS.filter(function (m) { return block.classList.contains('opblock-' + m); })[0];
+    return path && method ? { path: path.getAttribute('data-path'), method: method } : null;
+  }
+
+  /* JSON drawn with keys, strings and numbers told apart, built as nodes so
+     nothing the API returns is ever parsed as markup. */
+  var JSON_TOKEN = /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null)/g;
+  function highlightJson(target, text) {
+    target.textContent = '';
+    var last = 0;
+    text.replace(JSON_TOKEN, function (match, string, colon, literal, offset) {
+      if (offset > last) target.appendChild(document.createTextNode(text.slice(last, offset)));
+      target.appendChild(el('span', string ? (colon ? 'k' : 's') : 'n', string || literal));
+      if (colon) target.appendChild(document.createTextNode(colon));
+      last = offset + match.length;
+      return match;
+    });
+    target.appendChild(document.createTextNode(text.slice(last)));
+  }
+
+  function prettyJson(text, inline) {
+    try {
+      var value = JSON.parse(text);
+      var spaced = JSON.stringify(value, null, 1).replace(/\n\s*/g, ' ');
+      return inline && spaced.length <= 90 ? spaced : JSON.stringify(value, null, 2);
+    } catch (notJson) {
+      return null;
+    }
+  }
+
+  function headerList(response) {
+    var headers = response.get('headers');
+    var list = headers && headers.toJS ? headers.toJS() : headers || {};
+    var names = Object.keys(list);
+    var own = OWN_HEADERS.filter(function (name) { return names.indexOf(name) !== -1; });
+    return own.concat(names.filter(function (name) { return own.indexOf(name) === -1; })).map(function (name) {
+      var value = list[name];
+      return { name: name, value: Array.isArray(value) ? value.join(', ') : String(value) };
+    });
+  }
+
+  function tool(glyph, label, action) {
+    var button = el('button', 'emit-tool');
+    button.type = 'button';
+    if (glyph) button.appendChild(icon(glyph));
+    button.appendChild(el('span', null, label));
+    button.addEventListener('click', action);
+    return button;
+  }
+
+  function copyTool(text) {
+    var button = tool('copy', 'Copy', function () {
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(text()).then(function () {
+        button.lastChild.textContent = 'Copied';
+        setTimeout(function () { button.lastChild.textContent = 'Copy'; }, 1200);
+      });
+    });
+    return button;
+  }
+
+  function saveBody(block, body, type) {
+    var id = block.id.replace(/^operations-[^-]+-/, '');
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(body instanceof Blob ? body : new Blob([body], { type: type }));
+    link.download = id + (/json/.test(type) ? '.json' : /pdf/.test(type) ? '.pdf' : '');
+    link.click();
+    setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+  }
+
+  function resultSheet(block, response, openTab) {
+    var status = response.get('status');
+    var body = response.get('text');
+    var type = (headerList(response).filter(function (h) { return h.name === 'content-type'; })[0] || {}).value || '';
+    var size = body instanceof Blob ? body.size : new Blob([body || '']).size;
+    var requestId = (headerList(response).filter(function (h) { return h.name === 'x-request-id'; })[0] || {}).value;
+
+    var sheet = el('div', 'emit-result');
+    var head = el('div', 'emit-result__head');
+    head.appendChild(el('span', 'emit-result__status emit-result__status--' + toneOf(status), status + (REASONS[status] ? ' ' + REASONS[status] : '')));
+    var meta = el('span', 'emit-result__meta');
+    [[response.get('duration'), 'ms'], [size, 'B']].forEach(function (pair) {
+      if (pair[0] == null) return;
+      var item = el('span');
+      item.appendChild(el('b', null, String(pair[0])));
+      item.appendChild(document.createTextNode(' ' + pair[1]));
+      meta.appendChild(item);
+    });
+    head.appendChild(meta);
+    if (requestId) {
+      var rid = el('button', 'emit-result__rid');
+      rid.type = 'button';
+      rid.title = 'Copy the request id';
+      rid.appendChild(icon('copy'));
+      var shown = requestId.length > 16 ? requestId.slice(0, 8) + '…' + requestId.slice(-6) : requestId;
+      var label = rid.appendChild(el('span', null, shown));
+      rid.addEventListener('click', function () {
+        if (!navigator.clipboard) return;
+        navigator.clipboard.writeText(requestId).then(function () {
+          label.textContent = 'Copied';
+          setTimeout(function () { label.textContent = shown; }, 1200);
+        });
+      });
+      head.appendChild(rid);
+    }
+
+    var headers = headerList(response);
+    var tabs = el('div', 'emit-tabs');
+    tabs.setAttribute('role', 'tablist');
+    var panels = {};
+    [['body', 'Body'], ['headers', 'Headers', headers.length], ['curl', 'curl']].forEach(function (tab) {
+      var button = el('button', null, tab[1]);
+      button.type = 'button';
+      button.setAttribute('role', 'tab');
+      button.dataset.tab = tab[0];
+      if (tab[2]) button.appendChild(el('small', null, String(tab[2])));
+      button.addEventListener('click', function () { choose(tab[0]); });
+      tabs.appendChild(button);
+    });
+    head.appendChild(tabs);
+    sheet.appendChild(head);
+
+    var bodyPanel = el('div', 'emit-result__panel');
+    var pretty = typeof body === 'string' ? prettyJson(body) : null;
+    var pre = el('pre', 'emit-well');
+    if (pretty) highlightJson(pre, pretty);
+    else if (body instanceof Blob || !/json|text/.test(type)) pre.textContent = (type || 'binary') + ', ' + size + ' B. Save it to open it.';
+    else pre.textContent = body || 'No body.';
+    bodyPanel.appendChild(pre);
+    var bodyTools = el('div', 'emit-result__tools');
+    if (typeof body === 'string' && body) bodyTools.appendChild(copyTool(function () { return pretty || body; }));
+    if (body && size) bodyTools.appendChild(tool('download', 'Save', function () { saveBody(block, body, type); }));
+    bodyPanel.appendChild(bodyTools);
+    panels.body = bodyPanel;
+
+    var headersPanel = el('div', 'emit-result__panel');
+    var grid = el('div', 'emit-kv');
+    headers.forEach(function (header) {
+      var hot = header.name === 'x-request-id' ? ' is-hot' : '';
+      grid.appendChild(el('div', 'emit-kv__key' + hot, header.name));
+      grid.appendChild(el('div', 'emit-kv__value' + hot, header.value));
+    });
+    headersPanel.appendChild(grid);
+    headersPanel.appendChild(el('p', 'emit-result__explain',
+      'The API’s own headers first: the id to quote, then the budget on tenant routes. The server’s standard headers follow.'));
+    panels.headers = headersPanel;
+
+    var curlPanel = el('div', 'emit-result__panel');
+    var curl = block.querySelector('.curl-command pre');
+    var curlText = curl ? curl.textContent : '';
+    var curlPre = el('pre', 'emit-well');
+    curlText.split(/('(?:[^'\\]|\\.)*')/).forEach(function (part, index) {
+      curlPre.appendChild(index % 2 ? el('span', 's', part) : document.createTextNode(part));
+    });
+    curlPanel.appendChild(curlPre);
+    var curlTools = el('div', 'emit-result__tools');
+    curlTools.appendChild(copyTool(function () { return curlText; }));
+    curlPanel.appendChild(curlTools);
+    panels.curl = curlPanel;
+
+    Object.keys(panels).forEach(function (key) { sheet.appendChild(panels[key]); });
+    function choose(key) {
+      sheet.dataset.tab = key;
+      Array.prototype.forEach.call(tabs.children, function (button) {
+        button.setAttribute('aria-selected', String(button.dataset.tab === key));
+      });
+      Object.keys(panels).forEach(function (name) { panels[name].hidden = name !== key; });
+    }
+    choose(openTab || 'body');
+    return sheet;
+  }
+
+  function paintResults() {
+    if (!window.ui || !window.ui.specSelectors) return;
+    document.querySelectorAll('.opblock').forEach(function (block) {
+      var route = routeOf(block);
+      var response = route && block.classList.contains('is-open') && window.ui.specSelectors.responseFor(route.path, route.method);
+      var sheet = block.querySelector('.emit-result');
+      var wrapper = block.querySelector('.responses-wrapper');
+      if (!response || !response.get || !wrapper) {
+        if (sheet) sheet.remove();
+        block.classList.remove('emit-has-result', 'emit-editing');
+        return;
+      }
+      var signature = [response.get('status'), response.get('duration'), headerList(response).map(function (h) { return h.value; }).join('|')].join(':');
+      if (sheet && sheet.dataset.signature === signature) return;
+      var openTab = sheet && sheet.dataset.tab;
+      if (sheet) sheet.remove();
+      sheet = resultSheet(block, response, openTab);
+      sheet.dataset.signature = signature;
+      wrapper.parentNode.insertBefore(sheet, wrapper);
+      /* A new answer shows the request as it went. */
+      block.classList.add('emit-has-result');
+      block.classList.remove('emit-editing');
+      paintSentBody(block, route);
+    });
+  }
+
+  /* The request as it was sent, one line when it fits. */
+  function paintSentBody(block, route) {
+    var section = block.querySelector('.opblock-section-request-body');
+    if (!section) return;
+    var sent = section.querySelector('.emit-sent');
+    if (!sent) {
+      sent = el('pre', 'emit-well emit-sent');
+      section.appendChild(sent);
+    }
+    var request = window.ui.specSelectors.mutatedRequestFor(route.path, route.method);
+    var body = request && request.get('body');
+    var text = typeof body === 'string' ? (prettyJson(body, true) || body) : '';
+    highlightJson(sent, text);
+  }
+
+  /* ------------------------------------------------------------ body editor
+   * The request body as the design draws it: numbered lines, Format and
+   * Reset on its label row, the schema one tab away, and whether it is valid
+   * JSON said as you type. Swagger's textarea stays the editor, so React
+   * keeps the value; the page adds the gutter and the tools around it.
+   */
+  function requestSchemaOf(operation) {
+    var media = operation && operation.requestBody && operation.requestBody.content &&
+      operation.requestBody.content['application/json'];
+    var ref = media && media.schema && media.schema.$ref;
+    var name = ref ? ref.split('/').pop() : null;
+    return name ? { name: name, schema: spec.components.schemas[name] } : null;
+  }
+
+  function setAreaValue(area, value) {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(area, value);
+    area.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  /* What the reader has typed, against the schema the body must match. */
+  function validity(text, target) {
+    var value;
+    try { value = JSON.parse(text); } catch (error) { return { ok: false, words: 'Not valid JSON', detail: error.message.replace(/^JSON\.parse: /, '') }; }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return { ok: false, words: 'Not an object', detail: 'the body is one JSON object' };
+    var fields = Object.keys(value);
+    var detail = fields.length + (fields.length === 1 ? ' field' : ' fields');
+    if (!target) return { ok: true, words: 'Valid JSON', detail: detail };
+    var properties = target.schema.properties || {};
+    var missing = (target.schema.required || []).filter(function (name) { return !(name in value); });
+    var unknown = fields.filter(function (name) { return !properties[name]; });
+    if (missing.length) return { ok: false, words: 'Valid JSON', detail: detail + ' · missing ' + missing.join(', ') };
+    if (unknown.length) return { ok: false, words: 'Valid JSON', detail: detail + ' · ' + target.name + ' has no ' + unknown.join(', ') };
+    return { ok: true, words: 'Valid JSON', detail: detail + ' · matches ' + target.name };
+  }
+
+  function paintBodyEditors() {
+    if (!spec) return;
+    document.querySelectorAll('.opblock.is-open .opblock-section-request-body').forEach(function (section) {
+      var block = section.closest('.opblock');
+      var area = section.querySelector('textarea.body-param__text');
+      var header = section.querySelector('.opblock-section-header');
+      if (!area || !header) return;
+      var target = requestSchemaOf(operationFor(block));
+
+      if (!header.querySelector('.emit-body-tools')) {
+        var type = el('span', 'emit-body-type', 'application/json');
+        header.appendChild(type);
+        var tools = el('div', 'emit-body-tools');
+        var tabs = el('div', 'emit-tabs');
+        ['Edit', 'Schema'].forEach(function (name) {
+          var button = el('button', null, name);
+          button.type = 'button';
+          button.dataset.tab = name.toLowerCase();
+          button.setAttribute('aria-selected', String(name === 'Edit'));
+          button.addEventListener('click', function () {
+            section.dataset.view = button.dataset.tab;
+            Array.prototype.forEach.call(tabs.children, function (b) { b.setAttribute('aria-selected', String(b === button)); });
+          });
+          tabs.appendChild(button);
+        });
+        tools.appendChild(tabs);
+        tools.appendChild(tool('format', 'Format', function () {
+          var pretty = prettyJson(area.value);
+          if (pretty) setAreaValue(area, pretty);
+        }));
+        tools.appendChild(tool('reset', 'Reset to example', function () {
+          var reset = block.querySelector('.try-out__btn.reset');
+          if (reset) reset.click();
+        }));
+        tools.appendChild(tool('pencil', 'Edit', function () {
+          block.classList.add('emit-editing');
+          area.focus();
+        })).classList.add('emit-tool--edit');
+        header.appendChild(tools);
+        if (target) section.appendChild(fieldRows(target.schema, 'emit-body-schema'));
+      }
+
+      var param = area.closest('.body-param');
+      var gutter = param.querySelector('.emit-gutter');
+      if (!gutter) {
+        gutter = el('div', 'emit-gutter');
+        gutter.setAttribute('aria-hidden', 'true');
+        param.insertBefore(gutter, area);
+        area.setAttribute('spellcheck', 'false');
+        area.addEventListener('input', function () { paintBodyState(area, gutter, target); });
+      }
+      paintBodyState(area, gutter, target);
+    });
+  }
+
+  function paintBodyState(area, gutter, target) {
+    var lines = area.value.split('\n').length;
+    if (gutter.dataset.lines !== String(lines)) {
+      gutter.dataset.lines = String(lines);
+      gutter.textContent = Array.apply(null, { length: lines }).map(function (_, i) { return i + 1; }).join('\n');
+      area.style.height = 'auto';
+      area.style.height = area.scrollHeight + 'px';
+    }
+    var param = area.closest('.body-param');
+    var line = param.parentNode.querySelector('.emit-validity');
+    if (!line) {
+      line = el('div', 'emit-validity');
+      param.parentNode.insertBefore(line, param.nextSibling);
+    }
+    var said = validity(area.value, target);
+    var key = said.ok + said.words + said.detail;
+    if (line.dataset.key === key) return;
+    line.dataset.key = key;
+    line.className = 'emit-validity' + (said.ok ? '' : ' is-bad');
+    line.textContent = said.words + ' ';
+    line.appendChild(el('span', null, '· ' + said.detail));
+  }
+
+  /* A schema's fields as rows: the name, required or not, its type and
+     rules, what it means and an example. The Schemas section draws models
+     the same way. */
+  function fieldRows(schema, className) {
+    var list = el('div', 'emit-fields' + (className ? ' ' + className : ''));
+    var required = schema.required || [];
+    Object.keys(schema.properties || {}).forEach(function (name) {
+      var property = schema.properties[name];
+      var row = el('div', 'emit-field');
+      var label = el('div', 'emit-field__name', name);
+      if (required.indexOf(name) !== -1) label.appendChild(el('i', null, '*'));
+      row.appendChild(label);
+      var about = el('div');
+      var kind = el('div', 'emit-field__type');
+      var ref = property.$ref && property.$ref.split('/').pop();
+      kind.appendChild(el('span', 'emit-chip emit-chip--type', ref || property.type || 'object'));
+      if (property.format) kind.appendChild(el('span', 'emit-chip emit-chip--format', property.format));
+      constraintsOf(property).forEach(function (rule) { kind.appendChild(el('span', 'emit-constraint', rule)); });
+      about.appendChild(kind);
+      if (property.description) about.appendChild(el('p', 'emit-field__about', property.description));
+      if (property.example !== undefined) {
+        var example = el('div', 'emit-field__example');
+        example.appendChild(el('b', null, 'EXAMPLE'));
+        example.appendChild(document.createTextNode(JSON.stringify(property.example)));
+        about.appendChild(example);
+      }
+      row.appendChild(about);
+      list.appendChild(row);
+    });
+    return list;
+  }
+
+  function constraintsOf(property) {
+    var rules = [];
+    if (property.minLength != null || property.maxLength != null) {
+      rules.push(property.minLength != null && property.maxLength != null
+        ? property.minLength + ' to ' + property.maxLength + ' characters'
+        : property.minLength != null ? 'at least ' + property.minLength + ' characters' : 'up to ' + property.maxLength + ' characters');
+    }
+    if (property.pattern) rules.push('matches ' + property.pattern);
+    if (property.enum) rules.push(property.enum.join(' | '));
+    if (property.minimum != null) rules.push('at least ' + property.minimum);
+    if (property.maximum != null) rules.push('at most ' + property.maximum);
+    return rules;
   }
 
   /* A carried id names its source inside the field it filled, and the name
@@ -2338,6 +2773,8 @@
   function paint() {
     watchStore();
     paintTopbar();
+    paintResults();
+    paintBodyEditors();
     paintResponseNotes();
     paintLifecycleCurrent();
     paintTitle();

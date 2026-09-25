@@ -1,8 +1,9 @@
 // @widths 1280,375,320
 // Page-wide layout invariants: nothing pushes the page
 // sideways, the lifecycle figure fits its box and runs down on a phone, the
-// topbar stays one row, and the executed request sits on the operation gutter
-// with its wells drawn, and no open operation clips what it holds.
+// topbar stays one row, and the executed request's result sits on the
+// operation gutter with its wells drawn, and no open operation clips what it
+// holds.
 V.execute('Authentication', 'login', '{"username":"admin","password":"admin123"}', 4000);
 V.open('Documents', 'getDocument', 6000);
 V.open('Tenants', 'createTenant', 7500);
@@ -42,14 +43,16 @@ setTimeout(function () {
 
   var body = document.querySelector('#operations-Authentication-login .opblock-body').getBoundingClientRect();
   var gutter = Math.round(body.left) + parseInt(getComputedStyle(root).getPropertyValue('--gutter'), 10);
-  ['.curl-command > h4', '.curl-command > div:last-child', '.request-url > h4', '.request-url pre'].forEach(function (s) {
+  ['.emit-sent', '.emit-note', '.emit-result'].forEach(function (s) {
     var r = document.querySelector('#operations-Authentication-login ' + s).getBoundingClientRect();
     check('on the gutter: ' + s, Math.round(r.left) === gutter, { left: Math.round(r.left), gutter: gutter });
   });
-  ['.curl-command > div:last-child', '.request-url pre'].forEach(function (s) {
+  ['.emit-sent', '.emit-result__panel:not([hidden]) > .emit-well'].forEach(function (s) {
     var cs = getComputedStyle(document.querySelector('#operations-Authentication-login ' + s));
-    check('well drawn: ' + s, cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.borderTopWidth !== '0px');
+    check('well drawn: ' + s, cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.boxShadow !== 'none');
   });
+  var stock = document.querySelector('#operations-Authentication-login .curl-command');
+  check('the stock live blocks are out of sight', !!stock && !stock.getClientRects().length);
   if (width < 900) {
     check('a phone shows no rail', getComputedStyle(document.getElementById('emit-rail')).display === 'none');
     var legend = document.getElementById('emit-legend-btn').getBoundingClientRect();

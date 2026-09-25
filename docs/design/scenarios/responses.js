@@ -12,7 +12,7 @@ V.open('Documents', 'getDocument', 2500);
 V.until(function () { return !!q('.emit-refusals') && !!q('.emit-headers-once'); }, function () {
   var spec = window.ui.specSelectors.specJson().toJS().paths['/v1/documents/{id}'].get.responses;
 
-  check('the success line opens on its example', seen(row('200').querySelector('.model-example')));
+  check('the success line opens on its example', seen(row('200').querySelector('.emit-example')));
   check('another line is one row until chosen', !seen(row('404').querySelector('.model-example')));
 
   var shared = 0;
@@ -41,8 +41,8 @@ V.until(function () { return !!q('.emit-refusals') && !!q('.emit-headers-once');
   check('no per-response headers table is shown', !seen(q('table.responses-table:not(.live-responses-table) .headers-wrapper')));
 
   row('404').querySelector('.response-col_description__inner').click();
-  V.until(function () { return seen(row('404').querySelector('.model-example')); }, function () {
-    check('choosing a line opens it', seen(row('404').querySelector('.model-example')));
+  V.until(function () { return seen(row('404').querySelector('.emit-example')); }, function () {
+    check('choosing a line opens it', seen(row('404').querySelector('.emit-example')));
     done();
   }, 5000);
 }, 20000);

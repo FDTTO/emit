@@ -1560,22 +1560,24 @@ body {
 #emit-swagger .swagger-ui tr[data-param-in="path"] .parameter__name.required::after { content: none; }
 #emit-swagger .swagger-ui .parameter__name.required { font-weight: 600; }
 #emit-swagger .swagger-ui .parameter__name.required span { display: none; }
+/* Required, as a chip in the title's grey. */
 #emit-swagger .swagger-ui .parameter__name.required::after {
   content: 'required';
   position: static;
   top: 0;
-  display: inline-block;
-  margin-left: var(--sp-2);
-  padding: 1px 5px;
-  font-family: var(--f-mono);
-  font-size: var(--t-3xs);
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  margin-left: var(--sp-3);
+  padding: 0 var(--sp-2);
+  font: 600 var(--t-xs)/1 var(--f-mono);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--e-dim);
-  background: transparent;
-  border: 1px solid var(--e-line);
-  border-radius: var(--r-xs);
+  background: color-mix(in srgb, var(--e-dim) 10%, transparent);
+  border: 0;
+  border-radius: var(--r-sm);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--e-dim) 28%, transparent);
   vertical-align: middle;
 }
 /* The labels over each column say nothing the rows do not. */
@@ -1811,6 +1813,16 @@ body {
 #emit-swagger .swagger-ui table.responses-table:not(.live-responses-table) .response-col_description__inner .renderedMarkdown { flex: 1 1 auto; }
 #emit-swagger .swagger-ui table.responses-table:not(.live-responses-table) .response-col_description__inner p { font-size: var(--t-lg); line-height: 1.55; }
 #emit-swagger .swagger-ui table.responses-table:not(.live-responses-table) .response-col_description__inner .renderedMarkdown { margin: 0; padding: 0; }
+/* An open row's example sits in the page's own well, under the words. */
+#emit-swagger .swagger-ui table.responses-table:not(.live-responses-table) .response-col_description .model-example { display: none; }
+.emit-well.emit-example { margin: 10px 0 2px -12px; }
+/* A row's title is words; code in it reads as words too. */
+#emit-swagger .swagger-ui table.responses-table:not(.live-responses-table) .response-col_description__inner p code {
+  font: inherit !important;
+  color: inherit !important;
+  background: none !important;
+  padding: 0 !important;
+}
 /* The next read after a run's start, said under its row. */
 .emit-row-note { margin: 10px 0 2px -12px; font-size: var(--t-md); line-height: 1.55; color: var(--e-dim); }
 .emit-row-note code { font-family: var(--f-mono); color: var(--e-body); }
@@ -2160,33 +2172,31 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
-  margin: var(--sp-2) var(--gutter) var(--sp-3);
+  margin: 0 var(--gutter) var(--sp-4);
 }
+/* A note is a bar tinted by what it is about: a scope, a carried id, a
+   refusal, a run. */
 #emit-swagger .swagger-ui .emit-note {
+  --c: var(--ui-c);
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding: 7px var(--sp-3);
-  border: 1px solid var(--e-line);
-  border-radius: var(--r-sm);
-  font-family: var(--f-body);
-  font-size: var(--t-sm);
+  gap: var(--sp-3);
+  padding: 10px var(--sp-4);
+  border: 0;
+  border-radius: var(--r-code);
+  font: 400 var(--t-md)/1.55 var(--f-body);
   color: var(--e-body);
+  background: color-mix(in srgb, var(--c) 8%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, transparent);
 }
-#emit-swagger .swagger-ui .emit-note svg { width: 14px; height: 14px; flex: 0 0 auto; }
-#emit-swagger .swagger-ui .emit-note--admin  { background: var(--sc-admin-bg);  border-color: var(--sc-admin-b); }
-#emit-swagger .swagger-ui .emit-note--tenant { background: var(--sc-tenant-bg); border-color: var(--sc-tenant-b); }
-#emit-swagger .swagger-ui .emit-note--carry  { background: var(--ui-bg);        border-color: var(--ui-b); }
-#emit-swagger .swagger-ui .emit-note--admin svg  { color: var(--sc-admin-c); }
-#emit-swagger .swagger-ui .emit-note--tenant svg { color: var(--sc-tenant-c); }
-#emit-swagger .swagger-ui .emit-note--carry svg  { color: var(--ui-c); }
+#emit-swagger .swagger-ui .emit-note svg { width: 14px; height: 14px; flex: 0 0 auto; color: var(--c); }
+#emit-swagger .swagger-ui .emit-note--admin  { --c: var(--sc-admin-c); }
+#emit-swagger .swagger-ui .emit-note--tenant { --c: var(--sc-tenant-c); }
 /* Refusal explained. */
-#emit-swagger .swagger-ui .emit-note--denied     { background: var(--s4-bg);    border-color: var(--s4-b); }
-#emit-swagger .swagger-ui .emit-note--denied svg { color: var(--s4-c); }
+#emit-swagger .swagger-ui .emit-note--denied { --c: var(--s4-c); }
 #emit-swagger .swagger-ui .emit-note__action { margin-left: auto; cursor: pointer; }
 /* Followed document; the trail colours match the lifecycle figure. */
-#emit-swagger .swagger-ui .emit-note--follow     { background: var(--ui-bg); border-color: var(--ui-b); }
-#emit-swagger .swagger-ui .emit-note--follow svg { color: var(--ui-c); }
+#emit-swagger .swagger-ui .emit-note--follow { --c: var(--run-c); }
 #emit-swagger .swagger-ui .emit-note__trail {
   font-family: var(--f-mono);
   font-size: var(--t-xs);
@@ -2456,6 +2466,182 @@ body {
 }
 .emit-carried[hidden] { display: none; }
 #emit-swagger .swagger-ui .parameters-col_description:has(.emit-carried:not([hidden])) input { padding-right: 190px; }
+
+/* --------------------------------------------------------------------------
+   11b. REQUEST BODY AND RESULT (markup added by enhance.js)
+   -------------------------------------------------------------------------- */
+/* No parameters, no block: the body is the request. The request body's own
+   section is nested in this one, so only the header and the empty list go. */
+#emit-swagger .swagger-ui .opblock-section:has(> .parameters-container):not(:has(table.parameters)) > .opblock-section-header,
+#emit-swagger .swagger-ui .opblock-section:has(> .parameters-container):not(:has(table.parameters)) > .parameters-container { display: none; }
+
+/* The label row: the label, required, the media type, and the tools. */
+#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header { gap: var(--sp-3); }
+/* Label and chip centred on one axis, as the row centres everything else. */
+#emit-swagger .swagger-ui .opblock .opblock-section-request-body > .opblock-section-header h4 { flex: 0 0 auto; display: inline-flex; align-items: center; }
+/* One media type is named beside the label; the select only offers a choice. */
+#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header > label:not(:has(option + option)) { display: none; }
+.emit-body-type { margin-left: var(--sp-1); font: 400 var(--t-sm)/1 var(--f-mono); color: var(--e-faint); }
+.emit-body-type::before, .emit-constraint::before { content: "\2022"; margin-right: 6px; }
+.emit-body-tools { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-description-wrapper { padding: 0 var(--gutter); }
+
+/* One family of small controls: a segmented pair of tabs and quiet tools. */
+.emit-tabs { display: inline-flex; padding: 3px; border-radius: var(--r-code); background: var(--e-raised); box-shadow: inset 0 0 0 1px var(--e-hair); }
+.emit-tabs button { padding: 6px var(--sp-3); border: 0; border-radius: 7px; background: none; color: var(--e-dim); font: 500 var(--t-md)/1 var(--f-body); cursor: pointer; }
+.emit-tabs button small { margin-left: 5px; font: 500 var(--t-xs)/1 var(--f-mono); color: var(--e-faint); }
+.emit-tabs button[aria-selected="true"] { background: rgba(255,255,255,0.07); color: var(--e-text); box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
+.emit-tool {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 26px; padding: 0 10px;
+  border: 0; border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.05); box-shadow: inset 0 0 0 1px var(--e-hair);
+  color: var(--e-dim); font: 500 var(--t-sm)/1 var(--f-body); cursor: pointer;
+}
+.emit-tool:hover { color: var(--e-body); background: rgba(255,255,255,0.08); }
+.emit-tool svg { width: 12px; height: 12px; }
+
+/* The editor: numbered lines beside Swagger's own textarea, one well. */
+#emit-swagger .swagger-ui .opblock-section-request-body .body-param {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: var(--r-code);
+  background: var(--e-well);
+  box-shadow: var(--e-well-edge);
+}
+.emit-gutter {
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) 0;
+  text-align: right;
+  white-space: pre;
+  font: 400 var(--t-md)/1.75 var(--f-mono);
+  color: var(--e-faint);
+  background: rgba(0,0,0,0.18);
+  box-shadow: inset -1px 0 0 var(--e-hair);
+  user-select: none;
+}
+#emit-swagger .swagger-ui .opblock-section-request-body textarea.body-param__text {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  overflow: hidden;
+  resize: none;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  outline: none;
+  font: 400 var(--t-md)/1.75 var(--f-mono);
+  color: #c9d4de;
+  white-space: pre;
+}
+.emit-validity { display: flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-3); font: 500 var(--t-sm)/1 var(--f-mono); color: var(--s2-c); }
+.emit-validity::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.emit-validity.is-bad { color: var(--s4-c); }
+.emit-validity span { color: var(--e-faint); }
+/* Execute closes the body's block on a row of its own. */
+#emit-swagger .swagger-ui .opblock-body:has(.opblock-section-request-body) > :is(.execute-wrapper, .btn-group) { padding: var(--sp-5) var(--gutter) var(--sp-6); }
+#emit-swagger .swagger-ui .opblock-body > .btn-group .btn-clear { display: none; }
+
+/* The Schema tab: the body's fields as rows, the way Schemas draws a model. */
+.emit-body-schema { display: none; padding: 0 var(--gutter) var(--sp-4); }
+#emit-swagger .swagger-ui .opblock-section-request-body[data-view="schema"] > .opblock-description-wrapper { display: none; }
+#emit-swagger .swagger-ui .opblock-section-request-body[data-view="schema"] .emit-body-schema { display: block; }
+.emit-field { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: var(--sp-4); padding: var(--sp-3) 0; box-shadow: inset 0 1px 0 var(--e-hair); }
+.emit-field:first-child { box-shadow: none; }
+.emit-field__name { font: 600 var(--t-lg)/1.4 var(--f-mono); color: var(--e-text); }
+.emit-field__name i { font-style: normal; color: var(--s4-c); margin-left: 2px; }
+.emit-field__type { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.emit-constraint { font: 400 var(--t-sm)/1 var(--f-mono); color: var(--e-faint); }
+.emit-field__about { margin: 6px 0 0; font-size: var(--t-md); color: var(--e-body); }
+.emit-field__example { margin-top: 5px; font: 400 var(--t-sm)/1 var(--f-mono); color: var(--e-dim); }
+.emit-field__example b { margin-right: var(--sp-2); font: 600 var(--t-xs)/1 var(--f-body); letter-spacing: .14em; color: var(--e-faint); }
+.emit-chip {
+  --c: var(--e-label);
+  display: inline-flex; align-items: center; height: 20px; padding: 0 var(--sp-2);
+  border-radius: var(--r-sm); font: 500 var(--t-xs)/1 var(--f-mono); color: var(--c);
+  background: color-mix(in srgb, var(--c) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent);
+}
+.emit-chip--type { --c: var(--pt-c); }
+.emit-chip--format { --c: var(--pf-c); padding: 0 10px; border-radius: var(--r-pill); }
+
+/* After Execute: the request as it went, then the result. Edit brings the
+   editor back; a new answer sends the page back to the result. */
+.emit-well.emit-sent { display: none; margin: 0 var(--gutter) var(--sp-6); }
+/* Edit floats at the row's end, so the row keeps the label's height. */
+#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header { position: relative; }
+.emit-tool--edit { display: none; position: absolute; right: var(--gutter); top: calc(var(--sp-6) - 8px); }
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) > .no-margin > .opblock-body > .opblock-description-wrapper,
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-section-request-body > .opblock-description-wrapper,
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-section-request-body .emit-body-schema,
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-body-tools > :not(.emit-tool--edit),
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-body-type,
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-body:has(.opblock-section-request-body) > :is(.execute-wrapper, .btn-group) { display: none; }
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-section-request-body h4.required::after { content: none; }
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-sent,
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-tool--edit { display: block; }
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-tool--edit { display: inline-flex; }
+
+/* Swagger's own live blocks stay mounted, as the source of the curl, and
+   out of sight. */
+#emit-swagger .swagger-ui .responses-inner > div:has(.live-responses-table),
+#emit-swagger .swagger-ui .responses-inner > h4 { display: none; }
+
+/* Code in a well, wherever the page draws it. */
+.emit-well {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-code);
+  background: var(--e-well);
+  box-shadow: var(--e-well-edge);
+  font: 400 var(--t-md)/1.7 var(--f-mono);
+  color: #c9d4de;
+  overflow-x: auto;
+}
+.emit-well .k { color: #8fbcbb; }
+.emit-well .s { color: #a3be8c; }
+.emit-well .n { color: #b48ead; }
+
+/* The result: one bar that says how it went, tabs for what came back. */
+/* Ids outrank section 8's transparent .opblock-body > div. */
+#emit-swagger .swagger-ui .opblock-body > .emit-result { margin: 0 var(--gutter) var(--sp-6); overflow: hidden; border-radius: var(--r-code); background: rgba(0,0,0,0.16); box-shadow: inset 0 0 0 1px var(--e-hair); }
+.emit-result__head { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-3) var(--sp-4); box-shadow: inset 0 -1px 0 var(--e-hair); }
+.emit-result__status {
+  --c: var(--s2-c);
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  height: 26px; padding: 0 var(--sp-3); border-radius: var(--r-pill);
+  font: 600 var(--t-md)/1 var(--f-mono); color: var(--c);
+  background: color-mix(in srgb, var(--c) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent);
+}
+.emit-result__status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.emit-result__status--bad { --c: var(--s4-c); }
+.emit-result__status--wait { --c: var(--s5-c); }
+.emit-result__meta { display: flex; align-items: center; gap: var(--sp-4); font: 500 var(--t-sm)/1 var(--f-mono); color: var(--e-dim); }
+.emit-result__meta b { font-weight: 500; color: var(--e-body); }
+#emit-swagger .swagger-ui .emit-result__rid {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px var(--sp-2);
+  border: 0; border-radius: var(--r-sm); background: var(--e-raised);
+  color: var(--e-dim); font: 500 var(--t-sm)/1 var(--f-mono); cursor: pointer;
+}
+.emit-result__rid:hover { color: var(--e-body); }
+.emit-result__rid svg { width: 14px; height: 14px; }
+.emit-result__head .emit-tabs { margin-left: auto; }
+.emit-result__panel { position: relative; padding: var(--sp-4); }
+.emit-result__panel[hidden] { display: none; }
+.emit-result__panel > .emit-well { white-space: pre-wrap; overflow-wrap: anywhere; padding-right: 160px; }
+.emit-result__tools { position: absolute; top: calc(var(--sp-4) + 8px); right: calc(var(--sp-4) + 8px); display: flex; gap: 6px; }
+.emit-kv { display: grid; grid-template-columns: 220px minmax(0, 1fr); font: 400 var(--t-md)/1.5 var(--f-mono); }
+.emit-kv > div { padding: 7px var(--sp-3); box-shadow: inset 0 1px 0 var(--e-hair); }
+.emit-kv > div:nth-child(-n+2) { box-shadow: none; }
+.emit-kv__key { color: var(--e-dim); }
+.emit-kv__value { color: var(--e-body); overflow-wrap: anywhere; }
+.emit-kv .is-hot { color: var(--e-text); }
+.emit-kv__key.is-hot::before { content: ""; display: inline-block; width: 5px; height: 5px; margin-right: var(--sp-2); border-radius: 50%; background: var(--ui-c); vertical-align: middle; }
+.emit-result__explain { margin: var(--sp-3) 0 0; font-size: var(--t-sm); color: var(--e-faint); }
 
 /* --------------------------------------------------------------------------
    12. AUTHORIZE MODAL
@@ -3299,6 +3485,20 @@ body {
 @media (max-width: 900px) {
   /* A long path would push Authorize off the bar. */
   .emit-crumb { display: none; }
+}
+@media (max-width: 720px) {
+  /* The label rows and the result's bar wrap: tools and tabs take a line of
+     their own, and the result's tools stand over its code instead of on it. */
+  #emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header,
+  .emit-result__head { flex-wrap: wrap; }
+  .emit-body-tools { flex-wrap: wrap; margin-left: 0; width: 100%; }
+  .emit-result__head .emit-tabs { margin-left: 0; }
+  .emit-result__tools { position: static; justify-content: flex-end; margin-bottom: var(--sp-2); }
+  .emit-result__panel { display: flex; flex-direction: column-reverse; }
+  .emit-result__panel > .emit-well { padding-right: var(--sp-4); }
+  .emit-kv { grid-template-columns: minmax(0, 1fr); }
+  .emit-kv > div:nth-child(2) { box-shadow: none; }
+  .emit-kv__value { padding-top: 0; box-shadow: none; }
 }
 @media (max-width: 560px) {
   /* The proof moves under its step's words instead of reserving a column. */
