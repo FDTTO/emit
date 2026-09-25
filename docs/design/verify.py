@@ -77,9 +77,31 @@ def build(scenario, spec_url):
     return page.replace('</body>', injected, 1)
 
 
+def styling(page):
+    """The stylesheets a document loads and the styles it inlines, in order."""
+    links = re.findall(r'<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"', page)
+    inline = [re.sub(r'/\*.*?\*/|\s+', ' ', block, flags=re.S).strip()
+              for block in re.findall(r'<style>(.*?)</style>', page, flags=re.S)]
+    return links, inline
+
+
+def ensure_same_styling():
+    """The harness must style the page exactly as the served document does:
+    a stylesheet only the harness loads changes the cascade every check runs
+    against, and the suite then measures a page nobody is served."""
+    import urllib.request
+    served = urllib.request.urlopen(BASE.replace('/swagger/', '/swagger-ui/index.html')).read().decode('utf-8')
+    with open(os.path.join(HERE, 'verify-harness.html'), encoding='utf-8') as f:
+        harness = f.read()
+    if styling(served) != styling(harness):
+        sys.exit('verify-harness.html styles the page differently from the served document:\n'
+                 '  served:  %s\n  harness: %s' % (styling(served), styling(harness)))
+
+
 def ensure_static():
     if not os.path.isdir(STATIC):
         sys.exit('No %s: build the app first (mvn -q resources:resources).' % STATIC)
+    ensure_same_styling()
     shutil.copy(os.path.join(HERE, 'verify-lib.js'), STATIC)
 
 

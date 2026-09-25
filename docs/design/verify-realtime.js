@@ -9,7 +9,8 @@
 // the fold without scrolling, which `--screenshot` cannot do.
 //
 // Usage: node verify-realtime.js <url> <waitMs> <outPrefix> [clipExprJs...]
-//        VIEW_W=375 sets the viewport width; VIRTUAL_MS=60000 runs on virtual
+//        VIEW_W=375 and VIEW_H=900 set the viewport; INJECT=probe.js runs a
+//        script at document start; VIRTUAL_MS=60000 runs on virtual
 //        time instead of waiting waitMs of wall clock; BROWSER names the
 //        Chromium to drive, otherwise the first one installed is used.
 // After waitMs of wall-clock time it reads window.__log from the page into
@@ -158,9 +159,15 @@ function killProfileProcesses() {
     const evaluate = async (expression) => (await send('Runtime.evaluate', { expression, returnByValue: true })).result.result.value;
 
     await send('Page.enable');
+    // INJECT names a script that runs at the start of every document, so a
+    // probe can measure a page that does not load the harness: the served
+    // console itself, or a mockup opened from disk.
+    if (process.env.INJECT) {
+      await send('Page.addScriptToEvaluateOnNewDocument', { source: fs.readFileSync(process.env.INJECT, 'utf8') });
+    }
     // --window-size is not honoured for a page opened over the protocol, so
-    // the viewport is set here. VIEW_W overrides the width (default 1280).
-    await send('Emulation.setDeviceMetricsOverride', { width: Number(process.env.VIEW_W || 1280), height: 1400, deviceScaleFactor: 1, mobile: false });
+    // the viewport is set here. VIEW_W and VIEW_H override it (1280x1400).
+    await send('Emulation.setDeviceMetricsOverride', { width: Number(process.env.VIEW_W || 1280), height: Number(process.env.VIEW_H || 1400), deviceScaleFactor: 1, mobile: false });
     // A headless page does not always hold the window's focus, and keys sent
     // to an unfocused page go nowhere. This makes the page behave as focused.
     await send('Emulation.setFocusEmulationEnabled', { enabled: true });
