@@ -1,5 +1,6 @@
 package dev.emit.shared.openapi;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -8,6 +9,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import dev.emit.shared.web.ErrorResponse;
 import dev.emit.shared.web.RefusalMessages;
+import io.swagger.v3.core.converter.ModelConverter;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -37,6 +41,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
+import jakarta.validation.constraints.NotBlank;
 
 @Configuration
 public class OpenApiConfig {
@@ -135,6 +140,31 @@ public class OpenApiConfig {
                 }
             });
         }));
+    }
+
+    /*
+     * @NotBlank makes a string at least one character long, but swagger-core
+     * applies a @Size without a minimum after it and publishes minLength 0,
+     * saying an empty value is accepted. Corrected once the model is whole.
+     */
+    @Bean
+    public ModelConverter notBlankHasOneCharacter() {
+        return (type, context, chain) -> {
+            Schema<?> resolved = chain.hasNext() ? chain.next().resolve(type, context, chain) : null;
+            Class<?> model = TypeFactory.defaultInstance().constructType(type.getType()).getRawClass();
+            Schema<?> defined = context.getDefinedModels().get(model.getSimpleName());
+            if (defined == null || defined.getProperties() == null) {
+                return resolved;
+            }
+            for (Field field : model.getDeclaredFields()) {
+                Schema<?> property = defined.getProperties().get(field.getName());
+                if (property != null && field.isAnnotationPresent(NotBlank.class)
+                        && property.getMinLength() != null && property.getMinLength() < 1) {
+                    property.setMinLength(1);
+                }
+            }
+            return resolved;
+        };
     }
 
     /*
