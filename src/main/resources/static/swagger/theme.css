@@ -3209,6 +3209,56 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   .emit-live-pill__state.is-failed { color: var(--s4-c); }
 }
 
+/* --------------------------------------------------------------------------
+   21. LOADING
+   Placeholders in the shape of what is coming, with a light that travels
+   across them. The content fades in over them once it has fully arrived.
+   -------------------------------------------------------------------------- */
+#emit-rail { position: relative; }
+/* An animation, not a transition, so it leaves the elements' own
+   transitions alone. */
+#emit-window[data-loading] :is(#emit-rail > :not(.emit-skel), .swagger-container > .swagger-ui, .topbar-wrapper > *, #emit-statusbar > *) { opacity: 0; }
+#emit-window[data-revealing] :is(#emit-rail > :not(.emit-skel), .swagger-container > .swagger-ui, .topbar-wrapper > *, #emit-statusbar > *) { animation: emit-appear .3s var(--ease); }
+@keyframes emit-appear { from { opacity: 0; } }
+.emit-skel { position: absolute; z-index: 2; pointer-events: none; transition: opacity .3s var(--ease); }
+#emit-window:not([data-loading]) .emit-skel { opacity: 0; }
+.emit-skel--rail { inset: 0; padding: var(--sp-5) var(--sp-6); }
+.emit-skel--main { grid-area: main; inset: 0; overflow: hidden; padding: var(--sp-7) var(--page-gutter); }
+.emit-skel__column { display: flex; flex-direction: column; gap: var(--sp-3); }
+.emit-skel--main .emit-skel__column {
+  max-width: calc(var(--page-column) - 2 * var(--page-gutter));
+  margin: 0 auto;
+  padding: var(--sp-8) var(--sp-7);
+  border-radius: var(--r-panel);
+  background: var(--e-raised);
+}
+.emit-skel i {
+  display: block;
+  flex: 0 0 auto;
+  border-radius: var(--r-sm);
+  background: linear-gradient(90deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.075) 50%, rgba(255,255,255,0.035) 100%) 0 0 / 200% 100%;
+  animation: emit-shimmer 1.4s linear infinite;
+}
+.emit-skel__label { height: 8px; margin-top: var(--sp-3); }
+.emit-skel__bar { height: 3px; margin-bottom: var(--sp-2); }
+.emit-skel i.emit-skel__card { height: 50px; margin-bottom: var(--sp-4); border-radius: var(--r-code); }
+.emit-skel__gap { height: 0; }
+.emit-skel__item { height: 12px; margin: 5px 0 5px var(--sp-3); }
+.emit-skel__title { height: 30px; margin-bottom: var(--sp-3); }
+.emit-skel__line { height: 11px; }
+.emit-skel i.emit-skel__figure { height: 180px; border-radius: var(--r-code); }
+@keyframes emit-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (max-width: 900px) {
+  .emit-skel--rail { display: none; }
+  .emit-skel--main { position: fixed; top: 56px; left: 0; right: 0; bottom: 0; padding: var(--sp-4) var(--page-gutter); }
+  .emit-skel--main .emit-skel__column { padding: var(--sp-6) var(--sp-5); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .emit-skel i { animation: none; }
+  .emit-skel { transition: none; }
+  #emit-window[data-revealing] :is(#emit-rail > :not(.emit-skel), .swagger-container > .swagger-ui, .topbar-wrapper > *, #emit-statusbar > *) { animation: none; }
+}
+
 /* Credentials on a phone: a sheet from the bottom edge, over the bar and
    the strip, scrolling on its own when the cards outgrow the screen. */
 @media (max-width: 900px) {

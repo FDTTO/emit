@@ -2809,6 +2809,62 @@
     win.appendChild(rail);
     win.appendChild(root);
     win.appendChild(status);
+
+    /* Until the description and the faces have arrived, the window holds
+       their shape; the real content is laid out underneath, unseen, so
+       nothing moves when it is shown. */
+    win.setAttribute('data-loading', '');
+    rail.appendChild(skeleton('emit-skel emit-skel--rail', RAIL_SKELETON));
+    win.appendChild(skeleton('emit-skel emit-skel--main', MAIN_SKELETON));
+  }
+
+  /* Each entry is one placeholder: a class for its shape and a width. */
+  var RAIL_SKELETON = [['label', 48], ['bar', 100], ['card', 100], ['gap'], ['item', 42], ['label', 44],
+    ['item', 34], ['label', 48], ['item', 58], ['item', 64], ['item', 54], ['item', 72], ['item', 50],
+    ['label', 36], ['item', 46], ['item', 52], ['item', 56]];
+  var MAIN_SKELETON = [['title', 36], ['line', 88], ['line', 92], ['line', 58], ['label', 22], ['figure', 100],
+    ['label', 20], ['line', 100], ['line', 100]];
+
+  function skeleton(className, shapes) {
+    var node = el('div', className);
+    node.setAttribute('aria-hidden', 'true');
+    var column = node.appendChild(el('div', 'emit-skel__column'));
+    shapes.forEach(function (shape) {
+      var bone = column.appendChild(el('i', 'emit-skel__' + shape[0]));
+      if (shape[1]) bone.style.width = shape[1] + '%';
+    });
+    return node;
+  }
+
+  var facesReady = false;
+
+  function waitForFaces() {
+    var faces = document.fonts && document.fonts.load
+      ? Promise.all(['400 13px Inter', '600 13px Inter', '400 12px "JetBrains Mono"'].map(function (face) {
+          return document.fonts.load(face);
+        }))
+      : Promise.resolve();
+    /* A font host that never answers must not hold the page: the fallback
+       faces are better than a skeleton that never ends. */
+    var ceiling = new Promise(function (resolve) { setTimeout(resolve, 2500); });
+    Promise.race([faces, ceiling]).catch(function () {}).then(function () {
+      facesReady = true;
+      schedule();
+    });
+  }
+
+  function settleLoading() {
+    var win = document.getElementById('emit-window');
+    if (!win || !win.hasAttribute('data-loading')) return;
+    var map = document.getElementById('emit-map');
+    var drawn = spec && facesReady && document.querySelector('.opblock') && map && map.dataset.built;
+    if (!drawn && !specFailed()) return;
+    win.removeAttribute('data-loading');
+    win.setAttribute('data-revealing', '');
+    setTimeout(function () {
+      win.removeAttribute('data-revealing');
+      document.querySelectorAll('.emit-skel').forEach(function (node) { node.remove(); });
+    }, 400);
   }
 
   /* Tags and operations in the order Swagger shows them: tags and paths
@@ -3320,6 +3376,7 @@
     paintStatusTelemetry();
     paintLastAnswers();
     spyScroll();
+    settleLoading();
   }
 
   /* React rebuilds these nodes on expand and collapse, so repaint on mutation,
@@ -3336,6 +3393,7 @@
 
   function start() {
     buildShell();
+    waitForFaces();
     restoreRail();
     paint();
     placeStatusbar();
