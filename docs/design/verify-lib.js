@@ -117,6 +117,30 @@
     },
     /* Real keyboard input, delivered by the runner as trusted events (realtime
        mode only). "Tab", "Shift+Tab", "Enter", "Escape", "Space", arrows. */
+    /* Every rule that matches the element and declares a property matching
+       `property`, in source order, with the layer or media it sits in: the
+       answer to "why does this value not take" without a debugger. */
+    rules: function (selector, property) {
+      var element = document.querySelector(selector), found = [], pattern = new RegExp(property);
+      var walk = function (list, where) {
+        Array.prototype.forEach.call(list, function (rule) {
+          if (rule.styleSheet) return walk(rule.styleSheet.cssRules, where + ' @import ' + (rule.layerName || ''));
+          if (!rule.selectorText) return rule.cssRules && walk(rule.cssRules, where + ' @' + (rule.name || rule.conditionText || rule.constructor.name));
+          var declared = Array.prototype.filter.call(rule.style, function (name) { return pattern.test(name); });
+          var matches = false;
+          try { matches = element.matches(rule.selectorText); } catch (ignored) { /* a pseudo-element selector */ }
+          if (matches && declared.length) {
+            found.push(where + ' | ' + rule.selectorText + ' { ' + declared.map(function (name) {
+              return name + ': ' + rule.style.getPropertyValue(name) + (rule.style.getPropertyPriority(name) ? ' !important' : '');
+            }).join('; ') + ' }');
+          }
+        });
+      };
+      Array.prototype.forEach.call(document.styleSheets, function (sheet) {
+        try { walk(sheet.cssRules, (sheet.href || 'inline').split('/').pop()); } catch (ignored) { /* cross-origin */ }
+      });
+      return found;
+    },
     press: function (key) { (window.__verifyKeys = window.__verifyKeys || []).push(key); },
     definition: function (scheme) { return ui().specSelectors.securityDefinitions().get(scheme); },
     /* Authorizes with the store's own immutable definition, as the dialog
