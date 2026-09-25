@@ -45,7 +45,9 @@
     close: ['M6 6l12 12M18 6L6 18'],
     menu: ['M4 7h16M4 12h16M4 17h16'],
     alert: ['M12 8v5', 'M12 16.5v.5', 'M10.3 3.9L2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'],
-    braces: ['M8 4c-2 0-2 2-2 4s-2 4-2 4 2 2 2 4 0 4 2 4', 'M16 4c2 0 2 2 2 4s2 4 2 4-2 2-2 4 0 4-2 4']
+    braces: ['M8 4c-2 0-2 2-2 4s-2 4-2 4 2 2 2 4 0 4 2 4', 'M16 4c2 0 2 2 2 4s2 4 2 4-2 2-2 4 0 4-2 4'],
+    unfold: ['M8 9l4-4 4 4', 'M8 15l4 4 4-4'],
+    fold: ['M8 5l4 4 4-4', 'M8 19l4-4 4 4']
   };
 
   /* Action segments: the last path segment names what the call does. Verbs
@@ -2414,8 +2416,8 @@
     return index;
   }
 
-  /* With `docExpansion: none` a collapsed tag has no operations in the DOM, so
-     open the tag first and retry until React renders the target. */
+  /* A collapsed tag has no operations in the DOM, so open the tag first and
+     retry until React renders the target. */
   function openOperation(target) {
     var section = document.querySelector('h3.opblock-tag[data-tag="' + target.tag + '"]');
     if (section && section.getAttribute('data-is-open') === 'false') section.click();
@@ -2607,7 +2609,48 @@
       if (chevron) header.insertBefore(count, chevron);
       else header.appendChild(count);
     });
+    paintTagTools();
+  }
 
+  /* Each section heading opens or closes all of its operations at once. The
+     button sits inside the heading, whose own click folds the section. */
+  function operationsOfTag(tag) {
+    var index = operationIndex();
+    return Object.keys(index).filter(function (key) { return index[key].tag === tag; })
+      .map(function (key) { return index[key].id; });
+  }
+
+  function allShown(tag) {
+    var layout = window.ui && window.ui.layoutSelectors;
+    var ids = operationsOfTag(tag);
+    return !!layout && ids.length > 0 && ids.every(function (id) { return layout.isShown(['operations', tag, id]); });
+  }
+
+  function paintTagTools() {
+    document.querySelectorAll('h3.opblock-tag').forEach(function (header) {
+      var tag = header.getAttribute('data-tag');
+      var button = header.querySelector('.emit-tag-all');
+      if (!button) {
+        button = el('button', 'emit-tag-all');
+        button.type = 'button';
+        button.addEventListener('click', function (event) {
+          event.stopPropagation();
+          var open = !allShown(tag);
+          window.ui.layoutActions.show(['operations-tag', tag], true);
+          operationsOfTag(tag).forEach(function (id) { window.ui.layoutActions.show(['operations', tag, id], open); });
+        });
+        var chevron = header.querySelector('.expand-operation');
+        if (chevron) header.insertBefore(button, chevron);
+        else header.appendChild(button);
+      }
+      var open = allShown(tag);
+      if (button.dataset.open === String(open)) return;
+      button.dataset.open = String(open);
+      button.textContent = '';
+      button.appendChild(icon(open ? 'fold' : 'unfold'));
+      button.appendChild(document.createTextNode(open ? 'Close all' : 'Open all'));
+      button.setAttribute('aria-label', (open ? 'Close every ' : 'Open every ') + tag + ' operation');
+    });
   }
 
   /* Where the figure goes: inside `.info` (a sibling of its <section> renders

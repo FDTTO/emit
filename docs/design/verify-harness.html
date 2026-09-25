@@ -39,9 +39,8 @@
     <script src="/swagger-ui/swagger-ui-standalone-preset.js" charset="UTF-8"></script>
     <script>
       /* Built from the config the app serves, so scenarios run under the
-         settings a reader gets. Only expansion is overridden, to put every
-         operation in the DOM; configUrl is dropped because Swagger would
-         fetch it again and undo that override. */
+         settings a reader gets. configUrl is dropped because Swagger would
+         fetch it again over what is set here. */
       window.onload = function () {
         fetch('/v3/api-docs/swagger-config').then(function (response) { return response.json(); }).then(function (served) {
           delete served.configUrl;
@@ -53,7 +52,6 @@
             plugins: [SwaggerUIBundle.plugins.DownloadUrl],
             layout: 'StandaloneLayout',
             url: '/v3/api-docs',
-            docExpansion: 'list',
             defaultModelsExpandDepth: 5,
             defaultModelExpandDepth: 5
           }));
