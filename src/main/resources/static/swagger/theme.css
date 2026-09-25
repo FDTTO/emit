@@ -1394,7 +1394,8 @@ body {
   vertical-align: top;
 }
 #emit-swagger .swagger-ui .opblock table tbody tr:last-child td { border-bottom: 0; }
-#emit-swagger .swagger-ui .opblock table tbody tr:hover td { background: rgba(255,255,255,0.012); }
+/* A parameter row does nothing when pointed at, so it does not light up. */
+#emit-swagger .swagger-ui .opblock table:not(.parameters) tbody tr:hover td { background: rgba(255,255,255,0.012); }
 #emit-swagger .swagger-ui .parameters-container,
 #emit-swagger .swagger-ui .parameters-container--empty,
 #emit-swagger .swagger-ui .table-container,
@@ -2311,6 +2312,34 @@ body {
   margin: 0;
 }
 #emit-swagger .swagger-ui .parameters-col_description input:focus { box-shadow: var(--e-well-edge), 0 0 0 1px var(--ui-b); }
+/* An array parameter: each item is a field with its remove control inside
+   the right edge, and adding one is a quiet tool of the body editor's kind.
+   Swagger writes the controls as " - " and "Add string item" buttons. */
+#emit-swagger .swagger-ui .json-schema-array { display: grid; justify-items: start; gap: var(--sp-2); }
+#emit-swagger .swagger-ui .json-schema-form-item { position: relative; display: block; width: 100%; }
+#emit-swagger .swagger-ui .json-schema-form-item input { padding-right: 44px; }
+#emit-swagger .swagger-ui .btn.json-schema-form-item-remove {
+  position: absolute; top: 7px; right: 7px;
+  display: grid; place-items: center;
+  width: 24px; height: 24px; padding: 0;
+  border: 0; border-radius: var(--r-sm);
+  background: none;
+  color: transparent; font-size: 0;
+  cursor: pointer;
+}
+#emit-swagger .swagger-ui .btn.json-schema-form-item-remove::before { content: "\00d7"; font: 400 16px/1 var(--f-body); color: var(--e-faint); }
+#emit-swagger .swagger-ui .btn.json-schema-form-item-remove:hover { background: rgba(255,255,255,0.06); }
+#emit-swagger .swagger-ui .btn.json-schema-form-item-remove:hover::before { color: var(--e-body); }
+#emit-swagger .swagger-ui .btn.json-schema-form-item-add {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 26px; margin: 0; padding: 0 10px;
+  border: 0; border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.05); box-shadow: inset 0 0 0 1px var(--e-hair);
+  color: var(--e-dim); font: 500 var(--t-sm)/1 var(--f-body);
+  cursor: pointer;
+}
+#emit-swagger .swagger-ui .btn.json-schema-form-item-add::before { content: "+"; font: 500 var(--t-md)/1 var(--f-mono); }
+#emit-swagger .swagger-ui .btn.json-schema-form-item-add:hover { color: var(--e-body); background: rgba(255,255,255,0.08); }
 /* A carried id names where it came from, inside its own field. */
 #emit-swagger .swagger-ui .parameters tbody .parameters-col_description { position: relative; }
 .emit-carried {
