@@ -28,11 +28,14 @@ V.until(function () { return !!q('.emit-refusals') && !!q('.emit-headers-once');
   check('their own rows are gone', !seen(row('401')) && !seen(row('429')));
 
   var chips = Array.prototype.map.call(document.querySelectorAll(OP + '.emit-headers-once code'), function (c) { return c.textContent; });
-  check('the budget headers are said once', ['RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset', 'Retry-After'].every(function (n) {
+  check('the budget headers are said once', ['RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset'].every(function (n) {
     return chips.indexOf(n) !== -1;
   }) && seen(q('.emit-headers-once')), chips);
-  var said = document.querySelectorAll(OP + '.emit-headers-once code');
-  check('each keeps its meaning at hand', said.length >= 4 && Array.prototype.every.call(said, function (c) {
+  var retry = q('.emit-refusals__table tr[data-code="429"] code');
+  check('a header only the refusal adds goes on its line', !!retry && retry.textContent === 'Retry-After' && chips.indexOf('Retry-After') === -1,
+    retry && retry.textContent);
+  var said = Array.prototype.slice.call(document.querySelectorAll(OP + '.emit-headers-once code')).concat(retry ? [retry] : []);
+  check('each keeps its meaning at hand', said.length >= 4 && said.every(function (c) {
     return c.title.length > 10;
   }), said.length + ' headers');
   check('no per-response headers table is shown', !seen(q('table.responses-table:not(.live-responses-table) .headers-wrapper')));

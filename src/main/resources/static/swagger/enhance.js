@@ -1270,6 +1270,14 @@
           var meta = examples.length > 1 ? examples.length + ' causes' : response.content ? '' : 'no body';
           inner.appendChild(el('span', 'emit-row-meta', meta));
           inner.appendChild(el('span', 'emit-row-chevron'));
+          /* A run's start answers with no body: its row says where to read on. */
+          var read = LIFECYCLE.follow.read;
+          if (!response.content && code.charAt(0) === '2' && isFollowStart(block)) {
+            var note = el('div', 'emit-row-note', 'The run starts now. Read its state with ');
+            note.appendChild(el('code', null, read.method.toUpperCase() + ' ' + read.path));
+            note.appendChild(document.createTextNode('.'));
+            inner.parentNode.appendChild(note);
+          }
         }
         if (!row.dataset.emitIndexed) {
           row.dataset.emitIndexed = 'true';
@@ -1287,6 +1295,12 @@
       paintSharedRefusals(block, table, operation);
       paintHeadersOnce(block, table, operation);
     });
+  }
+
+  function isFollowStart(block) {
+    var start = LIFECYCLE.follow.start;
+    var path = block.querySelector('.opblock-summary-path');
+    return !!path && path.getAttribute('data-path') === start.path && block.classList.contains('opblock-' + start.method);
   }
 
   function paintSharedRefusals(block, table, operation) {
@@ -1317,6 +1331,7 @@
     var list = el('table', 'emit-refusals__table');
     causes.forEach(function (cause) {
       var tr = el('tr', cause.code === '429' ? 'emit-refusals__row--wait' : null);
+      tr.setAttribute('data-code', cause.code);
       tr.appendChild(el('td', 'emit-refusals__row-code', cause.code));
       tr.appendChild(el('td', 'emit-refusals__row-cause', cause.summary));
       tr.appendChild(el('td', 'emit-refusals__row-message', cause.message));
@@ -1345,12 +1360,19 @@
       chip.title = (header.description || '') + (header.schema && header.schema.type ? ' (' + header.schema.type + ')' : '');
       line.appendChild(chip);
     });
+    /* A header only some answers add goes with them: on a shared refusal's
+       own line when the code is one, on this line otherwise. */
     withHeaders.forEach(function (code) {
       Object.keys(operation.responses[code].headers).forEach(function (name) {
         if (shared.indexOf(name) !== -1) return;
-        line.appendChild(document.createTextNode(code + ' adds'));
         var chip = el('code', null, name);
         chip.title = operation.responses[code].headers[name].description || '';
+        var refusal = block.querySelector('.emit-refusals__table tr[data-code="' + code + '"] .emit-refusals__row-message');
+        if (refusal) {
+          refusal.appendChild(chip);
+          return;
+        }
+        line.appendChild(document.createTextNode(code + ' adds'));
         line.appendChild(chip);
       });
     });

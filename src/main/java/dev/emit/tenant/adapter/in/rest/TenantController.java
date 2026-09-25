@@ -48,7 +48,7 @@ public class TenantController {
             operationId = "createTenant",
             summary = "Create tenant",
             description = "Creates a tenant with an isolated PostgreSQL schema provisioned and migrated via Liquibase. "
-                    + "Returns a raw API key in the `apiKey` field exactly once; it cannot be recovered after this response.")
+                    + "Returns a raw API key in the `apiKey` field exactly once.")
     @ApiResponse(responseCode = "201", description = "Tenant created. The `apiKey` field is returned exactly once.")
     @ErrorCase(status = 400, name = "invalid-body", summary = "Invalid request body",
             message = "name: must not be blank, schemaName: must not be blank")
