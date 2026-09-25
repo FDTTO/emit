@@ -2898,6 +2898,17 @@
       link.classList.toggle('is-current', link.dataset.target === current);
     });
     paintCrumb(current);
+    paintStuck();
+  }
+
+  /* A sticky header is stuck once it has left its block's top edge. React
+     owns the block's class, so the state is an attribute. */
+  function paintStuck() {
+    document.querySelectorAll('.opblock.is-open').forEach(function (block) {
+      var summary = block.querySelector('.opblock-summary');
+      var stuck = !!summary && summary.getBoundingClientRect().top - block.getBoundingClientRect().top > 1;
+      if (block.hasAttribute('data-emit-stuck') !== stuck) block.toggleAttribute('data-emit-stuck', stuck);
+    });
   }
 
   function paintCrumb(current) {

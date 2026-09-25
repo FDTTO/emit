@@ -1174,6 +1174,21 @@ body {
   background: rgba(28,33,44,0.80);
   backdrop-filter: blur(24px) saturate(150%);
   box-shadow: inset 0 -1px 0 var(--e-hair), inset 0 1px 0 rgba(255,255,255,0.08);
+  transition: border-radius .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+}
+/* Stuck, it docks under the titlebar: square top, and the legend's frosted
+   glass so what scrolls beneath reads as blur, not as text. */
+#emit-swagger .swagger-ui .opblock.is-open[data-emit-stuck] .opblock-summary {
+  border-radius: 0;
+  background: linear-gradient(150deg, rgba(40,46,58,0.92), rgba(20,23,30,0.96));
+  backdrop-filter: blur(30px) saturate(150%);
+  box-shadow: inset 0 -1px 0 var(--e-hair), 0 12px 28px rgba(0,0,0,0.35);
+}
+/* These outrank the reduced-motion reset of section 2. */
+@media (prefers-reduced-motion: reduce) {
+  #emit-swagger .swagger-ui .opblock.is-open .opblock-summary,
+  #emit-swagger .swagger-ui .topbar .topbar-wrapper > a.link,
+  #emit-swagger .swagger-ui .opblock-tag > .emit-tag-all { transition: none; }
 }
 /* Stock gives this button `all: inherit`, so it would also inherit the open
    header's glass, shadow and stickiness and draw a second panel inside it. */
