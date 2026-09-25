@@ -2251,12 +2251,25 @@
         param.insertBefore(gutter, area);
         area.setAttribute('spellcheck', 'false');
         area.addEventListener('input', function () { paintBodyState(area, gutter, target); });
+        /* The colours are a layer under the textarea, whose own text is
+           transparent: typing, selection and undo stay the browser's. */
+        var paint = el('pre', 'emit-paint');
+        paint.setAttribute('aria-hidden', 'true');
+        param.insertBefore(paint, area);
+        area.addEventListener('scroll', function () { paint.scrollLeft = area.scrollLeft; });
       }
       paintBodyState(area, gutter, target);
     });
   }
 
   function paintBodyState(area, gutter, target) {
+    var paint = area.parentNode.querySelector('.emit-paint');
+    if (paint && paint.dataset.text !== area.value) {
+      paint.dataset.text = area.value;
+      /* A trailing newline needs a line after it to keep the heights equal. */
+      highlightJson(paint, area.value + '\n');
+      paint.scrollLeft = area.scrollLeft;
+    }
     var lines = area.value.split('\n').length;
     if (gutter.dataset.lines !== String(lines)) {
       gutter.dataset.lines = String(lines);

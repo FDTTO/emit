@@ -2475,6 +2475,27 @@ body {
   color: #c9d4de;
   white-space: pre;
 }
+/* The painted copy shares the textarea's cell, box and metrics exactly. */
+#emit-swagger .swagger-ui .opblock-section-request-body .body-param > .emit-paint,
+#emit-swagger .swagger-ui .opblock-section-request-body .body-param > textarea.body-param__text { grid-column: 2; grid-row: 1; }
+#emit-swagger .swagger-ui .opblock-section-request-body .body-param > .emit-paint {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font: 400 var(--t-md)/1.75 var(--f-mono);
+  color: #c9d4de;
+  white-space: pre;
+  pointer-events: none;
+}
+#emit-swagger .swagger-ui .opblock-section-request-body .body-param:has(> .emit-paint) > textarea.body-param__text {
+  position: relative;
+  color: transparent;
+  caret-color: var(--e-text);
+}
+#emit-swagger .swagger-ui .opblock-section-request-body .body-param:has(> .emit-paint) > textarea.body-param__text::selection { color: transparent; background: rgba(143,220,255,0.22); }
 .emit-validity { display: flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-3); font: 500 var(--t-sm)/1 var(--f-mono); color: var(--s2-c); }
 .emit-validity::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .emit-validity.is-bad { color: var(--s4-c); }
@@ -2539,9 +2560,9 @@ body {
   color: #c9d4de;
   overflow-x: auto;
 }
-.emit-well .k { color: #8fbcbb; }
-.emit-well .s { color: #a3be8c; }
-.emit-well .n { color: #b48ead; }
+.emit-well .k, .emit-paint .k { color: #8fbcbb; }
+.emit-well .s, .emit-paint .s { color: #a3be8c; }
+.emit-well .n, .emit-paint .n { color: #b48ead; }
 
 /* The result: one bar that says how it went, tabs for what came back. */
 /* Ids outrank section 8's transparent .opblock-body > div. */
