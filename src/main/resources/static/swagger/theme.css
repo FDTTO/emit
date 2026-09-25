@@ -101,13 +101,13 @@
   /* radii: chip, control, panel, window */
   --r-pill: 999px; --r-panel: 16px; --r-code: 10px; --r-sm: 6px; --r-xs: 6px; --r-window: 18px;
 
-  /* rhythm - one scale, used everywhere */
+  /* Rhythm: one 4px grid, used everywhere. */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
-  --sp-5: 22px; --sp-6: 28px; --sp-7: 40px;
+  --sp-5: 20px; --sp-6: 24px; --sp-7: 32px; --sp-8: 40px;
 
   /* Page column and gutter, shared by the topbar, info panel and operation list. */
-  --page-column: 1000px;
-  --page-gutter: var(--sp-6);
+  --page-column: 960px;
+  --page-gutter: var(--sp-7);
 
   /* horizontal padding shared by every row inside an expanded operation,
      so section headers, tables and code blocks all align on one gutter */
@@ -120,14 +120,15 @@
   --ease: cubic-bezier(.2,.8,.2,1);
 }
 
-/* Swagger's own rules are px-based and unaffected. */
-html { font-size: 14px; }
+/* Swagger's own rules are px-based and unaffected. The page's colour is on
+   <html>: a background on <body> would paint over the scene behind it. */
+html { font-size: 14px; background-color: var(--e-bg); }
 
 /* --------------------------------------------------------------------------
    2. PAGE
    -------------------------------------------------------------------------- */
 body {
-  background-color: var(--e-bg);
+  background: none;
   min-height: 100vh;
   color: var(--e-text);
   font-family: var(--f-body);
@@ -167,6 +168,8 @@ body {
     backdrop-filter: blur(40px) saturate(150%);
     border-radius: var(--r-window);
     overflow: hidden;
+    font: 400 var(--t-lg)/1.55 var(--f-body);
+    color: var(--e-body);
     box-shadow: 0 40px 100px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.15);
     transition: grid-template-columns .3s var(--ease);
   }
@@ -224,6 +227,9 @@ body {
 }
 .emit-map { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--sp-4) var(--sp-3); }
 .emit-map__tag {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
   padding: var(--sp-4) var(--sp-3) 0;
   margin-bottom: var(--sp-2);
   font: 600 var(--t-xs)/1 var(--f-body);
@@ -240,14 +246,15 @@ body {
   color: var(--e-dim);
   text-decoration: none;
   font-size: var(--t-md);
+  line-height: 1.55;
   white-space: nowrap;
   transition: background .15s, color .15s;
 }
 .emit-map__item svg { width: 13px; height: 13px; flex: 0 0 auto; color: var(--e-faint); }
 .emit-map__name { overflow: hidden; text-overflow: ellipsis; }
-.emit-map__item svg.emit-map__scope { margin-left: auto; width: 11px; height: 11px; opacity: .75; }
-.emit-map__scope--admin { color: var(--sc-admin-c); }
-.emit-map__scope--tenant { color: var(--sc-tenant-c); }
+.emit-map__item svg.emit-map__scope { margin-left: auto; opacity: .75; }
+.emit-map__item .emit-map__scope--admin { color: var(--sc-admin-c); }
+.emit-map__item .emit-map__scope--tenant { color: var(--sc-tenant-c); }
 .emit-map__item:hover { color: var(--e-body); background: var(--e-raised); }
 /* Where you are: a small pane of glass with a trace of the interaction cyan. */
 .emit-map__item.is-current {
@@ -273,14 +280,10 @@ body {
   #emit-statusbar > * { display: flex; align-items: center; gap: var(--sp-2); height: 100%; padding: 0 var(--sp-4); white-space: nowrap; }
   #emit-statusbar > .emit-status__server { width: var(--rail); padding-left: var(--sp-6); }
 }
-.emit-status__led { width: 6px; height: 6px; border-radius: 50%; background: var(--s2-c); }
+.emit-status__led { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--s2-c); }
 #emit-statusbar > [hidden] { display: none; }
 #emit-statusbar > button { height: 100%; padding: 0 var(--sp-4); border: 0; border-radius: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
 #emit-statusbar > button:hover { color: var(--e-body); background: var(--e-raised); }
-.emit-status__last.is-ok::before,
-.emit-status__last.is-bad::before { content: ""; width: 5px; height: 5px; margin-right: 6px; border-radius: 50%; display: inline-block; vertical-align: middle; }
-.emit-status__last.is-ok::before { background: var(--s2-c); }
-.emit-status__last.is-bad::before { background: var(--s4-c); }
 .emit-status__meter { width: 44px; height: 3px; border-radius: var(--r-pill); background: rgba(255,255,255,0.08); overflow: hidden; }
 .emit-status__meter i { display: block; height: 100%; background: var(--e-label); }
 /* The run is in the rail; the statusbar takes it only when the rail is folded. */
@@ -290,7 +293,8 @@ body {
 /* Rail labels: the one uppercase style. */
 .emit-rail__label {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  gap: var(--sp-3);
   margin: 0 0 var(--sp-2);
   font: 600 var(--t-xs)/1 var(--f-body);
   letter-spacing: .14em;
@@ -317,7 +321,7 @@ body {
   background: var(--ui-bg);
   box-shadow: inset 0 0 0 1px var(--ui-b);
   color: var(--e-text);
-  font: 400 var(--t-lg)/1.3 var(--f-body);
+  font: 400 var(--t-lg)/1.55 var(--f-body);
   text-align: left;
   cursor: pointer;
 }
@@ -489,6 +493,7 @@ body {
   gap: var(--sp-2);
   min-width: 0;
   flex: 1 1 auto;
+  margin-left: var(--sp-2);
   font: 500 var(--t-md)/1 var(--f-mono);
   color: var(--e-dim);
   white-space: nowrap;
@@ -529,7 +534,7 @@ body {
   background: var(--e-raised);
   box-shadow: inset 0 0 0 1px var(--e-hair);
   color: var(--e-faint);
-  font: 400 var(--t-md)/1 var(--f-body);
+  font: 400 var(--t-md)/1.55 var(--f-body);
   cursor: pointer;
 }
 .emit-jump:hover { background: var(--e-hover); color: var(--e-dim); }
@@ -616,6 +621,7 @@ body {
   font-family: var(--f-body);
   font-size: 20px;
   font-weight: 700;
+  line-height: 1;
   letter-spacing: -0.02em;
   color: var(--e-text);
   white-space: nowrap;
@@ -632,10 +638,10 @@ body {
   display: flex;
   align-items: stretch;
   flex: 0 0 auto;
-  height: 28px;
+  height: 26px;
   padding: 0;
   overflow: hidden;
-  background: rgba(255,255,255,0.03);
+  background: none;
   border: 0;
   border-radius: var(--r-pill);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10), inset 0 1px 0 rgba(255,255,255,0.08);
@@ -716,7 +722,7 @@ body {
 #emit-swagger .swagger-ui .information-container.wrapper {
   max-width: var(--page-column);
   padding: 0 var(--page-gutter);
-  margin: var(--sp-7) auto var(--sp-5);
+  margin: var(--sp-7) auto var(--sp-8);
   background: transparent;
   border: 0;
 }
@@ -724,79 +730,61 @@ body {
   background: var(--e-shine);
   border: 0;
   border-radius: var(--r-panel);
-  padding: var(--sp-7) 40px var(--sp-7);
+  padding: var(--sp-8) var(--sp-8) var(--sp-7);
   box-shadow: var(--e-lift);
 }
 #emit-swagger .swagger-ui .info { margin: 0; }
 #emit-swagger .swagger-ui .info > div { margin: 0; }
 
-/* Title and version pill on one baseline. */
+/* Name, kind and the two stamps in one row. The spans Swagger and the
+   controller wrap them in step aside, so all four are items of this row. */
 #emit-swagger .swagger-ui .info .title {
-  font-family: var(--f-body);
-  font-size: var(--t-4xl);
-  font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1.2;
+  font: 700 var(--t-4xl)/1 var(--f-body);
+  letter-spacing: -0.025em;
+  text-transform: none;
   color: var(--e-text);
   margin: 0;
   display: flex;
-  /* Baseline alignment: the caps title has no descenders, so centring would
-     drop the badges. */
-  align-items: baseline;
+  align-items: center;
   gap: var(--sp-3);
   flex-wrap: wrap;
   /* The title is an <h2>; as a flex item it shrinks and leaves a stub underline. */
   border-bottom: 0;
   padding-bottom: 0;
 }
-/* Spans are built in the controller: the title ships as one text node. */
-#emit-swagger .swagger-ui .info .title .emit-title-name {
-  display: inline;
-  white-space: nowrap;
-}
-#emit-swagger .swagger-ui .info .title .emit-title-mark {
-  font-weight: 700;
-  letter-spacing: -0.035em;
-  color: var(--e-text);
-}
+#emit-swagger .swagger-ui .info hgroup.main > .title { flex: 1 1 auto; }
+#emit-swagger .swagger-ui .info .title::after { content: none; }
+#emit-swagger .swagger-ui .info .title .emit-title-name,
+#emit-swagger .swagger-ui .info .title > span:not(.emit-title-name) { display: contents; }
 #emit-swagger .swagger-ui .info .title .emit-title-kind {
-  font-weight: 300;
-  letter-spacing: -0.015em;
-  color: var(--e-label);
+  margin-right: var(--sp-1);
+  font-weight: 400;
+  color: var(--e-dim);
 }
 
-/* Both badges live in one <span> inside the <h2>: v1 and the OAS stamp. */
-#emit-swagger .swagger-ui .info .title > span:not(.emit-title-name) {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--sp-1);
-}
 /* Counter: .info .title small{background:#7d8492;border-radius:57px;
-   top:-5px;vertical-align:super} - reset the superscript offset. */
+   top:-5px;vertical-align:super}. The stamps are chips in the title's grey:
+   the version keeps the interaction tint around it. */
 #emit-swagger .swagger-ui .info .title small {
+  --c: var(--ui-c);
   position: static;
   top: 0;
-  vertical-align: baseline;
   display: inline-flex;
   align-items: center;
-  margin: 0;
-  padding: 2px 6px;
-  font-family: var(--f-mono);
-  font-size: var(--t-2xs);
-  font-weight: 700;
+  justify-content: center;
+  height: 20px;
+  margin: 0 var(--sp-1) 0 0;
+  padding: 0 var(--sp-2);
+  font: 400 var(--t-xs)/1 var(--f-mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  background: var(--pt-bg);
-  color: var(--pt-c);
-  border: 1px solid var(--pt-b);
-  border-radius: var(--r-sm);
-}
-#emit-swagger .swagger-ui .info .title small.version-stamp {
-  background: transparent;
   color: var(--e-dim);
-  border-color: var(--e-line);
-  font-weight: 500;
+  background: color-mix(in srgb, var(--c) 10%, transparent);
+  border: 0;
+  border-radius: var(--r-sm);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent);
 }
+#emit-swagger .swagger-ui .info .title small.version-stamp { --c: var(--e-dim); }
 #emit-swagger .swagger-ui .info .title small pre,
 #emit-swagger .swagger-ui .info .title small pre.version {
   display: inline;
@@ -814,7 +802,7 @@ body {
   align-items: center;
   gap: var(--sp-2);
   flex-wrap: wrap;
-  margin: 0 0 var(--sp-5);
+  margin: 0 0 var(--sp-4);
 }
 #emit-swagger .swagger-ui .info hgroup.main > span {
   display: inline-flex;
@@ -884,12 +872,13 @@ body {
   word-break: normal;        /* counter: word-break:break-all */
   overflow-wrap: anywhere;
 }
-/* Lead paragraph: one step larger, slightly wider measure. */
+/* Lead paragraph: the overview's one piece of prose. */
 #emit-swagger .swagger-ui .info .info__description .renderedMarkdown > p:first-child,
 #emit-swagger .swagger-ui .info .info__description .markdown > p:first-child {
-  font-size: var(--t-lg);
-  max-width: 74ch;
-  line-height: 1.75;
+  margin-bottom: var(--sp-7);
+  font-size: var(--t-xl);
+  max-width: 64ch;
+  line-height: 1.65;
 }
 
 /* Section headings read like the lifecycle's label: small caps with a rule
@@ -901,9 +890,7 @@ body {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  font-family: var(--f-body);
-  font-size: var(--t-xs);
-  font-weight: 600;
+  font: 600 var(--t-xs)/1 var(--f-body);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--e-dim);
@@ -919,15 +906,13 @@ body {
 #emit-swagger .swagger-ui .info code,
 #emit-swagger .swagger-ui .info .markdown code,
 #emit-swagger .swagger-ui .info .renderedMarkdown code {
-  font-family: var(--f-mono);
-  font-size: var(--t-md);
-  font-weight: 400;
+  font: 500 var(--t-md)/1 var(--f-mono);
   font-style: normal;
-  background: var(--pt-bg);
+  background: color-mix(in srgb, var(--pt-c) 8%, transparent);
   color: var(--pt-c);
-  border: 1px solid var(--pt-b);
-  border-radius: var(--r-xs);
-  padding: 1px 6px;
+  border: 0;
+  border-radius: var(--r-sm);
+  padding: 4px 7px;
 }
 #emit-swagger .swagger-ui .info strong { color: var(--e-text); font-weight: 600; }
 #emit-swagger .swagger-ui .info em { color: var(--e-dim); }
@@ -939,100 +924,67 @@ body {
 }
 #emit-swagger .swagger-ui .info a:hover { color: rgba(156,220,254,1); }
 
-/* Numbered steps: counter-driven badges instead of browser markers. */
+/* The steps are a checklist the page ticks: enhance.js splits each item into
+   a mark, the words with their route, and what proves the step, then marks
+   it done or next from what it sees. */
 #emit-swagger .swagger-ui .info ol,
 #emit-swagger .swagger-ui .info .markdown ol,
 #emit-swagger .swagger-ui .info .renderedMarkdown ol {
-  counter-reset: emit-step;
   list-style: none;
-  padding-left: 0;
-  margin: var(--sp-3) 0 var(--sp-5);
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  margin: 0;
 }
-/* The steps are a checklist the page ticks (enhance.js marks each li done
-   or next from what it sees): a mark instead of a number, the next step
-   lit, and what proves a step on the right. */
 #emit-swagger .swagger-ui .info ol > li,
 #emit-swagger .swagger-ui .info .markdown ol > li,
 #emit-swagger .swagger-ui .info .renderedMarkdown ol > li {
-  counter-increment: emit-step;
   list-style: none;
-  position: relative;
-  padding: 9px 150px 9px 44px;
-  margin: 0 0 2px;
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 9px var(--sp-3);
+  margin: 0;
   border-radius: var(--r-code);
   font-size: var(--t-lg);
-  line-height: 1.7;
+  line-height: 1.55;
   color: var(--e-body);
   transition: background 0.3s var(--ease), color 0.3s var(--ease);
 }
-#emit-swagger .swagger-ui .info ol > li::before,
-#emit-swagger .swagger-ui .info .markdown ol > li::before,
-#emit-swagger .swagger-ui .info .renderedMarkdown ol > li::before {
-  content: "";
-  position: absolute;
-  left: 14px; top: 50%;
-  width: 14px; height: 14px;
-  margin-top: -7px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1.5px var(--e-faint);
-  background: none;
-}
+.emit-step-mark { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--e-faint); display: grid; place-items: center; }
 #emit-swagger .swagger-ui .info ol > li.emit-step--done { color: var(--e-dim); }
-#emit-swagger .swagger-ui .info ol > li.emit-step--done::before {
+.emit-step--done .emit-step-mark {
   box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--s2-c) 40%, transparent);
   background: color-mix(in srgb, var(--s2-c) 12%, transparent);
 }
-#emit-swagger .swagger-ui .info ol > li.emit-step--done::after {
+.emit-step--done .emit-step-mark::after {
   content: "";
-  position: absolute;
-  left: 19px; top: 50%;
   width: 5px; height: 3px;
-  margin-top: -3px;
   border: solid var(--s2-c);
   border-width: 0 0 1.5px 1.5px;
-  transform: rotate(-45deg);
+  transform: translateY(-1px) rotate(-45deg);
 }
+.emit-step--fresh .emit-step-mark { animation: emit-pop .5s var(--ease); }
+@keyframes emit-pop { 40% { transform: scale(1.3); } }
 #emit-swagger .swagger-ui .info ol > li.emit-step--next { background: var(--ui-bg); color: var(--e-text); }
-#emit-swagger .swagger-ui .info ol > li.emit-step--next::before {
-  box-shadow: inset 0 0 0 1.5px var(--ui-c);
-  background: radial-gradient(circle, var(--ui-c) 0 2.5px, transparent 3px);
-}
-.emit-step-proof {
-  position: absolute;
-  right: var(--sp-4); top: 50%;
-  transform: translateY(-50%);
-  font: 400 var(--t-sm)/1 var(--f-mono);
-  color: var(--e-faint);
-  white-space: nowrap;
-}
+.emit-step--next .emit-step-mark { box-shadow: inset 0 0 0 1.5px var(--ui-c); }
+.emit-step--next .emit-step-mark::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--ui-c); }
+.emit-step-proof { font: 400 var(--t-sm)/1 var(--f-mono); color: var(--e-faint); white-space: nowrap; }
 .emit-step--next .emit-step-proof { color: var(--ui-c); }
-#emit-swagger .swagger-ui .info ol > li.emit-step--fresh::before { animation: emit-pop .5s var(--ease); }
-@keyframes emit-pop { 40% { transform: scale(1.35); } }
-/* Steps that name a real operation link to it (wired by enhance.js). */
-#emit-swagger .swagger-ui .info .emit-step-link {
-  cursor: pointer;
-  transition: border-color 0.14s, color 0.14s, background 0.14s;
+/* The route after the words, quiet; it opens its operation. */
+#emit-swagger .swagger-ui .info .renderedMarkdown ol > li code {
+  margin-left: var(--sp-2);
+  padding: 0;
+  font: 500 var(--t-sm)/1 var(--f-mono);
+  color: var(--e-faint);
+  background: none;
+  border: 0;
+  border-radius: 0;
 }
-/* The go-to mark tells a link chip apart from plain code at rest. */
-#emit-swagger .swagger-ui .info .emit-step-link svg {
-  width: 9px;
-  height: 9px;
-  margin-left: 5px;
-  opacity: 0.55;
-  vertical-align: baseline;
-  transition: opacity 0.14s;
-}
-#emit-swagger .swagger-ui .info .emit-step-link:hover svg,
-#emit-swagger .swagger-ui .info .emit-step-link:focus-visible svg { opacity: 1; }
-#emit-swagger .swagger-ui .info .emit-step-link:hover {
-  border-color: var(--ui-b);
-  color: var(--ui-c);
-}
-#emit-swagger .swagger-ui .info .emit-step-link:focus-visible {
-  outline: none;
-  border-color: var(--ui-b);
-  box-shadow: 0 0 0 2px var(--ui-bg);
-}
+#emit-swagger .swagger-ui .info ol > li .emit-step-link { cursor: pointer; transition: color 0.14s; }
+#emit-swagger .swagger-ui .info ol > li .emit-step-link:hover { color: var(--ui-c); }
+#emit-swagger .swagger-ui .info ol > li .emit-step-link:focus-visible { outline: 2px solid var(--ui-c-dim); outline-offset: 2px; border-radius: var(--r-sm); }
 
 #emit-swagger .swagger-ui .info ul,
 #emit-swagger .swagger-ui .info .markdown ul,
@@ -1061,7 +1013,7 @@ body {
   background: none;
   border: 0;
   border-radius: 0;
-  margin: var(--sp-3) 0 var(--sp-5);
+  margin: 0;
   font-size: var(--t-lg);
   box-shadow: none;
   overflow: hidden;
@@ -1070,9 +1022,7 @@ body {
 #emit-swagger .swagger-ui .info table thead th {
   background: none;
   color: var(--e-faint);
-  font-family: var(--f-body);
-  font-size: var(--t-xs);
-  font-weight: 600;
+  font: 600 var(--t-xs)/1 var(--f-body);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   text-align: left;
@@ -1092,12 +1042,8 @@ body {
 
 /* Authentication table after enhance.js swaps the first cell for a scope badge. */
 /* Scrolls inside this frame on narrow screens instead of widening the page. */
-#emit-swagger .swagger-ui .info .emit-matrix-frame { overflow-x: auto; }
-#emit-swagger .swagger-ui .info table.emit-matrix tbody td:first-child {
-  vertical-align: middle;
-  width: 1%;
-  white-space: nowrap;
-}
+#emit-swagger .swagger-ui .info .emit-matrix-frame { overflow-x: auto; margin-bottom: var(--sp-7); }
+#emit-swagger .swagger-ui .info table.emit-matrix tbody td:first-child { white-space: nowrap; }
 
 /* --------------------------------------------------------------------------
    5. SCHEME BAR
@@ -1214,7 +1160,7 @@ body {
   border: 0;
   background: transparent;
   padding: 0 var(--sp-2);
-  margin: var(--sp-7) 0 var(--sp-3);
+  margin: var(--sp-8) 0 var(--sp-3);
   min-height: 24px;
   color: var(--e-label);
   font-family: var(--f-body);
@@ -2526,7 +2472,7 @@ body {
   border: 0;
   border-radius: 0;
   box-shadow: none;
-  margin: var(--sp-7) 0;
+  margin: var(--sp-8) 0;
   padding: 0;
   overflow: visible;
 }
@@ -3003,30 +2949,26 @@ body {
   flex: 0 0 auto;
 }
 #emit-swagger .swagger-ui .emit-scope {
+  --c: var(--e-dim);
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 22px;
-  font-family: var(--f-mono);
-  font-size: var(--t-xs);
-  font-weight: 600;
-  letter-spacing: 0.08em;
   padding: 0 10px;
-  border-radius: var(--r-pill);
+  font: 600 var(--t-xs)/1 var(--f-mono);
+  letter-spacing: 0.08em;
   white-space: nowrap;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 10%, transparent);
+  border: 0;
+  border-radius: var(--r-pill);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent);
 }
 /* The glyph inherits the badge's colour, so a scope never needs its icon
    coloured separately from its text. */
-#emit-swagger .swagger-ui .emit-scope svg {
-  width: 11px;
-  height: 11px;
-  flex: 0 0 auto;
-  stroke-width: 2.2;
-}
-#emit-swagger .swagger-ui .emit-scope--admin  { color: var(--sc-admin-c);  background: var(--sc-admin-bg);  border: 1px solid var(--sc-admin-b); }
-#emit-swagger .swagger-ui .emit-scope--tenant { color: var(--sc-tenant-c); background: var(--sc-tenant-bg); border: 1px solid var(--sc-tenant-b); }
-#emit-swagger .swagger-ui .emit-scope--public,
-#emit-swagger .swagger-ui .emit-scope--other  { color: var(--e-dim); background: transparent; border: 1px solid var(--e-line); font-weight: 500; }
+#emit-swagger .swagger-ui .emit-scope svg { width: 11px; height: 11px; flex: 0 0 auto; }
+#emit-swagger .swagger-ui .emit-scope--admin  { --c: var(--sc-admin-c); }
+#emit-swagger .swagger-ui .emit-scope--tenant { --c: var(--sc-tenant-c); }
 
 /* The stock padlock is replaced by the scope badge. */
 #emit-swagger .swagger-ui .opblock-summary .authorization__btn { display: none; }
@@ -3037,144 +2979,75 @@ body {
    flow, so the axis stays put whatever the label length.
    -------------------------------------------------------------------------- */
 /* Container query: the figure reflows on its own width. */
-#emit-swagger .swagger-ui #emit-lifecycle {
-  margin: var(--sp-6) 0 var(--sp-2);
-  container: emit-lifecycle / inline-size;
-}
+#emit-swagger .swagger-ui #emit-lifecycle { margin: 0; container: emit-lifecycle / inline-size; }
 #emit-swagger .swagger-ui .emit-section-label {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
   margin: 0 0 var(--sp-3);
-  font-family: var(--f-body);
-  font-size: var(--t-xs);
-  font-weight: 600;
+  font: 600 var(--t-xs)/1 var(--f-body);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--e-dim);
 }
-#emit-swagger .swagger-ui .emit-section-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--e-hair);
-}
+#emit-swagger .swagger-ui .emit-section-label::after { content: ""; flex: 1; height: 1px; background: var(--e-hair); }
 
 #emit-swagger .swagger-ui .emit-flow {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 64px var(--sp-5);
+  padding: var(--sp-7) var(--sp-6);
   background: var(--e-well);
-  border: 0;
   border-radius: var(--r-code);
   box-shadow: var(--e-well-edge);
-  overflow-x: auto;
 }
-#emit-swagger .swagger-ui .emit-flow-node {
-  position: relative;
-  flex: 0 0 auto;
-  width: 112px; height: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* A stage: the id it holds, its dot, its name and what it means. */
+#emit-swagger .swagger-ui .emit-flow-node { display: grid; justify-items: center; gap: 7px; min-width: 110px; }
 #emit-swagger .swagger-ui .emit-flow-dot {
-  width: 11px; height: 11px;
-  flex: 0 0 auto;
-  border: 1.5px solid currentColor;
+  width: 12px; height: 12px;
   border-radius: 50%;
-  background: #0b0e13;
-  box-shadow: 0 0 14px -3px currentColor;
+  box-shadow: inset 0 0 0 1.5px currentColor, 0 0 14px -3px currentColor;
 }
-#emit-swagger .swagger-ui .emit-flow-text {
-  position: absolute;
-  top: 17px;
-  left: 50%;
-  width: 112px;
-  transform: translateX(-50%);
-  text-align: center;
+#emit-swagger .swagger-ui .emit-flow-state { font: 600 var(--t-sm)/1 var(--f-mono); letter-spacing: .1em; }
+#emit-swagger .swagger-ui .emit-flow-caption { font-size: var(--t-xs); color: var(--e-faint); }
+#emit-swagger .swagger-ui .emit-flow-node--pending    { color: var(--s5-c); }
+#emit-swagger .swagger-ui .emit-flow-node--processing { color: var(--run-c); }
+#emit-swagger .swagger-ui .emit-flow-node--done       { color: var(--s2-c); }
+#emit-swagger .swagger-ui .emit-flow-node--failed     { color: var(--s4-c); }
+/* The figure is the andon: the followed document's id rides on the stage it
+   is in, and light travels the edge it is crossing. */
+#emit-swagger .swagger-ui .emit-flow-id {
+  visibility: hidden;
+  padding: 3px 7px;
+  border-radius: var(--r-pill);
+  background: rgba(255,255,255,0.08);
+  color: var(--e-text);
+  font: 500 var(--t-3xs)/1 var(--f-mono);
+  white-space: nowrap;
 }
-#emit-swagger .swagger-ui .emit-flow-state {
-  display: block;
-  font-family: var(--f-mono);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  letter-spacing: 0.09em;
-}
-#emit-swagger .swagger-ui .emit-flow-caption {
-  display: block;
-  margin-top: 3px;
-  font-family: var(--f-body);
-  font-size: var(--t-3xs);
-  line-height: 1.55;
-  letter-spacing: 0.03em;
-  color: var(--e-faint);
-}
-/* Current state of the followed document. */
+#emit-swagger .swagger-ui .emit-flow-node.is-current .emit-flow-id { visibility: visible; animation: emit-rise .35s var(--ease); }
 #emit-swagger .swagger-ui .emit-flow-node.is-current .emit-flow-dot {
   background: currentColor;
   box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 14%, transparent), 0 0 20px currentColor;
   animation: emit-ring .7s var(--ease);
 }
-#emit-swagger .swagger-ui .emit-flow-node--pending    { color: var(--s5-c); }
-#emit-swagger .swagger-ui .emit-flow-node--processing { color: var(--run-c); }
-#emit-swagger .swagger-ui .emit-flow-node--done       { color: var(--s2-c); }
-#emit-swagger .swagger-ui .emit-flow-node--failed     { color: var(--s4-c); }
-
 #emit-swagger .swagger-ui .emit-flow-link {
   position: relative;
-  flex: 1 1 auto;
-  min-width: 44px; max-width: 132px;
-  height: 9px;
-}
-#emit-swagger .swagger-ui .emit-flow-line {
-  position: absolute;
-  left: 0; right: 0; top: 4px;
-  height: 1px;
-  background: var(--e-edge);
-}
-#emit-swagger .swagger-ui .emit-flow-line::after {
-  content: '';
-  position: absolute;
-  right: 0; top: -2.5px;
-  border-left: 5px solid var(--e-edge);
-  border-top: 3px solid transparent;
-  border-bottom: 3px solid transparent;
-}
-#emit-swagger .swagger-ui .emit-flow-via {
-  position: absolute;
-  left: 0; right: 0; top: 11px;
-  text-align: center;
-  font-family: var(--f-mono);
-  font-size: var(--t-xs);
-  letter-spacing: 0.05em;
+  flex: 1;
+  max-width: 150px;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
   color: var(--e-faint);
+  font: 400 var(--t-xs)/1 var(--f-mono);
 }
-/* The figure is the andon: the followed document's id rides on the stage it
-   is in, and light travels the edge it is crossing. */
-#emit-swagger .swagger-ui .emit-flow-id {
-  position: absolute;
-  bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 3px 7px;
-  border-radius: var(--r-pill);
-  background: rgba(255,255,255,0.08);
-  color: var(--e-text);
-  font: 500 9px/1 var(--f-mono);
-  white-space: nowrap;
-  animation: emit-rise .35s var(--ease);
-}
-/* The top outcome carries its words above the dot, so its id goes below. */
-#emit-swagger .swagger-ui .emit-flow-fork .emit-flow-node:first-child .emit-flow-id { bottom: auto; top: 18px; }
-#emit-swagger .swagger-ui .emit-flow-link.is-active .emit-flow-via { color: var(--run-c); }
-#emit-swagger .swagger-ui .emit-flow-link.is-active .emit-flow-line { background: linear-gradient(90deg, rgba(134,184,255,0.15), rgba(134,184,255,0.55)); }
+#emit-swagger .swagger-ui .emit-flow-link::before { content: ""; width: 100%; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.13)); }
+#emit-swagger .swagger-ui .emit-flow-link.is-active { color: var(--run-c); }
+#emit-swagger .swagger-ui .emit-flow-link.is-active::before { background: linear-gradient(90deg, rgba(134,184,255,0.15), rgba(134,184,255,0.5)); }
 #emit-swagger .swagger-ui .emit-flow-link.is-active::after {
   content: "";
   position: absolute;
-  top: 1px;
-  left: 0;
+  top: -3px; left: 0;
   width: 7px; height: 7px;
   border-radius: 50%;
   background: #d6e6ff;
@@ -3182,96 +3055,35 @@ body {
   animation: emit-travel 1.3s cubic-bezier(.5,0,.5,1) infinite;
 }
 @keyframes emit-travel { from { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } to { left: calc(100% - 7px); opacity: 0; } }
-
-/* Mirrored outcomes. The arm span is fixed on both sides, so the trunk meets
-   the bracket exactly on the axis. */
-#emit-swagger .swagger-ui .emit-flow-fork {
-  position: relative;
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 76px;
-  padding-left: 22px;
-}
-#emit-swagger .swagger-ui .emit-flow-fork::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 4px; bottom: 4px;
-  width: 1px;
-  background: var(--e-edge);
-}
-#emit-swagger .swagger-ui .emit-flow-fork .emit-flow-node::before {
-  content: '';
-  position: absolute;
-  left: -22px; top: 4px;
-  width: 22px; height: 1px;
-  background: var(--e-edge);
-}
-/* text thrown outward, away from the axis */
-#emit-swagger .swagger-ui .emit-flow-fork .emit-flow-node--done .emit-flow-text { top: auto; bottom: 17px; }
-
-@container emit-lifecycle (max-width: 640px) {
-  #emit-swagger .swagger-ui .emit-flow { padding: 56px var(--sp-3); }
-  #emit-swagger .swagger-ui .emit-flow-fork { gap: 64px; }
+/* The run ends in one of two outcomes, stacked on a thread of their own. */
+#emit-swagger .swagger-ui .emit-flow-outcomes {
+  display: grid;
+  gap: var(--sp-5);
+  margin-left: var(--sp-2);
+  padding-left: var(--sp-4);
+  box-shadow: inset 1px 0 0 rgba(255,255,255,0.12);
 }
 
-/* Narrow: a vertical timeline. A centred row wider than its scroller starts at
-   a negative offset that cannot be scrolled to.
-   Nodes are 28px with the dot 1px from the top; the connectors depend on it. */
-@container emit-lifecycle (max-width: 520px) {
-  #emit-swagger .swagger-ui .emit-flow {
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: var(--sp-5);
-  }
+/* Narrow: a vertical timeline, each stage a row with its dot on the thread. */
+@container emit-lifecycle (max-width: 560px) {
+  #emit-swagger .swagger-ui .emit-flow { flex-direction: column; align-items: stretch; padding: var(--sp-5); }
   #emit-swagger .swagger-ui .emit-flow-node {
-    width: auto;
-    height: 28px;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: var(--sp-3);
-  }
-  #emit-swagger .swagger-ui .emit-flow-dot { margin-top: 1px; }
-  #emit-swagger .swagger-ui .emit-flow-text {
-    position: static;
-    width: auto;
-    transform: none;
-    text-align: left;
-  }
-  #emit-swagger .swagger-ui .emit-flow-link {
-    flex: 0 0 auto;
-    width: 9px;
+    grid-template-columns: 12px auto 1fr;
+    grid-template-areas: "dot state id" ". caption caption";
+    justify-items: start;
+    align-items: center;
+    column-gap: var(--sp-3);
+    row-gap: var(--sp-1);
     min-width: 0;
-    max-width: none;
-    height: 30px;
   }
-  #emit-swagger .swagger-ui .emit-flow-line {
-    left: 4px; right: auto;
-    top: -18px; bottom: 1px;
-    width: 1px; height: auto;
-  }
-  #emit-swagger .swagger-ui .emit-flow-line::after {
-    left: -2.5px; right: auto;
-    top: auto; bottom: 0;
-    border-left: 3px solid transparent;
-    border-right: 3px solid transparent;
-    border-top: 5px solid var(--e-edge);
-    border-bottom: 0;
-  }
-  #emit-swagger .swagger-ui .emit-flow-via {
-    left: 21px; right: auto;
-    top: 50%;
-    transform: translateY(-50%);
-    text-align: left;
-    white-space: nowrap;
-  }
-  #emit-swagger .swagger-ui .emit-flow-fork {
-    gap: var(--sp-3);
-    padding-left: 22px;
-  }
-  #emit-swagger .swagger-ui .emit-flow-fork::before { left: 4px; top: 5px; bottom: 23px; }
-  #emit-swagger .swagger-ui .emit-flow-fork .emit-flow-node::before { left: -18px; top: 5px; width: 18px; }
+  #emit-swagger .swagger-ui .emit-flow-dot { grid-area: dot; }
+  #emit-swagger .swagger-ui .emit-flow-state { grid-area: state; }
+  #emit-swagger .swagger-ui .emit-flow-caption { grid-area: caption; }
+  #emit-swagger .swagger-ui .emit-flow-id { grid-area: id; }
+  #emit-swagger .swagger-ui .emit-flow-link { max-width: none; justify-items: start; padding: var(--sp-2) 0 var(--sp-2) 24px; }
+  #emit-swagger .swagger-ui .emit-flow-link::before { position: absolute; left: 5.5px; top: 0; bottom: 0; width: 1px; height: auto; }
+  #emit-swagger .swagger-ui .emit-flow-link.is-active::after { display: none; }
+  #emit-swagger .swagger-ui .emit-flow-outcomes { margin: var(--sp-2) 0 0; padding: 0; box-shadow: none; gap: var(--sp-4); }
 }
 
 /* --------------------------------------------------------------------------

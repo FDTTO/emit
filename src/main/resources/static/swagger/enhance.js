@@ -113,8 +113,8 @@
     { label: 'Log in', method: 'post', path: '/v1/auth/login', done: { held: 'bearerAuth' }, proof: 'token in Authorize' },
     { label: 'Create a tenant', method: 'post', path: '/v1/tenants', done: { held: 'apiKeyAuth' }, proof: 'key in Authorize' },
     { label: 'Create a document', method: 'post', path: '/v1/documents', done: { answered: true }, proof: 'id carried' },
-    { label: 'Generate its PDF', method: 'post', path: '/v1/documents/{id}/generate', done: { run: 'DONE' }, proof: 'pdf ready' },
-    { label: 'Download it', method: 'get', path: '/v1/documents/{id}/pdf', done: { answered: true }, proof: 'downloaded' }
+    { label: 'Generate the PDF', method: 'post', path: '/v1/documents/{id}/generate', done: { run: 'DONE' }, proof: 'pdf ready' },
+    { label: 'Download the PDF', method: 'get', path: '/v1/documents/{id}/pdf', done: { answered: true }, proof: 'downloaded' }
   ];
 
   /* ------------------------------------------------------------- formats
@@ -858,9 +858,10 @@
       var lit = !!step && node.classList.contains('emit-flow-node--' + step.kind);
       node.classList.toggle('is-current', lit);
       var tag = node.querySelector('.emit-flow-id');
-      if (lit && !tag) node.appendChild(tag = el('span', 'emit-flow-id'));
-      if (tag && !lit) tag.remove();
-      if (tag && lit) tag.textContent = current.id.slice(0, 8);
+      if (lit && !tag) tag = node.insertBefore(el('span', 'emit-flow-id'), node.firstChild);
+      if (!tag) return;
+      if (!lit && !tag.hasAttribute('data-reserved')) { tag.remove(); return; }
+      tag.textContent = lit ? current.id.slice(0, 8) : '\u00a0';
     });
     /* While it runs, light travels the edge the document is crossing: out of
        PENDING along the first, out of PROCESSING along the second. */
@@ -1409,13 +1410,15 @@
     return named.every(function (state) { return declared.indexOf(state) !== -1; });
   }
 
-  function lifecycleNode(step) {
+  /* A node keeps a line above its dot for the followed document's id, so
+     lighting it moves nothing. The lower outcome has none: its id, when a run
+     fails, takes the gap above it. */
+  function lifecycleNode(step, reserve) {
     var node = el('div', 'emit-flow-node emit-flow-node--' + step.kind);
-    node.appendChild(el('span', 'emit-flow-dot'));
-    var text = el('span', 'emit-flow-text');
-    text.appendChild(el('span', 'emit-flow-state', step.state));
-    text.appendChild(el('span', 'emit-flow-caption', step.caption));
-    node.appendChild(text);
+    if (reserve) node.appendChild(el('span', 'emit-flow-id', '\u00a0')).setAttribute('data-reserved', '');
+    node.appendChild(el('i', 'emit-flow-dot'));
+    node.appendChild(el('b', 'emit-flow-state', step.state));
+    node.appendChild(el('small', 'emit-flow-caption', step.caption));
     return node;
   }
 
@@ -1577,6 +1580,19 @@
     if (items.length === JOURNEY.length) {
       var state = journeyState();
       items.forEach(function (item, index) {
+        /* Three cells: the mark, the words with their route, the proof. The
+           markdown is set as HTML, so its nodes can move under a wrapper. */
+        if (!item.querySelector('.emit-step-text')) {
+          var words = el('span', 'emit-step-text');
+          while (item.firstChild) words.appendChild(item.firstChild);
+          /* The route keeps its own margin; the space before it would add to it. */
+          words.querySelectorAll('code').forEach(function (code) {
+            var before = code.previousSibling;
+            if (before && before.nodeType === 3) before.textContent = before.textContent.replace(/\s+$/, '');
+          });
+          item.appendChild(el('span', 'emit-step-mark'));
+          item.appendChild(words);
+        }
         /* A step that has just been done marks itself with a short pulse. */
         if (state.done[index] && item.dataset.emitDone === 'false') {
           item.classList.add('emit-step--fresh');
@@ -1603,8 +1619,6 @@
       chip.setAttribute('role', 'link');
       chip.setAttribute('tabindex', '0');
       chip.setAttribute('title', 'Open this operation');
-      var mark = icon('goTo');
-      if (mark) chip.appendChild(mark);
       chip.addEventListener('click', function () { openOperation(target); });
       chip.addEventListener('keydown', function (event) {
         if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -1766,19 +1780,14 @@
 
     var flow = el('div', 'emit-flow');
     LIFECYCLE.run.forEach(function (step) {
-      if (step.via) {
-        var link = el('div', 'emit-flow-link');
-        link.appendChild(el('span', 'emit-flow-line'));
-        link.appendChild(el('span', 'emit-flow-via', step.via));
-        flow.appendChild(link);
-      } else {
-        flow.appendChild(lifecycleNode(step));
-      }
+      flow.appendChild(step.via ? el('div', 'emit-flow-link', step.via) : lifecycleNode(step, true));
     });
 
-    var fork = el('div', 'emit-flow-fork');
-    LIFECYCLE.outcomes.forEach(function (step) { fork.appendChild(lifecycleNode(step)); });
-    flow.appendChild(fork);
+    var outcomes = el('div', 'emit-flow-outcomes');
+    LIFECYCLE.outcomes.forEach(function (step, index) {
+      outcomes.appendChild(lifecycleNode(step, index < LIFECYCLE.outcomes.length - 1));
+    });
+    flow.appendChild(outcomes);
 
     section.appendChild(flow);
     anchor.parent.insertBefore(section, anchor.before);

@@ -36,7 +36,7 @@ class SwaggerUiController {
                     <title>EMIT API</title>
                     <link rel="preconnect" href="https://fonts.googleapis.com">
                     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+                    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
                     <!-- theme.css imports stock Swagger into a cascade layer, so the
                          theme outranks it without !important. -->
                     <link rel="stylesheet" type="text/css" href="/swagger/theme.css">
@@ -44,8 +44,8 @@ class SwaggerUiController {
                     <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16">
                     <style>
                       /* Painted before the stylesheet loads so the page never flashes white. */
-                      html { background-color: #0d0f15; }
-                      body { background-color: #0d0f15; color: #dde6f0; margin: 0; }
+                      html { background-color: #07090d; }
+                      body { color: #aab6c6; margin: 0; }
                     </style>
                   </head>
                   <body id="emit-swagger">

@@ -65,10 +65,6 @@ public class OpenApiConfig {
 
                                 ## Authentication
 
-                                Two independent mechanisms, each with a distinct scope.
-                                The scope column names the security scheme exactly as the
-                                Authorize dialog lists it, so the two can be matched by name:
-
                                 | Scope | Header | Grants |
                                 |---|---|---|
                                 | bearerAuth | `Authorization: Bearer <token>` | Create and manage tenants |
@@ -76,11 +72,11 @@ public class OpenApiConfig {
 
                                 ## Getting started
 
-                                1. `POST /v1/auth/login` with the admin credentials returns a `token` for **bearerAuth**
-                                2. `POST /v1/tenants` returns an `apiKey` for **apiKeyAuth**, exactly once
-                                3. `POST /v1/documents` creates a document in PENDING
-                                4. `POST /v1/documents/{id}/generate` sends it through the async PDF pipeline
-                                5. `GET /v1/documents/{id}/pdf` downloads the PDF once it is DONE""")
+                                1. Log in with the admin credentials `POST /v1/auth/login`
+                                2. Create a tenant `POST /v1/tenants`
+                                3. Create a document `POST /v1/documents`
+                                4. Generate its PDF `POST /v1/documents/{id}/generate`
+                                5. Download it `GET /v1/documents/{id}/pdf`""")
                         .version("v1"))
                 .tags(List.of(
                         new Tag().name("Authentication").description("Admin login. Returns a JWT required for all tenant management endpoints."),

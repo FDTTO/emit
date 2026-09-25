@@ -9,6 +9,14 @@ V.until(function () { return !!link('requestDocumentGeneration') && !!pane() && 
   var root = document.scrollingElement;
   check('the page does not scroll', root.scrollHeight <= innerHeight + 1, { page: root.scrollHeight, viewport: innerHeight });
   check('the content pane does', pane().scrollHeight > pane().clientHeight, { content: pane().scrollHeight, pane: pane().clientHeight });
+  /* The scene sits behind the page at z-index -1: a background on any box
+     between it and the window paints over the light. */
+  var painted = [];
+  for (var n = document.getElementById('emit-window').parentElement; n !== document.documentElement; n = n.parentElement) {
+    var style = getComputedStyle(n);
+    if (style.backgroundColor !== 'rgba(0, 0, 0, 0)' || style.backgroundImage !== 'none') painted.push(n.tagName + '#' + n.id);
+  }
+  check('nothing paints over the light behind the window', !painted.length && !!document.querySelector('.emit-scene__glow'), painted);
 
   var operations = 0;
   Object.keys(window.ui.specSelectors.specJson().toJS().paths).forEach(function (path) {
