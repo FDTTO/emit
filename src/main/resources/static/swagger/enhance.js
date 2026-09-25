@@ -30,7 +30,6 @@
     shield: ['M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7z'],
     apiKey: ['M8 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z', 'M12 12h9M18 12v4'],
     /* Topbar credential tag: open when empty, closed when holding a credential. */
-    lockOpen:   ['M5 11h14v9H5z', 'M9 11V7a3 3 0 0 1 6 0'],
     lockClosed: ['M5 11h14v9H5z', 'M9 11V7a3 3 0 0 1 6 0v4'],
     /* Marks a getting-started step that leads to the operation it names. */
     goTo: ['M7 17L17 7', 'M8 7h9v9'],
@@ -44,6 +43,7 @@
     pencil: ['M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z'],
     eye: ['M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z', 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'],
     close: ['M6 6l12 12M18 6L6 18'],
+    alert: ['M12 8v5', 'M12 16.5v.5', 'M10.3 3.9L2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'],
     braces: ['M8 4c-2 0-2 2-2 4s-2 4-2 4 2 2 2 4 0 4 2 4', 'M16 4c2 0 2 2 2 4s2 4 2 4-2 2-2 4 0 4-2 4']
   };
 
@@ -1078,9 +1078,11 @@
       bar.insertBefore(jump, document.getElementById('emit-crumb').nextSibling);
     }
 
+    /* Present once Swagger knows the schemes, and on a failed description,
+       where its dialog says why it is empty. */
     var source = document.querySelector('.scheme-container .auth-wrapper .authorize');
     var mirror = document.getElementById('emit-topbar-auth');
-    if (!source) {
+    if (!source && !specFailed()) {
       if (mirror) mirror.remove();
       return;
     }
@@ -1118,9 +1120,6 @@
     mirror.textContent = '';
 
     if (!held.length) {
-      var openWell = el('span', 'emit-auth-icon');
-      openWell.appendChild(icon('lockOpen'));
-      mirror.appendChild(openWell);
       mirror.appendChild(el('span', 'emit-auth-cta', 'Authorize'));
       mirror.setAttribute('aria-label', 'Authorize');
       mirror.title = 'Authorize';
@@ -1615,6 +1614,10 @@
     scrim.dataset.signature = signature;
     var list = scrim.querySelector('.emit-auth__list');
     list.textContent = '';
+    if (!spec) {
+      list.appendChild(el('p', 'emit-auth__empty', 'Credentials appear once the API description loads.'));
+      return;
+    }
     var definitions = window.ui.specSelectors.securityDefinitions();
     Object.keys(SCOPE_BY_SCHEME).forEach(function (scheme) {
       var definition = definitions && definitions.get(scheme);
@@ -1626,7 +1629,7 @@
   var credentialsTick = null;
   function openCredentials() {
     var host = document.getElementById('emit-window');
-    if (!host || !spec) return;
+    if (!host) return;
     var scrim = document.getElementById('emit-auth');
     if (!scrim) {
       scrim = el('div', 'emit-auth');
@@ -1685,6 +1688,69 @@
     scrim.hidden = true;
     clearInterval(credentialsTick);
     if (credentialsOpener && credentialsOpener.focus) credentialsOpener.focus();
+  }
+
+  /* --------------------------------------------------------------- failure
+   * When the API description does not load, the page says what failed,
+   * where, and what to try, and every part that is drawn from the
+   * description says why it is empty.
+   */
+  var FAILURE_HINT = 'Running locally? The app must be up with the dev profile.';
+
+  function specFailed() {
+    var selectors = window.ui && window.ui.specSelectors;
+    return !!selectors && typeof selectors.loadingStatus === 'function' && selectors.loadingStatus() === 'failed';
+  }
+
+  function paintFailure() {
+    var host = document.getElementById('emit-window');
+    var pane = contentPane();
+    if (!host || !pane) return;
+    var failed = specFailed();
+    host.dataset.spec = failed ? 'failed' : '';
+    var card = document.getElementById('emit-failure');
+    if (!failed) {
+      if (card) card.remove();
+      return;
+    }
+    if (card) return;
+
+    var url = window.ui.specSelectors.url() || SPEC_URL;
+    card = el('section', 'emit-failure');
+    card.id = 'emit-failure';
+    card.setAttribute('role', 'alert');
+    var mark = card.appendChild(el('div', 'emit-failure__mark'));
+    mark.appendChild(icon('alert'));
+    card.appendChild(el('h2', null, 'The API description did not load'));
+    card.appendChild(el('p', null, 'The console draws every operation from it, so there is nothing to show until it loads.'));
+    var call = card.appendChild(el('div', 'emit-failure__call'));
+    var code = call.appendChild(el('b', null, '…'));
+    call.appendChild(document.createTextNode('GET ' + url));
+    /* Swagger keeps the failure's words, not its status: ask once more. */
+    fetch(url, { credentials: 'same-origin' })
+      .then(function (response) { code.textContent = String(response.status); })
+      .catch(function () { code.textContent = 'No answer'; });
+    var actions = card.appendChild(el('div', 'emit-failure__actions'));
+    var retry = actions.appendChild(el('button', 'emit-primary', 'Try again'));
+    retry.type = 'button';
+    retry.addEventListener('click', function () { location.reload(); });
+    var raw = actions.appendChild(el('a', 'emit-quiet', 'Open the raw description'));
+    raw.href = url;
+    raw.target = '_blank';
+    raw.rel = 'noopener';
+    card.appendChild(el('small', null, FAILURE_HINT));
+    pane.appendChild(card);
+
+    var rail = document.getElementById('emit-rail');
+    if (rail && !rail.querySelector('.emit-rail__empty')) {
+      rail.insertBefore(el('div', 'emit-rail__empty', 'No operations until the API description loads.'), rail.firstChild);
+    }
+    var server = document.getElementById('emit-status-server');
+    if (server && !server.dataset.built) {
+      server.dataset.built = 'true';
+      server.appendChild(el('i', 'emit-status__led'));
+      server.appendChild(document.createTextNode(location.host));
+    }
   }
 
   /* ---------------------------------------------------------------- result
@@ -2608,13 +2674,14 @@
   function paintCrumb(current) {
     var crumb = document.getElementById('emit-crumb');
     if (!crumb) return;
-    var block = current === 'overview' ? null : document.getElementById(current);
-    var key = block ? current : 'overview';
+    var failed = specFailed();
+    var block = failed || current === 'overview' ? null : document.getElementById(current);
+    var key = failed ? 'failed' : block ? current : 'overview';
     if (crumb.dataset.key === key) return;
     crumb.dataset.key = key;
     crumb.textContent = '';
     if (!block || key === 'emit-schemas') {
-      crumb.appendChild(el('b', null, block ? 'Schemas' : 'Overview'));
+      crumb.appendChild(el('b', null, key === 'failed' ? 'No API description' : block ? 'Schemas' : 'Overview'));
       return;
     }
     var method = block.querySelector('.opblock-summary-method');
@@ -2953,8 +3020,19 @@
 
   // -------------------------------------------------------------- scheduler
 
+  /* The description Swagger loaded, read from its store once it has: one
+     source, so a page whose description failed draws nothing from it. */
+  function readSpec() {
+    var selectors = window.ui && window.ui.specSelectors;
+    if (spec || !selectors || typeof selectors.loadingStatus !== 'function' || selectors.loadingStatus() !== 'success') return;
+    var json = selectors.specJson();
+    spec = json && json.toJS ? json.toJS() : null;
+  }
+
   function paint() {
+    readSpec();
     watchStore();
+    paintFailure();
     paintTopbar();
     paintResults();
     paintBodyEditors();
@@ -3030,15 +3108,6 @@
     /* Whether a region overflows depends on the width, which no mutation reports. */
     window.addEventListener('resize', schedule);
 
-    /* The badges and the figure need the spec; the page works without them. */
-    fetch(SPEC_URL, { credentials: 'same-origin' })
-      .then(function (response) { return response.ok ? response.json() : null; })
-      .then(function (loaded) {
-        if (!loaded) return;
-        spec = loaded;
-        schedule();
-      })
-      .catch(function () { /* the page is fully usable without the extras */ });
   }
 
   if (document.readyState === 'loading') {

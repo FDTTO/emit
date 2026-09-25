@@ -1,18 +1,28 @@
 // @widths 1280,320
 // @spec-url /v3/api-docs-does-not-exist
-// The spec-failure state: a status heading that is not
-// treated as the product title, and an error box on the page gutter at every
-// width. The failed fetch is the point, so its console noise is expected.
+// When the API description does not load, the page says what failed, where
+// and what to try, and each part drawn from the description says why it is
+// empty instead of showing what it had. The failed fetch is the point, so its
+// console noise is expected.
 allowErrors(/api-docs-does-not-exist|Failed to load|401/);
 
-setTimeout(function () {
+var q = function (selector) { return document.querySelector(selector); };
+var seen = function (node) { return !!node && node.getClientRects().length > 0; };
+
+V.until(function () { return !!q('#emit-failure b') && /\d/.test(q('#emit-failure b').textContent); }, function () {
   var root = document.documentElement, width = root.clientWidth;
-  var box = V.box('.errors-wrapper');
-  var gutter = parseInt(getComputedStyle(root).getPropertyValue('--page-gutter'), 10);
-  check('the failure is shown', !!box);
+  var card = q('#emit-failure').getBoundingClientRect();
+  check('the failure says what failed and where', /^\d{3}$/.test(q('#emit-failure b').textContent)
+        && /GET \/v3\/api-docs-does-not-exist/.test(q('.emit-failure__call').textContent), q('.emit-failure__call').textContent);
+  check('it offers a retry and the raw description', !!q('#emit-failure .emit-primary')
+        && /api-docs-does-not-exist$/.test(q('#emit-failure a.emit-quiet').getAttribute('href')));
+  check('Swagger’s own error box is not shown', !seen(q('.errors-wrapper')));
   check('no sideways scroll', root.scrollWidth <= width, { scrollWidth: root.scrollWidth, width: width });
-  check('error box never closer to the edge than the gutter', !!box && box.left >= gutter && box.right <= width - gutter,
-        { box: box, gutter: gutter, width: width });
-  check('heading is not split as a product title', !document.querySelector('.loading-container .info .title .emit-title-name'));
+  check('the card fits the width', card.left >= 0 && card.right <= width, { left: card.left, right: card.right, width: width });
+  if (width > 900) {
+    check('the rail says why it is empty', seen(q('.emit-rail__empty')) && !q('.emit-map__item') && !seen(q('#emit-journey')));
+    check('the titlebar says there is no description', q('#emit-crumb').textContent === 'No API description', q('#emit-crumb').textContent);
+    check('the server light turns to failure', getComputedStyle(q('.emit-status__led')).backgroundColor === 'rgb(255, 143, 132)');
+  }
   done();
-}, 6000);
+}, 10000);

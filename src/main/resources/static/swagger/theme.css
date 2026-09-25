@@ -644,30 +644,16 @@ body {
 #emit-topbar-auth:hover { filter: brightness(1.18); }
 #emit-topbar-auth:active { filter: brightness(0.94); }
 
-.emit-auth-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-}
-.emit-auth-icon svg { width: 16px; height: 16px; stroke-width: 1.9; }
 
-/* Holding nothing: an invitation in the interaction colour. */
+/* Holding nothing: a quiet pill, its word in the interaction colour. */
 #emit-topbar-auth[data-state=""] {
-  gap: 7px;
   align-items: center;
-  padding: 0 14px 0 11px;
-  background: var(--ui-bg);
-  box-shadow: inset 0 0 0 1px var(--ui-b), inset 0 1px 0 rgba(255,255,255,0.08);
+  padding: 0 var(--sp-4);
+  background: var(--e-raised);
+  box-shadow: inset 0 0 0 1px var(--e-hair);
 }
-#emit-topbar-auth[data-state=""] .emit-auth-icon { color: var(--ui-c); }
 #emit-topbar-auth[data-state=""] .emit-auth-cta { color: var(--ui-c); }
-.emit-auth-icon svg { width: 13px; height: 13px; }
-.emit-auth-cta {
-  font-family: var(--f-body);
-  font-size: var(--t-md);
-  font-weight: 600;
-}
+.emit-auth-cta { font: 500 var(--t-md)/1 var(--f-body); }
 
 /* Held scopes are segments of the capsule, each tinted by its scope. */
 .emit-auth-seg {
@@ -2951,47 +2937,51 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
 }
 
 /* --------------------------------------------------------------------------
-   18. SPEC FAILURE
-   Counter: stock draws a 2px #f93e3e box with a scaleUp animation.
+   18. SPEC FAILURE (drawn by enhance.js)
+   What failed, where, and what to try; the parts drawn from the description
+   say why they are empty.
    -------------------------------------------------------------------------- */
-#emit-swagger .swagger-ui .errors-wrapper {
-  animation: none;
-  background: var(--s4-bg);
-  border: 1px solid var(--s4-b);
-  border-radius: var(--r-panel);
-  margin: var(--sp-6) auto;
-  padding: var(--sp-5) var(--sp-6);
-  max-width: 720px;
-}
-/* The failure layout has no .wrapper: the gutter goes on the centred column,
-   not on the box, which is sized by its content. */
-#emit-swagger .swagger-ui > .loading-container { padding: 0 var(--page-gutter); }
-#emit-swagger .swagger-ui .loading-container .info .title {
-  font-size: var(--t-3xl);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  text-transform: none;
+#emit-window[data-spec="failed"] .swagger-ui > .loading-container { display: none; }
+.emit-failure {
+  max-width: 560px;
+  margin: calc(var(--sp-7) + 80px) auto 0;
+  padding: var(--sp-8);
   text-align: center;
-  color: var(--e-text);
+  border-radius: var(--r-panel);
+  background: var(--e-shine);
+  box-shadow: var(--e-lift);
 }
-#emit-swagger .swagger-ui .errors-wrapper .errors h4,
-#emit-swagger .swagger-ui .errors-wrapper hgroup h4 {
+.emit-failure__mark {
+  width: 52px; height: 52px;
+  margin: 0 auto var(--sp-5);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
   color: var(--s4-c);
-  font-family: var(--f-body);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  background: color-mix(in srgb, var(--s4-c) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--s4-c) 26%, transparent), 0 0 30px -8px var(--s4-c);
 }
-/* Status code and URL: mono. */
-#emit-swagger .swagger-ui .errors-wrapper .errors small,
-#emit-swagger .swagger-ui .errors-wrapper .message {
+.emit-failure__mark svg { width: 22px; height: 22px; }
+.emit-failure h2 { margin: 0 0 var(--sp-3); font: 600 20px/1.3 var(--f-body); color: var(--e-text); }
+.emit-failure p { margin: 0 auto var(--sp-5); max-width: 44ch; color: var(--e-body); }
+.emit-failure__call {
+  display: inline-flex;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+  padding: 10px 14px;
+  border-radius: var(--r-code);
+  background: var(--e-well);
+  box-shadow: var(--e-well-edge);
+  font: 400 var(--t-md)/1 var(--f-mono);
   color: var(--e-body);
-  font-family: var(--f-mono);
-  font-size: var(--t-sm);
-  line-height: 1.7;
 }
-#emit-swagger .swagger-ui .errors-wrapper .errors > .error-wrapper { padding: 0; }
+.emit-failure__call b { font-weight: 600; color: var(--s4-c); }
+.emit-failure__actions { display: flex; justify-content: center; gap: var(--sp-2); }
+#emit-swagger a.emit-quiet { display: inline-flex; align-items: center; text-decoration: none; }
+.emit-failure small { display: block; margin-top: var(--sp-5); font-size: var(--t-sm); color: var(--e-faint); }
+.emit-rail__empty { padding: var(--sp-5) var(--sp-6); font-size: var(--t-md); color: var(--e-faint); }
+#emit-window[data-spec="failed"] .emit-status__led { background: var(--s4-c); }
+.emit-auth__empty { margin: 0; padding: var(--sp-5) var(--sp-6); font-size: var(--t-md); color: var(--e-dim); }
 
 /* --------------------------------------------------------------------------
    19. NARROW VIEWPORTS
