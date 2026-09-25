@@ -10,7 +10,7 @@
 
 Accepts an HTTP request to generate a PDF, returns `202 Accepted` immediately, and processes asynchronously through Kafka. Each tenant runs in an isolated PostgreSQL schema. Rate limiting is distributed and atomic across any number of instances.
 
-Five structural decisions. 197 tests that prove the contract holds.
+Five structural decisions. 198 tests that prove the contract holds.
 
 </div>
 
@@ -508,7 +508,7 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 
 ## Testing
 
-**197 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
+**198 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
 
 **Unit** (Mockito + JUnit 5) · 92 tests
 
@@ -570,7 +570,7 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
                                              wrong password 401
 ```
 
-**Integration** (Testcontainers: real containers, no test doubles) · 73 tests
+**Integration** (Testcontainers: real containers, no test doubles) · 74 tests
 
 ```
 ├── RateLimiterServiceTest             [4]   within limit, remaining counts down to zero,
@@ -591,6 +591,8 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 │                                            triggered against the API: status and
 │                                            message must match what the spec shows,
 │                                            asked in Portuguese to prove one language
+├── ApiDocsTest                        [1]   no required string with a length rule is
+│                                            published as accepting an empty value
 └── DocumentIntegrationTest            [3]   full lifecycle: login → create tenant →
                                              create document → request generation →
                                              await DONE → download PDF; admin token
