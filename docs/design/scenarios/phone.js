@@ -29,6 +29,15 @@ V.until(function () { return !!V.definition('apiKeyAuth') && !!document.querySel
     check('a row keeps to method, path, answer and scope glyph',
           !seen(row.querySelector('.emit-op-icon')) && !seen(row.querySelector('.opblock-summary-description'))
           && seen(row.querySelector('.emit-scope svg')) && !seen(row.querySelector('.emit-scope__label')));
-    done();
+    document.getElementById('emit-topbar-auth').click();
+    V.until(function () { var d = document.getElementById('emit-auth'); return !!d && !d.hidden; }, function () {
+      var sheet = document.querySelector('#emit-auth .emit-auth__box').getBoundingClientRect();
+      var title = document.querySelector('#emit-auth .emit-auth__head h2').getBoundingClientRect();
+      var top = document.elementFromPoint(title.left + 4, title.top + title.height / 2);
+      check('credentials rise as a sheet from the bottom edge, over the bar and the strip',
+            Math.abs(sheet.bottom - innerHeight) < 1 && sheet.width === innerWidth && !!top && !!top.closest('#emit-auth'),
+            { bottom: sheet.bottom, width: sheet.width });
+      done();
+    }, 3000);
   }, 8000);
 }, 20000);

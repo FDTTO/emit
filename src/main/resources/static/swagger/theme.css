@@ -2562,7 +2562,7 @@ body {
   font: 400 var(--t-md)/1 var(--f-mono);
   color: var(--e-text);
 }
-.emit-auth__value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.emit-auth__value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .emit-auth__eye { display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--e-text); cursor: pointer; }
 .emit-auth__eye svg { width: 14px; height: 14px; }
 .emit-auth__eye[aria-pressed="true"] { color: var(--ui-c); }
@@ -3111,3 +3111,25 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   .emit-live-pill__state.is-done { color: var(--s2-c); }
   .emit-live-pill__state.is-failed { color: var(--s4-c); }
 }
+
+/* Credentials on a phone: a sheet from the bottom edge, over the bar and
+   the strip, scrolling on its own when the cards outgrow the screen. */
+@media (max-width: 900px) {
+  .emit-auth { position: fixed; z-index: 220; place-items: end stretch; padding: 0; }
+  .emit-auth__box {
+    width: 100%;
+    max-height: calc(100vh - var(--sp-7));
+    overflow-y: auto;
+    border-radius: var(--r-panel) var(--r-panel) 0 0;
+    animation: emit-sheet .3s var(--ease);
+  }
+  .emit-auth__head { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-2) var(--sp-3); padding: var(--sp-5); }
+  .emit-auth__head p { grid-column: 1 / -1; grid-row: 2; }
+  .emit-auth__cred, .emit-auth__foot { padding-left: var(--sp-5); padding-right: var(--sp-5); }
+  .emit-auth__top { flex-wrap: wrap; row-gap: var(--sp-1); }
+  .emit-auth__kind { flex: 1 0 100%; }
+  .emit-auth__state { flex-wrap: wrap; }
+  .emit-auth__source { margin-left: 0; flex: 1 0 100%; text-align: left; }
+}
+@keyframes emit-sheet { from { transform: translateY(24px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .emit-auth__box { animation: none; } }

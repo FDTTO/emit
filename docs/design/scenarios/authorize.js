@@ -44,6 +44,12 @@ function pasted() {
   check('pasting a key authorizes it', capsule().dataset.state === 'ADMIN,TENANT', capsule().dataset.state);
   check('and its card turns held, masked', /^Held$/.test(state(1)) && /emit_p .+1234/.test(card(1).querySelector('.emit-auth__value').textContent),
         card(1).querySelector('.emit-auth__value').textContent);
+  var eye = card(0).querySelector('.emit-auth__eye'), field = card(0).querySelector('.emit-auth__field');
+  var before = eye.getBoundingClientRect().right;
+  eye.click();
+  check('the eye keeps its place at the edge of the field when it shows the whole value',
+        eye.getBoundingClientRect().right === before && field.getBoundingClientRect().right - before < 16,
+        { before: before, after: eye.getBoundingClientRect().right });
   card(0).querySelector('.emit-quiet').click();
   V.until(function () { return !V.held('bearerAuth') && /^Not held/.test(state(0)); }, loggedOut, 3000);
 }
