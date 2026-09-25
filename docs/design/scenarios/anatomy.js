@@ -33,11 +33,12 @@ V.until(function () { return all('.opblock .emit-op-icon svg path').length === a
         !!figure && figure.previousElementSibling.tagName === 'P' && figure.nextElementSibling.tagName === 'H2'
         && /Authentication/.test(figure.nextElementSibling.textContent),
         figure && [figure.previousElementSibling.tagName, figure.nextElementSibling.textContent]);
-  check('schema annotations: inline enum, array item type, formats',
-        text('.emit-enum') === 'PENDING | PROCESSING | DONE | FAILED'
-        && all('.emit-array').some(function (n) { return /array<DocumentSummaryResponse>/.test(n.textContent); })
-        && all('.emit-format').some(function (n) { return n.textContent === 'uuid'; }),
-        [text('.emit-enum'), all('.emit-format').length]);
+  var fields = '#emit-schemas ';
+  check('schema fields: enum values, array item type, formats',
+        all(fields + '.emit-constraint').some(function (n) { return n.textContent === 'PENDING | PROCESSING | DONE | FAILED'; })
+        && all(fields + '.emit-chip--type').some(function (n) { return n.textContent === 'DocumentSummaryResponse[]'; })
+        && all(fields + '.emit-chip--format').some(function (n) { return n.textContent === 'uuid'; }),
+        [all(fields + '.emit-constraint').length, all(fields + '.emit-chip--format').length]);
   var links = all('.info .emit-step-link');
   var steps = all('.info ol > li');
   check('every getting-started step links to its operation', steps.length > 0 && links.length === steps.length,

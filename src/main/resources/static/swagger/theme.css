@@ -420,11 +420,9 @@ body {
   border-radius: var(--r-sm);
 }
 /* Stock shows `outline: auto` on mouse click too; hide it for pointer focus only. */
-#emit-swagger .swagger-ui .opblock-summary-control:focus:not(:focus-visible),
-#emit-swagger .swagger-ui .models-control:focus:not(:focus-visible),
-#emit-swagger .swagger-ui .model-box-control:focus:not(:focus-visible) { outline: none; }
-/* Stock `all: inherit` pins their radius to 0, which :where() above cannot outrank. */
-#emit-swagger .swagger-ui :is(.opblock-summary-control, .models-control, .model-box-control):focus-visible {
+#emit-swagger .swagger-ui .opblock-summary-control:focus:not(:focus-visible) { outline: none; }
+/* Stock `all: inherit` pins its radius to 0, which :where() above cannot outrank. */
+#emit-swagger .swagger-ui .opblock-summary-control:focus-visible {
   border-radius: var(--r-sm);
 }
 
@@ -1128,7 +1126,6 @@ body {
   text-transform: none;
   color: var(--e-faint);
 }
-#emit-swagger .swagger-ui section.models .models-control .emit-count { order: 2; }
 #emit-swagger .swagger-ui .opblock-tag svg { fill: var(--e-faint); }
 
 /* --------------------------------------------------------------------------
@@ -2612,375 +2609,69 @@ body {
 .emit-auth__foot { display: flex; justify-content: space-between; align-items: center; padding: var(--sp-4) var(--sp-6); box-shadow: inset 0 1px 0 var(--e-hair); font-size: var(--t-sm); color: var(--e-faint); }
 
 /* --------------------------------------------------------------------------
-   13. SCHEMAS
-   Counter: section.models{border:1px solid rgba(59,65,81,.3);margin:30px 0}
+   13. SCHEMAS (drawn by enhance.js from the spec)
+   Models read like operations: a row each, fields as rows once open, and
+   the operations that use the model. Swagger's own section is not drawn.
    -------------------------------------------------------------------------- */
-#emit-swagger .swagger-ui section.models {
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  margin: var(--sp-8) 0;
-  padding: 0;
-  overflow: visible;
-}
-#emit-swagger .swagger-ui section.models.is-open { padding: 0; }
-#emit-swagger .swagger-ui section.models h4,
-#emit-swagger .swagger-ui section.models.is-open h4 {
+#emit-swagger .swagger-ui section.models { display: none; }
+.emit-schemas { max-width: var(--page-column); margin: 0 auto; padding: 0 var(--page-gutter); }
+.emit-schemas__head {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  background: transparent;
-  border: 0;
-  margin: 0 0 var(--sp-2);
-  padding: 10px 2px;
-  font-family: var(--f-body);
-  font-size: var(--t-xs);
-  font-weight: 600;
+  margin: var(--sp-8) 0 var(--sp-3);
+  padding: 0 var(--sp-2);
+  font: 600 var(--t-sm)/1 var(--f-body);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--e-label);
-  transition: color 0.15s;
 }
-#emit-swagger .swagger-ui section.models h4:hover { color: rgba(168,186,222,0.8); }
-#emit-swagger .swagger-ui section.models h4::before {
-  content: '';
-  flex: 0 0 auto;
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(168,186,222,0.3);
-  order: -1;
+.emit-schemas__head small { font: 500 var(--t-sm)/1 var(--f-mono); letter-spacing: 0; text-transform: none; color: var(--e-faint); }
+.emit-schemas__head::after { content: ""; flex: 1; height: 1px; background: var(--e-hair); }
+.emit-model {
+  margin-bottom: 6px;
+  border-radius: var(--r-panel);
+  background: var(--e-raised);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.035);
+  transition: background .3s var(--ease), box-shadow .3s var(--ease), margin .3s var(--ease);
 }
-/* Order 2 is taken by the model count. */
-#emit-swagger .swagger-ui section.models h4 svg { fill: var(--e-faint); order: 3; }
-#emit-swagger .swagger-ui section.models .models-control {
-  background: transparent;
+.emit-model:not(.is-open):hover { background: var(--e-hover); }
+.emit-model.is-open { margin: var(--sp-4) 0 var(--sp-5); background: var(--e-shine); box-shadow: var(--e-lift); }
+.emit-model__head {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  flex: 1;
-}
-#emit-swagger .swagger-ui section.models .models-control span { flex: 0 0 auto; order: 0; }
-#emit-swagger .swagger-ui section.models .models-control::after {
-  content: '';
-  order: 1;
-  flex: 1 1 auto;
-  height: 1px;
-  min-width: var(--sp-5);
-  background: var(--e-line);
-}
-#emit-swagger .swagger-ui section.models .no-margin { padding: 0; }
-/* Schema component, used in the Schemas section and in every Schema tab.
-   Width counters .models .json-schema-2020-12:not(.--embedded){width:calc(100% - 40px)} */
-#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] {
   width: 100%;
-  background: var(--e-glass);
-  border: 1px solid var(--e-rim);
+  padding: 12px var(--sp-5);
+  border: 0;
   border-radius: var(--r-panel);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-  margin: 0 0 var(--sp-3) 0;
-  padding: 0;
-  overflow: hidden;
-}
-#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"]:last-child { margin-bottom: 0; }
-#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  background: var(--e-bar);
-  border-bottom: 1px solid var(--e-line);
-  padding: 11px var(--sp-4);
-}
-#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head .json-schema-2020-12-accordion {
-  background: transparent;
-  flex: 1;
-  padding: 0;
-  text-align: left;
-}
-#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head .json-schema-2020-12__title:first-of-type {
-  color: var(--e-text);
-  font-family: var(--f-mono);
-  font-size: var(--t-md);
-  font-weight: 600;
-}
-/* Stock puts an 18px box around a 20px glyph, which made the card head taller. */
-#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head .json-schema-2020-12-accordion__icon {
-  width: 14px;
-  height: 14px;
-}
-#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head .json-schema-2020-12-accordion__icon svg {
-  width: 14px;
-  height: 14px;
-  fill: rgba(168,186,222,0.45);
-}
-/* Hidden at every level: the card chevron and property chevrons cover it. */
-#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > .json-schema-2020-12-head .json-schema-2020-12-expand-deep-button {
-  display: none;
-}
-/* Rows carry their own horizontal padding so separators reach the edges. */
-#emit-swagger .swagger-ui article.json-schema-2020-12[data-json-schema-level="0"] > :not(.json-schema-2020-12-head) {
-  border-left: 0;
-  margin: 0;
-  padding: var(--sp-1) 0;
-}
-
-/* Property rows: embedded schema nodes, unstyled by stock. */
-#emit-swagger .swagger-ui .json-schema-2020-12-keyword--properties > ul,
-#emit-swagger .swagger-ui .json-schema-2020-12-keyword--patternProperties > ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-/* The li is the row, so the separator and hover span the card. */
-#emit-swagger .swagger-ui li.json-schema-2020-12-property {
-  border-bottom: 1px solid rgba(255,255,255,0.035);
-  margin: 0;
-  padding: 9px var(--sp-4);
-  transition: background 0.12s;
-}
-#emit-swagger .swagger-ui li.json-schema-2020-12-property:last-child { border-bottom: 0; }
-#emit-swagger .swagger-ui li.json-schema-2020-12-property:hover { background: rgba(255,255,255,0.012); }
-/* Counter: .json-schema-2020-12{margin:0 20px 15px;padding:12px 0 12px 20px} */
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded {
-  background: transparent;
-  margin: 0;
-  padding: 0;
-}
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: var(--sp-1) var(--sp-2);
-  padding: 0;
-}
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12-accordion {
-  background: transparent;
-  flex: 0 0 auto;
-  min-width: 132px;
-  padding: 0;
-  text-align: left;
-}
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12__title {
-  color: var(--e-text);
-  font-family: var(--f-mono);
-  font-size: var(--t-md);
-  font-weight: 600;
-}
-/* Rows without an accordion button still hold the name column. */
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head > .json-schema-2020-12__title {
-  flex: 0 0 auto;
-  min-width: 132px;
-}
-/* Swagger emits the body element even when there is nothing in it. */
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-body:empty { display: none; }
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12__title:after {
-  color: var(--e-dim);
-  font-weight: 600;
-}
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12-accordion__icon {
-  width: 14px; height: 14px;
-}
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12-accordion__icon svg {
-  width: 14px; height: 14px;
-  fill: rgba(168,186,222,0.35);
-}
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-head .json-schema-2020-12-expand-deep-button {
-  display: none;
-}
-/* Every level: card head, property rows, enum viewer. */
-#emit-swagger .swagger-ui .json-schema-2020-12__attribute,
-#emit-swagger .emit-legend-pill.p-type {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid var(--e-line);
-  border-radius: var(--r-xs);
-  color: var(--e-text);
-  font-family: var(--f-mono);
-  font-size: var(--t-xs);
-  font-weight: 600;
-  padding: 1px 6px;
-  text-transform: lowercase;
-}
-/* Schema names keep their case; keywords are lowercased. */
-#emit-swagger .swagger-ui .json-schema-2020-12__attribute.emit-type-name {
-  text-transform: none;
-}
-#emit-swagger .swagger-ui .json-schema-2020-12__attribute--primary,
-#emit-swagger .emit-legend-pill.p-type {
-  background: var(--pt-bg);
-  border-color: var(--pt-b);
-  color: var(--pt-c);
-}
-/* Formats and constraints share a class; enhance.js marks which is which.
-   A format is a filled capsule, a constraint a note behind a bullet. */
-#emit-swagger .swagger-ui .json-schema-2020-12__constraint {
-  font-family: var(--f-mono);
-  font-size: var(--t-xs);
-  line-height: normal;
-  margin: 0;
-}
-#emit-swagger .swagger-ui .json-schema-2020-12__constraint.emit-format,
-#emit-swagger .emit-legend-pill.p-fmt {
-  display: inline-block;
-  font-family: var(--f-mono);
-  font-size: var(--t-xs);
-  background: var(--pf-bg);
-  border: 1px solid var(--pf-b);
-  border-radius: var(--r-pill);
-  color: var(--pf-c);
-  font-weight: 500;
-  padding: 1px 8px;
-}
-#emit-swagger .swagger-ui .json-schema-2020-12__constraint.emit-constraint {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 5px;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  color: var(--e-faint);
-  font-weight: 400;
-  padding: 0;
-}
-#emit-swagger .swagger-ui .json-schema-2020-12__constraint.emit-constraint::before {
-  content: '';
-  flex: 0 0 auto;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--e-faint);
-  transform: translateY(-3px);
-}
-/* An inline enum hides the nested Enum accordion, for that row only. */
-#emit-swagger .swagger-ui article.emit-has-enum
-  > .json-schema-2020-12-body
-  > .json-schema-2020-12-keyword--enum { display: none; }
-
-/* Same for array items once the row names the item type. */
-#emit-swagger .swagger-ui article.emit-array
-  > .json-schema-2020-12-body
-  > .json-schema-2020-12-keyword--items { display: none; }
-
-/* Description and example hang in the value column (140px). */
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded > .json-schema-2020-12-body {
-  border-left: 0;
-  margin: 2px 0 0;
-  padding: 0 0 0 140px;
-}
-/* Deeper levels keep the nesting rule: there the indent is the only thing
-   saying which schema a row belongs to. */
-#emit-swagger .swagger-ui article.json-schema-2020-12--embedded .json-schema-2020-12-body .json-schema-2020-12-body {
-  border-left: 1px solid var(--e-line);
-  margin: 0 0 var(--sp-2) 8px;
-  padding: var(--sp-1) 0 0 var(--sp-3);
-}
-
-/* Not inline-block: shrink-to-fit resolved the card's width:100% against its
-   own content. */
-#emit-swagger .swagger-ui .model-box {
-  display: block;
-  background: transparent;
-  border-radius: 0;
-  padding: 0;
-}
-#emit-swagger .swagger-ui .model,
-#emit-swagger .swagger-ui .model-title {
-  color: var(--e-text);
-  font-family: var(--f-mono);
-  font-size: var(--t-sm);
-}
-#emit-swagger .swagger-ui .model-title__text,
-#emit-swagger .swagger-ui .model-title { font-weight: 600; }
-#emit-swagger .swagger-ui .model-toggle { top: 2px; }
-#emit-swagger .swagger-ui .model .property { color: var(--e-body); font-family: var(--f-mono); }
-#emit-swagger .swagger-ui .model .property.primitive,
-#emit-swagger .swagger-ui .prop-type { color: var(--pt-c); }
-#emit-swagger .swagger-ui .prop-format { color: var(--pf-c); }
-#emit-swagger .swagger-ui table.model tbody tr td { padding: 3px 0; border: 0; }
-#emit-swagger .swagger-ui table.model tr.property-row td:first-child { color: var(--e-text); }
-#emit-swagger .swagger-ui table.model tr.property-row .star { color: var(--pr-c); }
-#emit-swagger .swagger-ui .model .renderedMarkdown p { color: var(--e-dim); font-size: var(--t-sm); margin: 0; }
-
-/* Fallbacks for json-schema renderer elements not named elsewhere. :where()
-   keeps them at zero specificity so named rules always win. */
-#emit-swagger .swagger-ui :where([class*="json-schema-2020-12"]) { background: transparent; color: var(--e-body); }
-#emit-swagger .swagger-ui :where([class*="json-schema-2020-12__title"]) {
-  color: var(--e-text);
-  font-family: var(--f-mono);
-  font-size: var(--t-md);
-  font-weight: 700;
-}
-/* Constraint. The class is singular: __constraint (+ --string, --number...). */
-/* Before enhance.js marks the pills: unboxed, so nothing flashes. */
-#emit-swagger .swagger-ui :where([class*="json-schema-2020-12__constraint"]) {
-  display: inline-block;
-  margin: 0;
-  padding: 0;
-  background: transparent;
-  color: var(--e-faint);
-  border: 0;
-  font-family: var(--f-mono);
-  font-size: 0.72em;
-}
-
-/* Description block: .json-schema-2020-12-keyword--description >
-   .core-keyword__value--secondary > .renderedMarkdown > p */
-#emit-swagger .swagger-ui .json-schema-2020-12-keyword--description {
-  display: block;
   background: none;
-  border: none;
-  padding: 0;
-  margin: 4px 0 0;
+  color: var(--e-body);
+  font: 400 var(--t-lg)/1.55 var(--f-body);
+  text-align: left;
+  cursor: pointer;
 }
-#emit-swagger .swagger-ui .json-schema-2020-12-keyword--description .renderedMarkdown p {
-  margin: 0;
-  color: var(--e-dim);
-  font-size: var(--t-sm);
-  font-style: normal;
-  line-height: 1.6;
-}
-
-/* Example: a caption under the description. Label in sans, value in mono. */
-#emit-swagger .swagger-ui .json-schema-2020-12-json-viewer.json-schema-2020-12-keyword--example {
-  display: block;
-  margin: 3px 0 0;
-  padding: 0;
-  background: none;
-  border: 0;
-}
-/* Stock prints "=" between the spans and indents the label 20px. */
-#emit-swagger .swagger-ui .json-schema-2020-12-keyword--example
-  .json-schema-2020-12-json-viewer__name--secondary
-  + .json-schema-2020-12-json-viewer__value--secondary::before {
-  content: none;
-}
-#emit-swagger .swagger-ui .json-schema-2020-12-keyword--example .json-schema-2020-12-json-viewer__name {
-  margin: 0 6px 0 0;
-  font-family: var(--f-body);
-  font-size: var(--t-2xs);
-  font-weight: 500;
-  font-style: normal;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--e-faint);
-}
-#emit-swagger .swagger-ui .json-schema-2020-12-keyword--example .json-schema-2020-12-json-viewer__value {
-  font-family: var(--f-mono);
-  font-size: var(--t-xs);
-  font-weight: 500;
-  font-style: normal;
-  color: var(--e-dim);
-}
-#emit-swagger .swagger-ui button:where([class*="json-schema-2020-12"]) {
-  background: transparent; border: 0;
-  color: var(--e-dim); font-size: 0.72em; cursor: pointer;
-}
-#emit-swagger .swagger-ui button:where([class*="json-schema-2020-12"]):hover { color: var(--e-body); }
-#emit-swagger .swagger-ui span.model-hint,
-#emit-swagger .swagger-ui .range-info {
-  background: var(--pf-bg); color: var(--pf-c);
-  border: 1px solid var(--pf-b); border-radius: var(--r-xs);
-  padding: 1px 5px; font-style: normal; font-family: var(--f-mono);
-}
+.emit-model.is-open .emit-model__head { border-radius: var(--r-panel) var(--r-panel) 0 0; box-shadow: inset 0 -1px 0 var(--e-hair); }
+.emit-model__braces { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--r-sm); background: var(--e-raised); box-shadow: inset 0 0 0 1px var(--e-hair); font: 600 var(--t-md)/1 var(--f-mono); color: var(--e-dim); }
+.emit-model__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 var(--t-lg)/1 var(--f-mono); color: var(--e-body); }
+.emit-model__braces, .emit-model__count, .emit-model__head .emit-chip, .emit-model__chevron { flex: 0 0 auto; }
+.emit-field__type .emit-constraint { overflow-wrap: anywhere; }
+.emit-model.is-open .emit-model__name { color: var(--e-text); }
+.emit-model__count { margin-left: auto; font: 500 var(--t-sm)/1 var(--f-mono); color: var(--e-faint); }
+.emit-model__chevron { width: 8px; height: 8px; margin: 0 4px 0 var(--sp-3); border: solid var(--e-faint); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg) translateY(-2px); transition: transform .3s var(--ease); }
+.emit-model.is-open .emit-model__chevron { transform: rotate(-135deg) translateY(-2px); }
+.emit-model__body { display: none; }
+.emit-model.is-open .emit-model__body { display: block; animation: emit-unfold .32s var(--ease); }
+.emit-model__body > .emit-fields { padding: var(--sp-2) var(--gutter) var(--sp-4); }
+.emit-model__used { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: var(--sp-3) var(--gutter) var(--sp-5); box-shadow: inset 0 1px 0 var(--e-hair); font-size: var(--t-sm); color: var(--e-faint); }
+/* The ids outrank the page's `button { font-family: inherit }`. */
+#emit-swagger .swagger-ui .emit-model__user { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 0; border-radius: var(--r-sm); background: var(--e-raised); color: var(--e-body); font: 500 var(--t-sm)/1 var(--f-mono); cursor: pointer; }
+.emit-model__user:hover { background: var(--e-hover); color: var(--e-text); }
+.emit-model__user svg { width: 14px; height: 14px; }
+/* A field of another model's type is a way to that model. */
+#emit-swagger .swagger-ui button.emit-chip { border: 0; font-family: var(--f-mono); cursor: pointer; }
+button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
+.emit-map__count { margin-left: auto; font: 500 var(--t-xs)/1 var(--f-mono); color: var(--e-faint); }
 
 /* --------------------------------------------------------------------------
    14. LEGEND (markup injected by SwaggerUiController)
@@ -3381,6 +3072,8 @@ body {
   .emit-kv__value { padding-top: 0; box-shadow: none; }
 }
 @media (max-width: 560px) {
+  /* A field's name goes over its rules instead of beside them. */
+  .emit-field { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
   /* The proof moves under its step's words instead of reserving a column. */
   #emit-swagger .swagger-ui .info .renderedMarkdown ol > li { grid-template-columns: 20px 1fr; row-gap: var(--sp-1); }
   .emit-step-proof { grid-column: 2; }

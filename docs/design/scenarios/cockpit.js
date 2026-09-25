@@ -22,7 +22,7 @@ V.until(function () { return !!link('requestDocumentGeneration') && !!pane() && 
   Object.keys(window.ui.specSelectors.specJson().toJS().paths).forEach(function (path) {
     operations += Object.keys(window.ui.specSelectors.specJson().toJS().paths[path]).length;
   });
-  var items = document.querySelectorAll('.emit-map__item:not(.emit-map__item--overview)').length;
+  var items = document.querySelectorAll('.emit-map__item[data-target^="operations-"]').length;
   check('the map lists every operation', items === operations, { map: items, spec: operations });
   check('at the top, the overview is current', !!document.querySelector('.emit-map__item--overview.is-current'));
 

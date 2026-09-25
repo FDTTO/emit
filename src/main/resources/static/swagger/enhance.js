@@ -43,7 +43,8 @@
     reset: ['M4 12a8 8 0 1 0 2.34-5.66', 'M4 4v5h5'],
     pencil: ['M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z'],
     eye: ['M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z', 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'],
-    close: ['M6 6l12 12M18 6L6 18']
+    close: ['M6 6l12 12M18 6L6 18'],
+    braces: ['M8 4c-2 0-2 2-2 4s-2 4-2 4 2 2 2 4 0 4 2 4', 'M16 4c2 0 2 2 2 4s2 4 2 4-2 2-2 4 0 4-2 4']
   };
 
   /* Action segments: the last path segment names what the call does. Verbs
@@ -123,17 +124,6 @@
     { label: 'Create a document', method: 'post', path: '/v1/documents', done: { answered: true }, proof: 'id carried' },
     { label: 'Generate the PDF', method: 'post', path: '/v1/documents/{id}/generate', done: { run: 'DONE' }, proof: 'pdf ready' },
     { label: 'Download the PDF', method: 'get', path: '/v1/documents/{id}/pdf', done: { answered: true }, proof: 'downloaded' }
-  ];
-
-  /* ------------------------------------------------------------- formats
-   * Swagger renders a `format` and a real constraint through the same class,
-   * `__constraint--<type>`, so formats are recognised by value. The set of
-   * OpenAPI formats is fixed and short.
-   */
-  var OPENAPI_FORMATS = [
-    'uuid', 'date', 'date-time', 'time', 'duration', 'password', 'byte',
-    'binary', 'email', 'hostname', 'ipv4', 'ipv6', 'uri', 'uri-reference',
-    'int32', 'int64', 'float', 'double'
   ];
 
   var spec = null;
@@ -1416,6 +1406,102 @@
     after.parentNode.insertBefore(line, after.nextSibling);
   }
 
+  /* --------------------------------------------------------------- schemas
+   * The models read like operations: a row each until chosen, the fields as
+   * rows, and the operations that use the model, each a link. Drawn from the
+   * spec in place of Swagger's section, which stays hidden.
+   */
+  function refName(ref) {
+    return typeof ref === 'string' ? ref.split('/').pop() : '';
+  }
+
+  /* The model a property points at, directly or as the items of an array. */
+  function modelOf(property) {
+    return refName(property.$ref) || (property.type === 'array' && property.items ? refName(property.items.$ref) : '');
+  }
+
+  function usesModel(schema, name) {
+    return !!schema && (refName(schema.$ref) === name || (!!schema.items && refName(schema.items.$ref) === name));
+  }
+
+  function usersOf(name) {
+    var users = [];
+    Object.keys(spec.paths).sort().forEach(function (path) {
+      HTTP_METHODS.forEach(function (method) {
+        var operation = spec.paths[path][method];
+        if (!operation || !operation.operationId) return;
+        var bodies = [operation.requestBody].concat(Object.keys(operation.responses || {}).map(function (code) {
+          return operation.responses[code];
+        }));
+        var used = bodies.some(function (body) {
+          var media = body && body.content && body.content['application/json'];
+          return media && usesModel(media.schema, name);
+        });
+        if (used) users.push({ method: method, path: path, tag: (operation.tags && operation.tags[0]) || 'default', id: operation.operationId });
+      });
+    });
+    return users;
+  }
+
+  function openModel(name) {
+    var row = document.getElementById('emit-model-' + name);
+    if (!row) return;
+    row.classList.add('is-open');
+    row.querySelector('.emit-model__head').setAttribute('aria-expanded', 'true');
+    bringIntoView(row);
+  }
+
+  function modelRow(name, schema) {
+    var row = el('article', 'emit-model');
+    row.id = 'emit-model-' + name;
+    var head = el('button', 'emit-model__head');
+    head.type = 'button';
+    head.setAttribute('aria-expanded', 'false');
+    head.appendChild(el('span', 'emit-model__braces', '{}'));
+    head.appendChild(el('span', 'emit-model__name', name));
+    head.appendChild(el('span', 'emit-model__count', plural(Object.keys(schema.properties || {}).length, 'field')));
+    head.appendChild(el('span', 'emit-chip emit-chip--type', schema.type || 'object'));
+    head.appendChild(el('span', 'emit-model__chevron'));
+    head.addEventListener('click', function () {
+      var open = row.classList.toggle('is-open');
+      head.setAttribute('aria-expanded', String(open));
+    });
+    row.appendChild(head);
+
+    var body = el('div', 'emit-model__body');
+    body.appendChild(fieldRows(schema));
+    var users = usersOf(name);
+    if (users.length) {
+      var used = el('div', 'emit-model__used', 'Used by');
+      users.forEach(function (user) {
+        var link = el('button', 'emit-model__user');
+        link.type = 'button';
+        link.appendChild(icon(iconFor(user.method, user.path)));
+        link.appendChild(document.createTextNode(user.method.toUpperCase() + ' ' + user.path));
+        link.addEventListener('click', function () { openOperation(user); });
+        used.appendChild(link);
+      });
+      body.appendChild(used);
+    }
+    row.appendChild(body);
+    return row;
+  }
+
+  function paintSchemas() {
+    var schemas = spec && spec.components && spec.components.schemas;
+    var models = document.querySelector('.swagger-ui section.models');
+    if (!schemas || !models || document.getElementById('emit-schemas')) return;
+    var holder = models.closest('.wrapper') || models;
+
+    var section = el('section', 'emit-schemas');
+    section.id = 'emit-schemas';
+    var head = el('h3', 'emit-schemas__head', 'Schemas');
+    head.appendChild(el('small', null, plural(Object.keys(schemas).length, 'model')));
+    section.appendChild(head);
+    Object.keys(schemas).forEach(function (name) { section.appendChild(modelRow(name, schemas[name])); });
+    holder.parentNode.insertBefore(section, holder);
+  }
+
   /* ----------------------------------------------------------- credentials
    * Authorize as the credentials Execute sends: one card per scheme, its
    * state first (held, where it came from, until when), and the way to get
@@ -1962,8 +2048,17 @@
       row.appendChild(label);
       var about = el('div');
       var kind = el('div', 'emit-field__type');
-      var ref = property.$ref && property.$ref.split('/').pop();
-      kind.appendChild(el('span', 'emit-chip emit-chip--type', ref || property.type || 'object'));
+      /* A field of another model's type names it and opens it. */
+      var model = modelOf(property);
+      var typed = property.$ref ? model
+        : property.type === 'array' ? (model || (property.items && property.items.type) || 'item') + '[]'
+        : property.type || 'object';
+      var chip = kind.appendChild(el(model ? 'button' : 'span', 'emit-chip emit-chip--type', typed));
+      if (model) {
+        chip.type = 'button';
+        chip.title = 'Open ' + model;
+        chip.addEventListener('click', function () { openModel(model); });
+      }
       if (property.format) kind.appendChild(el('span', 'emit-chip emit-chip--format', property.format));
       constraintsOf(property).forEach(function (rule) { kind.appendChild(el('span', 'emit-constraint', rule)); });
       about.appendChild(kind);
@@ -2056,94 +2151,6 @@
     node.appendChild(el('b', 'emit-flow-state', step.state));
     node.appendChild(el('small', 'emit-flow-caption', step.caption));
     return node;
-  }
-
-  /* Enum values, inline on the property row.
-   *
-   * Swagger renders nothing for them while the property is collapsed, so the
-   * values come from the spec. The row's schema is found by walking up to the
-   * level-0 article; that is only sound one level down, so deeper rows keep
-   * Swagger's own nested block.
-   */
-  function directTitle(article) {
-    var title = article.querySelector(':scope > .json-schema-2020-12-head .json-schema-2020-12__title');
-    return title ? (title.textContent || '').trim() : '';
-  }
-
-  /* The spec entry behind a property row, or null when the row is too deep. */
-  function propertySchemaFor(article) {
-    var schemas = spec && spec.components && spec.components.schemas;
-    if (!schemas) return null;
-    if (article.getAttribute('data-json-schema-level') !== '1') return null;
-
-    var root = article.closest('article.json-schema-2020-12[data-json-schema-level="0"]');
-    if (!root) return null;
-
-    var schema = schemas[directTitle(root)];
-    return (schema && schema.properties && schema.properties[directTitle(article)]) || null;
-  }
-
-  function enumValuesFor(article) {
-    var property = propertySchemaFor(article);
-    return property && property.enum && property.enum.length ? property.enum : null;
-  }
-
-  function paintEnums() {
-    document.querySelectorAll('article.json-schema-2020-12--embedded').forEach(function (article) {
-      var head = article.querySelector(':scope > .json-schema-2020-12-head');
-      if (!head || head.querySelector('.emit-enum')) return;
-
-      var values = enumValuesFor(article);
-      if (!values) return;
-
-      head.appendChild(el(
-        'span',
-        'json-schema-2020-12__constraint emit-constraint emit-enum',
-        values.join(' | ')));
-      /* Lets the stylesheet hide the duplicate nested block for this row only. */
-      article.classList.add('emit-has-enum');
-    });
-  }
-
-  /* Array properties: name the item type on the row instead of inlining the
-   * item schema, which has its own card. Nested `Items -> scalar` rows repeat
-   * what `array<string>` already says, so they go too.
-   */
-  function refName(ref) {
-    return typeof ref === 'string' ? ref.split('/').pop() : '';
-  }
-
-  function paintArrays() {
-    document.querySelectorAll('article.json-schema-2020-12--embedded').forEach(function (article) {
-      var property = propertySchemaFor(article);
-      if (!property || property.type !== 'array' || !property.items) return;
-
-      var named = refName(property.items.$ref);
-      if (named) {
-        var attribute = article.querySelector(
-          ':scope > .json-schema-2020-12-head .json-schema-2020-12__attribute--primary');
-        var label = 'array<' + named + '>';
-        /* Guarded on the text, not a marker class: React rewrites the label back to
-           `array<object>` on re-render. */
-        if (attribute && attribute.textContent !== label) attribute.textContent = label;
-        /* Schema names keep their case (the stylesheet lowercases type pills). */
-        if (attribute) attribute.classList.add('emit-type-name');
-      } else if (!property.items.type) {
-        return;
-      }
-      article.classList.add('emit-array');
-    });
-  }
-
-  /* Mark format pills so the stylesheet can tell them from constraints. */
-  function paintConstraintKinds() {
-    var pills = document.querySelectorAll('.json-schema-2020-12__constraint');
-
-    pills.forEach(function (pill) {
-      if (pill.classList.contains('emit-format') || pill.classList.contains('emit-constraint')) return;
-      var value = (pill.textContent || '').trim();
-      pill.classList.add(OPENAPI_FORMATS.indexOf(value) === -1 ? 'emit-constraint' : 'emit-format');
-    });
   }
 
   /* Getting-started steps that name a real operation become links to it.
@@ -2358,17 +2365,6 @@
       else header.appendChild(count);
     });
 
-    var control = document.querySelector('section.models .models-control');
-    var schemas = spec && spec.components && spec.components.schemas;
-    if (control && schemas && !control.querySelector('.emit-count')) {
-      var models = Object.keys(schemas).length;
-      if (models) {
-        var label = el('span', 'emit-count', plural(models, 'model'));
-        var arrow = control.querySelector('svg');
-        if (arrow) control.insertBefore(label, arrow);
-        else control.appendChild(label);
-      }
-    }
   }
 
   /* Where the figure goes: inside `.info` (a sibling of its <section> renders
@@ -2565,6 +2561,23 @@
         map.appendChild(link);
       });
     });
+
+    var schemas = spec.components && spec.components.schemas;
+    if (schemas && Object.keys(schemas).length) {
+      map.appendChild(el('div', 'emit-map__tag', 'Reference'));
+      var models = el('a', 'emit-map__item');
+      models.href = '#';
+      models.dataset.target = 'emit-schemas';
+      models.appendChild(icon('braces'));
+      models.appendChild(el('span', 'emit-map__name', 'Schemas'));
+      models.appendChild(el('span', 'emit-map__count', String(Object.keys(schemas).length)));
+      models.addEventListener('click', function (event) {
+        event.preventDefault();
+        var section = document.getElementById('emit-schemas');
+        if (section) bringIntoView(section);
+      });
+      map.appendChild(models);
+    }
     spyScroll();
   }
 
@@ -2583,6 +2596,9 @@
     document.querySelectorAll('.opblock').forEach(function (block) {
       if (block.getBoundingClientRect().top <= line) current = block.id;
     });
+    /* The section starts where its heading's space does, above the heading. */
+    var heading = document.querySelector('.emit-schemas__head');
+    if (heading && heading.getBoundingClientRect().top - parseFloat(getComputedStyle(heading).marginTop) <= line) current = 'emit-schemas';
     map.querySelectorAll('.emit-map__item').forEach(function (link) {
       link.classList.toggle('is-current', link.dataset.target === current);
     });
@@ -2597,8 +2613,8 @@
     if (crumb.dataset.key === key) return;
     crumb.dataset.key = key;
     crumb.textContent = '';
-    if (!block) {
-      crumb.appendChild(el('b', null, 'Overview'));
+    if (!block || key === 'emit-schemas') {
+      crumb.appendChild(el('b', null, block ? 'Schemas' : 'Overview'));
       return;
     }
     var method = block.querySelector('.opblock-summary-method');
@@ -2953,9 +2969,7 @@
     paintResponseIndex();
     paintGroupCounts();
     paintAuthMatrix();
-    paintEnums();
-    paintArrays();
-    paintConstraintKinds();
+    paintSchemas();
     paintSteps();
     paintExampleBoxes();
     paintLifecycle();
