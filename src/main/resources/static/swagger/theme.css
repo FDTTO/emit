@@ -517,12 +517,21 @@ body {
   color: var(--e-dim);
 }
 
-/* Folded: the rail's column closes, the brand cell keeps only the control. */
+/* Folded: the rail's column closes, the brand cell keeps only the control.
+   While the column moves, the rail's content keeps its full width and is
+   uncovered or covered by the edge instead of rewrapping every frame; it is
+   hidden only once the column has closed. */
 @media (min-width: 901px) {
+  #emit-rail { transition: visibility 0s; }
+  #emit-rail > * { flex-shrink: 0; width: var(--rail); }
+  #emit-rail > .emit-map { flex-shrink: 1; }
+  #emit-swagger .swagger-ui .topbar .topbar-wrapper > a.link { overflow: hidden; transition: width .3s var(--ease), padding .3s var(--ease); }
+  .emit-brand { transition: opacity .2s var(--ease); }
+  .emit-rail-toggle { transition: transform .3s var(--ease), left .3s var(--ease), color .15s, background .15s; }
   #emit-window[data-rail="closed"] { grid-template-columns: 0 minmax(0, 1fr); }
-  #emit-window[data-rail="closed"] #emit-rail { visibility: hidden; }
+  #emit-window[data-rail="closed"] #emit-rail { visibility: hidden; transition: visibility 0s linear .3s; }
   #emit-window[data-rail="closed"] .topbar .topbar-wrapper > a.link { width: 52px; padding-left: 0; }
-  #emit-window[data-rail="closed"] .topbar .topbar-wrapper > a.link .emit-brand { display: none; }
+  #emit-window[data-rail="closed"] .topbar .topbar-wrapper > a.link .emit-brand { opacity: 0; }
   #emit-window[data-rail="closed"] .emit-rail-toggle { left: 13px; transform: rotate(180deg); }
   #emit-window[data-rail="closed"] #emit-statusbar > .emit-status__server { width: auto; }
 }
