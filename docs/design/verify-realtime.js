@@ -12,7 +12,9 @@
 //        VIEW_W=375 and VIEW_H=900 set the viewport; INJECT=probe.js runs a
 //        script at document start; VIRTUAL_MS=60000 runs on virtual
 //        time instead of waiting waitMs of wall clock; BROWSER names the
-//        Chromium to drive, otherwise the first one installed is used.
+//        Chromium to drive, otherwise the first one installed is used;
+//        MOTION=1 keeps transitions; VIEW_DSF=0.75 renders at a browser
+//        zoom's device scale and SHOT_SCALE=1 captures at device pixels.
 // After waitMs of wall-clock time it reads window.__log from the page into
 // <outPrefix>.json and, for each clip expression (JS returning
 // {x,y,width,height} in page coordinates), saves a 2x screenshot of that
@@ -40,7 +42,9 @@ if (!BROWSER || !fs.existsSync(BROWSER)) {
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'cdp-'));
 
 const child = spawn(BROWSER, [
-  '--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-prefers-reduced-motion',
+  '--headless=new', '--disable-gpu', '--hide-scrollbars',
+  // Settled states by default; MOTION=1 keeps transitions, to measure one.
+  ...(process.env.MOTION ? [] : ['--force-prefers-reduced-motion']),
   // Port 0: the browser picks a free port and writes it to DevToolsActivePort
   // in the profile. A fixed port can attach to a previous run's instance that
   // is still shutting down.
@@ -167,7 +171,7 @@ function killProfileProcesses() {
     }
     // --window-size is not honoured for a page opened over the protocol, so
     // the viewport is set here. VIEW_W and VIEW_H override it (1280x1400).
-    await send('Emulation.setDeviceMetricsOverride', { width: Number(process.env.VIEW_W || 1280), height: Number(process.env.VIEW_H || 1400), deviceScaleFactor: 1, mobile: false });
+    await send('Emulation.setDeviceMetricsOverride', { width: Number(process.env.VIEW_W || 1280), height: Number(process.env.VIEW_H || 1400), deviceScaleFactor: Number(process.env.VIEW_DSF || 1), mobile: false });
     // A headless page does not always hold the window's focus, and keys sent
     // to an unfocused page go nowhere. This makes the page behave as focused.
     await send('Emulation.setFocusEmulationEnabled', { enabled: true });
@@ -226,7 +230,7 @@ function killProfileProcesses() {
     for (let i = 0; i < clips.length; i++) {
       const box = await evaluate(clips[i]);
       if (!box) continue;
-      const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { ...box, scale: 2 } });
+      const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { ...box, scale: Number(process.env.SHOT_SCALE || 2) } });
       fs.writeFileSync(`${outPrefix}_${i}.png`, Buffer.from(shot.result.data, 'base64'));
     }
     console.log('done');

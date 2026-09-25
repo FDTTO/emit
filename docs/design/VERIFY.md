@@ -157,6 +157,15 @@ The runner under it takes `VIEW_H` for the viewport's height and `INJECT` for
 a script to run at the start of every document, so a probe can measure a
 page that does not load the harness.
 
+Three more settings serve questions a settled page cannot answer. The
+browser runs with reduced motion so every state is measured settled;
+`MOTION=1` keeps transitions, to measure one in flight. `VIEW_DSF=0.75`
+renders at the device scale a 75% browser zoom produces, and
+`SHOT_SCALE=1` captures at device pixels, which is how a hairline or a 9px
+caption was seen to fade at that zoom rather than argued about. An
+`INJECT` that holds `document.fonts.load` keeps the loading placeholders
+on screen long enough to capture them.
+
 ## Interface inventory
 
 "It does not look like one family" is a feeling until it is counted.
