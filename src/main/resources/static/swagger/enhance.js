@@ -47,6 +47,8 @@
     alert: ['M12 8v5', 'M12 16.5v.5', 'M10.3 3.9L2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'],
     braces: ['M8 4c-2 0-2 2-2 4s-2 4-2 4 2 2 2 4 0 4 2 4', 'M16 4c2 0 2 2 2 4s2 4 2 4-2 2-2 4 0 4-2 4'],
     unfold: ['M8 9l4-4 4 4', 'M8 15l4 4 4-4'],
+    comfortable: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
+    compact: ['M4 5h16', 'M4 9.7h16', 'M4 14.3h16', 'M4 19h16'],
     fold: ['M8 5l4 4 4-4', 'M8 19l4-4 4 4']
   };
 
@@ -2797,6 +2799,11 @@
       });
     });
     status.appendChild(requestId);
+    var density = el('button', 'emit-status__density');
+    density.id = 'emit-density';
+    density.type = 'button';
+    density.addEventListener('click', toggleDensity);
+    status.appendChild(density);
     buildLegend(win, status);
     var scrim = el('div', 'emit-drawer-scrim');
     scrim.addEventListener('click', function () { setDrawer(false); });
@@ -3253,6 +3260,33 @@
     if (win) win.dataset.rail = saved === 'closed' ? 'closed' : 'open';
   }
 
+  /* Density: compact on a short screen unless the reader chose one, and
+     the choice is remembered. Drawn in whole pixels, it fits more on a
+     small screen than a browser zoom does without blurring what is thin. */
+  var DENSITY_KEY = 'emit.density';
+  var SHORT_SCREEN = window.matchMedia('(max-height: 820px)');
+
+  function applyDensity() {
+    var chosen = null;
+    try { chosen = localStorage.getItem(DENSITY_KEY); } catch (ignored) { /* private mode */ }
+    var density = chosen === 'compact' || chosen === 'comfortable' ? chosen
+      : SHORT_SCREEN.matches ? 'compact' : 'comfortable';
+    document.documentElement.dataset.density = density;
+    var button = document.getElementById('emit-density');
+    if (!button || button.dataset.density === density) return;
+    button.dataset.density = density;
+    button.textContent = '';
+    button.appendChild(icon(density));
+    button.appendChild(document.createTextNode(density === 'compact' ? 'Compact' : 'Comfortable'));
+    button.title = density === 'compact' ? 'Switch to the roomier layout' : 'Switch to the denser layout';
+  }
+
+  function toggleDensity() {
+    var next = document.documentElement.dataset.density === 'compact' ? 'comfortable' : 'compact';
+    try { localStorage.setItem(DENSITY_KEY, next); } catch (ignored) { /* private mode */ }
+    applyDensity();
+  }
+
   /* Ctrl+K: type part of a name or path, Enter lands on the operation. */
   var palette = null;
 
@@ -3403,7 +3437,10 @@
   }
 
   function start() {
+    applyDensity();
+    SHORT_SCREEN.addEventListener('change', applyDensity);
     buildShell();
+    applyDensity();
     watchLoading();
     restoreRail();
     paint();

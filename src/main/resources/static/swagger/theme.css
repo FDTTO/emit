@@ -3259,6 +3259,48 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   #emit-window[data-revealing] :is(#emit-rail > :not(.emit-skel), .swagger-container > .swagger-ui, .topbar-wrapper > *, #emit-statusbar > *) { animation: none; }
 }
 
+/* --------------------------------------------------------------------------
+   22. DENSITY
+   Compact is the same page in whole pixels on tighter spacing, for short
+   screens: chrome, rows and panels give up space, reading text does not.
+   Below 0.8 device pixels per CSS pixel, a browser zoom has shrunk the
+   smallest steps past legibility, so they and the hairlines rise a step.
+   -------------------------------------------------------------------------- */
+#emit-statusbar > .emit-status__density { display: flex; align-items: center; gap: 6px; }
+#emit-statusbar > .emit-status__density svg { width: 12px; height: 12px; }
+@media (min-width: 901px) {
+  :root[data-density="compact"] {
+    --titlebar-h: 40px;
+    --statusbar-h: 24px;
+    --rail: 232px;
+    --gutter: 20px;
+    --page-gutter: var(--sp-6);
+  }
+  :root[data-density="compact"] body#emit-swagger { padding: var(--sp-2) var(--sp-3) var(--sp-3); }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .information-container.wrapper { margin-top: var(--sp-5); }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .information-container > section { padding: 28px 28px var(--sp-6); }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .info .title { font-size: 30px; }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .emit-flow { padding: var(--sp-5); }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock-tag { margin: 28px 0 var(--sp-2); }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock { margin-bottom: 4px; }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock.is-open { margin: var(--sp-4) 0 var(--sp-5); }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock .opblock-summary { padding: 8px var(--sp-4); }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .emit-op-icon { width: 24px; height: 24px; }
+  :root[data-density="compact"] .emit-journey { padding: var(--sp-4) var(--sp-5); }
+  :root[data-density="compact"] .emit-map { padding: var(--sp-3) var(--sp-3); }
+  :root[data-density="compact"] .emit-map__item { padding: 5px var(--sp-3); }
+}
+@media (max-resolution: 0.8dppx) {
+  :root {
+    --t-3xs: 10px;
+    --t-2xs: 10px;
+    --t-xs: 11px;
+    --e-faint: #5d6879;
+    --e-hair: rgba(255,255,255,0.09);
+    --e-line: rgba(255,255,255,0.11);
+  }
+}
+
 /* Credentials on a phone: a sheet from the bottom edge, over the bar and
    the strip, scrolling on its own when the cards outgrow the screen. */
 @media (max-width: 900px) {
