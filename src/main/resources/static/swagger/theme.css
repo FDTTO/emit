@@ -1211,7 +1211,7 @@ body {
    glass so what scrolls beneath reads as blur, not as text. */
 #emit-swagger .swagger-ui .opblock.is-open[data-emit-stuck] .opblock-summary {
   border-radius: 0;
-  background: linear-gradient(150deg, rgba(40,46,58,0.92), rgba(20,23,30,0.96));
+  background: linear-gradient(150deg, rgba(38,44,56,0.96), rgba(20,23,30,0.98));
   backdrop-filter: blur(30px) saturate(150%);
   box-shadow: inset 0 -1px 0 var(--e-hair), 0 12px 28px rgba(0,0,0,0.35);
 }
@@ -2376,7 +2376,7 @@ body {
    .btn-group once a response is in. */
 #emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) {
   position: relative;
-  z-index: 6;
+  z-index: 4;
   display: flex;
   align-items: center;
   gap: var(--sp-3);
@@ -2384,7 +2384,10 @@ body {
   transition: background-color .2s var(--ease), box-shadow .2s var(--ease);
 }
 #emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group)[data-emit-dockable] { position: sticky; bottom: 0; }
+/* Docked, it sits above the docked header too, so its History list is
+   never covered; in its place it passes under the header like the rest. */
 #emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group)[data-emit-docked] {
+  z-index: 6;
   padding-block: 12px;
   background: linear-gradient(150deg, rgba(38,44,56,0.96), rgba(20,23,30,0.98));
   backdrop-filter: blur(30px) saturate(150%);
