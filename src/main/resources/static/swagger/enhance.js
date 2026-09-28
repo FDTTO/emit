@@ -47,6 +47,8 @@
     alert: ['M12 8v5', 'M12 16.5v.5', 'M10.3 3.9L2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'],
     braces: ['M8 4c-2 0-2 2-2 4s-2 4-2 4 2 2 2 4 0 4 2 4', 'M16 4c2 0 2 2 2 4s2 4 2 4-2 2-2 4 0 4-2 4'],
     unfold: ['M8 9l4-4 4 4', 'M8 15l4 4 4-4'],
+    play: ['M7 5l12 7-12 7z'],
+    stop: ['M7 7h10v10H7z'],
     comfortable: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
     compact: ['M4 5h16', 'M4 9.7h16', 'M4 14.3h16', 'M4 19h16'],
     fold: ['M8 5l4 4 4-4', 'M8 19l4-4 4 4']
@@ -3200,6 +3202,109 @@
     server.title = detail ? 'The API: ' + detail : '';
   }
 
+  /* ------------------------------------------------------------- autopilot
+   * Run the journey: every step not yet done, in order, the way a reader
+   * would do it, open, fill, Execute, and wait for the page to see the step
+   * done before the next. A tenant gets a fresh name each run, so running
+   * it twice is not refused as a duplicate. The first step that is not done
+   * stops the run where it is, its answer on screen. */
+  var autopilot = null;
+  var STEP_WAIT_MS = 30000;
+  var STEP_PAUSE_MS = 700;
+
+  function toggleJourneyRun() {
+    if (autopilot) stopJourney();
+    else runJourney();
+  }
+
+  function runJourney() {
+    if (!spec || journeyState().next < 0) return;
+    autopilot = { step: -1, run: {} };
+    schedule();
+    nextJourneyStep(autopilot);
+  }
+
+  function stopJourney() {
+    autopilot = null;
+    schedule();
+  }
+
+  /* Polls a condition while the run it belongs to is still the current one. */
+  function whileRunning(run, ready, then, waitMs) {
+    var deadline = Date.now() + (waitMs || STEP_WAIT_MS);
+    (function poll() {
+      if (autopilot !== run) return;
+      var met = ready();
+      if (met) return then(met);
+      if (Date.now() > deadline) return stopJourney();
+      setTimeout(poll, 120);
+    })();
+  }
+
+  function nextJourneyStep(run) {
+    if (autopilot !== run) return;
+    var index = journeyState().next;
+    /* Done, or the step just tried is still not done: either way, stop. */
+    if (index < 0 || index === run.step) return stopJourney();
+    run.step = index;
+    schedule();
+    var step = JOURNEY[index];
+    var key = step.method.toUpperCase() + ' ' + step.path;
+    var target = operationIndex()[key];
+    if (!target) return stopJourney();
+    openOperation(target);
+    var before = lastAnswers[key];
+    whileRunning(run, function () {
+      var block = document.getElementById('operations-' + target.tag + '-' + target.id);
+      var button = block && block.querySelector('.opblock-body button.execute');
+      return button && !button.disabled && button.getBoundingClientRect().height > 0 ? block : null;
+    }, function (block) {
+      setTimeout(function () {
+        if (autopilot !== run) return;
+        if (step.path === CREDENTIAL_SOURCES[1].path && step.method === CREDENTIAL_SOURCES[1].method) freshTenant(block);
+        block.querySelector('.opblock-body button.execute').click();
+        whileRunning(run, function () { return lastAnswers[key] !== before ? lastAnswers[key] : null; }, function (answer) {
+          if (!answer.status || answer.status >= 300) return stopJourney();
+          whileRunning(run, function () {
+            var follow = step.done.run ? currentFollow() : null;
+            if (follow && follow.state === 'FAILED') { stopJourney(); return null; }
+            return stepDone(step);
+          }, function () { setTimeout(function () { nextJourneyStep(run); }, STEP_PAUSE_MS); });
+        });
+      }, STEP_PAUSE_MS);
+    });
+  }
+
+  function freshTenant(block) {
+    var area = block.querySelector('textarea.body-param__text');
+    if (!area) return;
+    var stamp = Date.now().toString(36);
+    setAreaValue(area, JSON.stringify({ name: 'Journey ' + stamp, schemaName: 'journey_' + stamp }, null, 2));
+  }
+
+  /* The run's control, at the end of the Getting started heading. */
+  function paintJourneyRun() {
+    var heading = document.querySelector('.information-container .info ol');
+    heading = heading && heading.previousElementSibling;
+    if (!heading || !/^H[2-4]$/.test(heading.tagName)) return;
+    var button = heading.querySelector('.emit-journey-run');
+    if (!button) {
+      button = el('button', 'emit-journey-run');
+      button.type = 'button';
+      button.addEventListener('click', toggleJourneyRun);
+      heading.appendChild(button);
+    }
+    var finished = journeyState().next < 0;
+    var key = (autopilot ? 'run' : 'idle') + finished;
+    if (button.dataset.key === key) return;
+    button.dataset.key = key;
+    button.hidden = finished && !autopilot;
+    button.textContent = '';
+    button.appendChild(icon(autopilot ? 'stop' : 'play'));
+    button.appendChild(document.createTextNode(autopilot ? 'Stop' : 'Run all steps'));
+    button.setAttribute('aria-label', autopilot ? 'Stop running the steps' : 'Run the remaining steps, one after another');
+  }
+
   function currentFollow() {
     var follow = null;
     Object.keys(responseNotes).forEach(function (key) {
@@ -3237,7 +3342,7 @@
       var next = el('button', 'emit-journey__next');
       next.type = 'button';
       var words = el('span', 'emit-journey__words');
-      words.appendChild(el('small', null, 'Next'));
+      words.appendChild(el('small', 'emit-journey__kind', 'Next'));
       words.appendChild(el('span', 'emit-journey__step'));
       next.appendChild(words);
       next.appendChild(icon('goTo'));
@@ -3252,7 +3357,7 @@
     var state = journeyState();
     paintStrip(state);
     var count = state.done.filter(Boolean).length;
-    var key = state.done.join() + state.next;
+    var key = state.done.join() + state.next + !!autopilot;
     if (journey.dataset.key === key) return;
     journey.dataset.key = key;
     journey.querySelector('.emit-journey__count').textContent = count + ' / ' + JOURNEY.length;
@@ -3262,6 +3367,8 @@
     var nextButton = journey.querySelector('.emit-journey__next');
     nextButton.hidden = state.next < 0;
     if (state.next >= 0) journey.querySelector('.emit-journey__step').textContent = JOURNEY[state.next].label;
+    journey.querySelector('.emit-journey__kind').textContent = autopilot ? 'Running' : 'Next';
+    journey.classList.toggle('is-running', !!autopilot);
   }
 
   /* The followed document, where the reader is: its stage, how long it has
@@ -3498,6 +3605,8 @@
     var login = CREDENTIAL_SOURCES[0] && operationIndex()[CREDENTIAL_SOURCES[0].method.toUpperCase() + ' ' + CREDENTIAL_SOURCES[0].path];
     if (login) actions.push({ name: 'Log in', icon: 'lockClosed', detail: 'the admin token', run: function () { openOperation(login); } });
     actions.push({ name: 'Credentials', icon: 'shield', detail: 'Authorize', run: openCredentials });
+    if (autopilot) actions.push({ name: 'Stop running the steps', icon: 'stop', detail: 'Getting started', run: stopJourney });
+    else if (journeyState().next >= 0) actions.push({ name: 'Run all steps', icon: 'play', detail: 'Getting started', run: runJourney });
     actions.push({ name: compact ? 'Comfortable layout' : 'Compact layout', icon: compact ? 'comfortable' : 'compact', detail: 'density', run: toggleDensity });
     if (!PHONE.matches) actions.push({ name: folded ? 'Unfold the rail' : 'Fold the rail', icon: 'chevronLeft', detail: 'Ctrl B', run: toggleRail });
     actions.push({ name: 'Legend', icon: 'braces', detail: 'reading this page', run: function () { document.getElementById('emit-legend-btn').click(); } });
@@ -3633,6 +3742,7 @@
     paintAuthMatrix();
     paintSchemas();
     paintSteps();
+    paintJourneyRun();
     paintExampleBoxes();
     paintLifecycle();
     paintScrollers();

@@ -875,6 +875,29 @@ body {
 #emit-swagger .swagger-ui .info h2::after,
 #emit-swagger .swagger-ui .info h3::after,
 #emit-swagger .swagger-ui .info h4::after { content: ""; flex: 1; height: 1px; background: var(--e-hair); }
+/* Run all steps: after the heading's rule, a quiet tool like a section's
+   Open all, its line kept at the label's height. */
+#emit-swagger .swagger-ui .info .emit-journey-run {
+  order: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  margin: -7px 0;
+  padding: 0 var(--sp-2);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  font: 500 var(--t-sm)/1 var(--f-body);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ui-c);
+  cursor: pointer;
+  transition: background .15s;
+}
+#emit-swagger .swagger-ui .info .emit-journey-run:hover { background: var(--ui-bg); }
+#emit-swagger .swagger-ui .info .emit-journey-run[hidden] { display: none; }
+#emit-swagger .swagger-ui .info .emit-journey-run svg { width: 10px; height: 10px; fill: currentColor; stroke: none; }
 
 #emit-swagger .swagger-ui .info code,
 #emit-swagger .swagger-ui .info .markdown code,
