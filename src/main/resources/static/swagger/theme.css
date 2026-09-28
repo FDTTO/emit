@@ -3448,6 +3448,11 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   :root[data-density="compact"] .emit-journey { padding: var(--sp-4) var(--sp-5); }
   :root[data-density="compact"] .emit-map { padding: var(--sp-3) var(--sp-3); }
   :root[data-density="compact"] .emit-map__item { padding: 5px var(--sp-3); }
+  :root[data-density="compact"] .emit-schemas__head { margin: 28px 0 var(--sp-2); }
+  :root[data-density="compact"] .emit-model { margin-bottom: 4px; }
+  :root[data-density="compact"] .emit-model.is-open { margin: var(--sp-4) 0 var(--sp-5); }
+  :root[data-density="compact"] .emit-model__head { padding: 8px var(--sp-4); }
+  :root[data-density="compact"] .emit-field { padding: var(--sp-2) 0; }
 }
 @media (max-resolution: 0.8dppx) {
   :root {
