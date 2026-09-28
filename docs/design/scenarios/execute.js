@@ -33,7 +33,7 @@ V.until(function () { return !!sends('Authentication-login') && !!sends('Documen
 }, 20000);
 
 function docking() {
-  document.getElementById('emit-window').style.height = '460px';
+  document.getElementById('emit-window').style.height = '380px';
   var block = document.getElementById('operations-Documents-createDocument');
   pane().scrollTop += block.getBoundingClientRect().top - pane().getBoundingClientRect().top;
   V.until(function () { return bar('Documents-createDocument').hasAttribute('data-emit-docked'); }, function () {
