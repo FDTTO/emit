@@ -3293,6 +3293,8 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   #emit-swagger .swagger-ui .opblock-tag { margin: var(--sp-5) 4px var(--sp-2); padding: 0; font-size: var(--t-xs); color: var(--e-dim); }
   #emit-swagger .swagger-ui .opblock-tag::after,
   #emit-swagger .swagger-ui .opblock-tag .emit-count { display: none; }
+  /* Without the rule to push it, Open all is sent to the end of the line. */
+  #emit-swagger .swagger-ui .opblock-tag > .emit-tag-all { margin-left: auto; }
 
   /* The rail as a drawer. */
   #emit-window > #emit-rail {
@@ -3328,6 +3330,8 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   .emit-legend { position: fixed; left: var(--sp-3); right: var(--sp-3); bottom: var(--sp-3); width: auto; max-height: calc(100vh - 2 * var(--sp-3)); z-index: 210; }
 
   /* The run over the page. */
+  /* A docked action bar owns the bottom edge; the pill floats above it. */
+  body:has(.opblock-body > [data-emit-docked]) #emit-live-pill { bottom: 86px; }
   #emit-live-pill {
     position: fixed; left: 50%; bottom: 22px; z-index: 150;
     transform: translateX(-50%);

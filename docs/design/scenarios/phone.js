@@ -29,6 +29,10 @@ V.until(function () { return !!V.definition('apiKeyAuth') && !!document.querySel
     check('a row keeps to method, path, answer and scope glyph',
           !seen(row.querySelector('.emit-op-icon')) && !seen(row.querySelector('.opblock-summary-description'))
           && seen(row.querySelector('.emit-scope svg')) && !seen(row.querySelector('.emit-scope__label')));
+    var head = document.querySelector('h3.opblock-tag[data-tag="Documents"]');
+    var tool = head.querySelector('.emit-tag-all').getBoundingClientRect();
+    check('a section keeps Open all at the end of its line, by the room of its fold control', head.getBoundingClientRect().right - tool.right <= 24,
+          { head: head.getBoundingClientRect().right, tool: tool.right });
     V.open('Tenants', 'createTenant', 0);
     V.until(function () { return !!document.querySelector('#operations-Tenants-createTenant .emit-sends button'); }, actionBar, 8000);
   }, 8000);
