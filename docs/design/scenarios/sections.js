@@ -14,6 +14,18 @@ V.until(function () { return !document.getElementById('emit-window').hasAttribut
   check('sections arrive open, operations closed',
         Array.prototype.every.call(document.querySelectorAll('h3.opblock-tag'), function (h) { return h.getAttribute('data-is-open') === 'true'; })
         && !document.querySelector('.opblock.is-open'));
+  var row = document.querySelector('#operations-Tenants-listTenants .opblock-summary');
+  row.scrollIntoView({ block: 'center' });
+  var corner = row.getBoundingClientRect();
+  document.elementFromPoint(corner.left + 6, corner.top + 4).click();
+  V.until(function () { return opened('Tenants') === 1; }, function () {
+    check('a click anywhere on a row opens it, its padded edge included', opened('Tenants') === 1);
+    row.querySelector('.opblock-summary-control').click();
+    V.until(function () { return opened('Tenants') === 0; }, openAll, 3000);
+  }, 3000);
+}, 20000);
+
+function openAll() {
   head('Tenants').querySelector('.emit-tag-all').click();
   V.until(function () { return opened('Tenants') === 5; }, function () {
     check('Open all opens every operation of its section, and offers to close them', /Close all/.test(head('Tenants').querySelector('.emit-tag-all').textContent));
@@ -24,7 +36,7 @@ V.until(function () { return !document.getElementById('emit-window').hasAttribut
       stuck();
     }, 5000);
   }, 5000);
-}, 20000);
+}
 
 function stuck() {
   V.open('Documents', 'listDocuments', 0);

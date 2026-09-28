@@ -1196,6 +1196,13 @@ body {
   #emit-swagger .emit-primary:hover::after,
   .emit-sends[data-state="running"]::before { animation: none; }
 }
+/* The whole row opens the operation, not only Swagger's button inside it:
+   the button's hit area is stretched over the row, and the row's own
+   controls sit above it. Half the row answered nothing before. */
+#emit-swagger .swagger-ui .opblock .opblock-summary { position: relative; cursor: pointer; }
+#emit-swagger .swagger-ui .opblock.is-open .opblock-summary { position: sticky; }
+#emit-swagger .swagger-ui .opblock-summary-control::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+#emit-swagger .swagger-ui .opblock-summary > :is(a, button:not(.opblock-summary-control), .copy-to-clipboard) { position: relative; z-index: 1; }
 /* Stock gives this button `all: inherit`, so it would also inherit the open
    header's glass, shadow and stickiness and draw a second panel inside it. */
 #emit-swagger .swagger-ui .opblock-summary-control {
