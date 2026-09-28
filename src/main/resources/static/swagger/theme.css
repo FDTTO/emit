@@ -1192,7 +1192,6 @@ body {
   #emit-swagger .swagger-ui .btn.execute,
   #emit-swagger .emit-primary { transition: none; }
   #emit-swagger .swagger-ui .btn.execute:disabled,
-  #emit-swagger .swagger-ui .btn.execute:disabled::before,
   #emit-swagger .swagger-ui .btn.execute:hover::after,
   #emit-swagger .emit-primary:hover::after,
   .emit-sends[data-state="running"]::before { animation: none; }
@@ -2227,41 +2226,30 @@ body {
 }
 #emit-swagger .swagger-ui .btn:hover { box-shadow: none; }
 /* The one lit button, and its quiet sibling. */
-/* The primary action is lit glass: cyan-tinted glass with light rising
-   from inside, the window's rim light on its edge (brightest at the top
-   left), and on hover the glint that runs the window's rim as the page
-   arrives. Execute also carries a lifecycle stage ring; while its call is
-   out (Swagger disables it) the ring beats and a pulse runs along the
-   bottom edge, as a document runs along the figure's. */
+/* The primary action is cyan ink on glass, the material of the rail's
+   NEXT: a faint gradient lit from above, the brand edge, a soft light
+   under it, and on hover the glint that runs the window's rim as the page
+   arrives. While Execute's call is out (Swagger disables it) a pulse runs
+   along its bottom edge, as a document runs along the lifecycle figure. */
 #emit-swagger .swagger-ui .btn.execute,
 #emit-swagger .emit-primary {
   position: relative;
   isolation: isolate;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   width: auto;
   height: 38px;
-  padding: 0 var(--sp-5) 0 var(--sp-4);
+  padding: 0 var(--sp-5);
   border: 0;
   border-radius: var(--r-code);
-  color: #eaf8ff;
+  color: var(--e-text);
   font: 600 var(--t-lg)/1 var(--f-body);
-  text-shadow: 0 0 12px rgba(143,220,255,0.55);
   background:
-    linear-gradient(90deg, transparent, var(--ui-c), transparent) -40% 100% / 34% 2px no-repeat,
-    linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0) 52%),
-    radial-gradient(120% 140% at 50% 125%, rgba(143,220,255,0.34), transparent 70%),
-    linear-gradient(150deg, rgba(143,220,255,0.26), rgba(60,130,190,0.16));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.22),
-    inset 0 0 0 1px rgba(143,220,255,0.30),
-    0 0 0 1px rgba(0,0,0,0.35),
-    0 8px 22px -8px rgba(80,180,255,0.55),
-    0 0 24px rgba(143,220,255,0.12);
-  backdrop-filter: blur(12px) saturate(140%);
+    linear-gradient(90deg, transparent, var(--ui-c), transparent) -40% 100% / 34% 1.5px no-repeat,
+    linear-gradient(180deg, rgba(143,220,255,0.17), rgba(143,220,255,0.08));
+  box-shadow: inset 0 0 0 1px var(--ui-b), inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 14px -6px rgba(143,220,255,0.28);
   cursor: pointer;
-  transition: box-shadow .25s var(--ease), transform .12s var(--ease), color .2s;
+  transition: box-shadow .2s var(--ease), background-color .2s var(--ease), transform .12s var(--ease);
 }
 #emit-swagger .swagger-ui .btn.execute::after,
 #emit-swagger .emit-primary::after {
@@ -2272,42 +2260,24 @@ body {
   padding: 1px;
   border-radius: inherit;
   pointer-events: none;
-  background:
-    linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.95) 50%, transparent 62%) -200% 0 / 300% 100% no-repeat,
-    linear-gradient(150deg, rgba(255,255,255,0.75), rgba(143,220,255,0.30) 35%, rgba(143,220,255,0.10) 65%, rgba(255,255,255,0.32));
+  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.7) 50%, transparent 62%) -200% 0 / 300% 100% no-repeat;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
 }
 #emit-swagger .swagger-ui .btn.execute:hover,
 #emit-swagger .emit-primary:hover {
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.28),
-    inset 0 0 0 1px rgba(143,220,255,0.45),
-    0 0 0 1px rgba(0,0,0,0.35),
-    0 10px 28px -8px rgba(80,180,255,0.75),
-    0 0 36px rgba(143,220,255,0.22);
+  background-color: rgba(143,220,255,0.06);
+  box-shadow: inset 0 0 0 1px var(--ui-b-hover), inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 18px -6px rgba(143,220,255,0.38);
 }
 #emit-swagger .swagger-ui .btn.execute:hover::after,
 #emit-swagger .emit-primary:hover::after { animation: emit-rim-glint .7s var(--ease); }
 #emit-swagger .swagger-ui .btn.execute:active,
 #emit-swagger .emit-primary:active { transform: translateY(1px); }
-#emit-swagger .swagger-ui .btn.execute::before {
-  content: "";
-  flex: 0 0 auto;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1.5px var(--ui-c), 0 0 8px rgba(143,220,255,0.6);
-  transition: background .2s var(--ease);
-}
-#emit-swagger .swagger-ui .btn.execute:hover::before { background: radial-gradient(circle, var(--ui-c) 0 30%, transparent 34%); }
 /* Counter: .btn[disabled]{opacity:.3}. A call that is out is alive, not off. */
-#emit-swagger .swagger-ui .btn.execute:disabled { opacity: 1; cursor: progress; color: rgba(234,248,255,0.7); animation: emit-edge-run 1.2s linear infinite; }
-#emit-swagger .swagger-ui .btn.execute:disabled::before { animation: emit-beacon 1.2s var(--ease) infinite; }
-@keyframes emit-rim-glint { from { background-position: -200% 0, 0 0; } to { background-position: 150% 0, 0 0; } }
-@keyframes emit-edge-run { from { background-position: -40% 100%, 0 0, 0 0, 0 0; } to { background-position: 140% 100%, 0 0, 0 0, 0 0; } }
-@keyframes emit-beacon { 0%, 100% { box-shadow: inset 0 0 0 1.5px var(--ui-c), 0 0 4px rgba(143,220,255,0.4); } 45% { box-shadow: inset 0 0 0 1.5px var(--ui-c), 0 0 0 4px rgba(143,220,255,0.18), 0 0 16px rgba(143,220,255,0.9); } }
+#emit-swagger .swagger-ui .btn.execute:disabled { opacity: 1; cursor: progress; color: var(--e-body); animation: emit-edge-run 1.2s linear infinite; }
+@keyframes emit-rim-glint { from { background-position: -200% 0; } to { background-position: 150% 0; } }
+@keyframes emit-edge-run { from { background-position: -40% 100%, 0 0; } to { background-position: 140% 100%, 0 0; } }
 #emit-swagger .emit-quiet {
   height: 38px;
   padding: 0 var(--sp-4);
@@ -2361,10 +2331,11 @@ body {
   color: var(--e-body);
 }
 /* The action bar closes the request: what the call sends, the key that
-   sends it, and Execute. It is the open operation's bottom edge, as the
-   header is its top: while the request runs past the bottom of the view,
-   the bar docks there in the same frosted glass. Swagger draws it as
-   .execute-wrapper, or as .btn-group once a response is in. */
+   sends it, and Execute. In its place it is a plain row of the operation.
+   While the request runs past the bottom of the view it docks there as
+   the operation's bottom edge, in the frosted glass the header takes when
+   it docks at the top. Swagger draws it as .execute-wrapper, or as
+   .btn-group once a response is in. */
 #emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) {
   position: sticky;
   bottom: 0;
@@ -2372,14 +2343,15 @@ body {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  padding: 12px var(--gutter);
+  padding: var(--sp-5) var(--gutter);
+  transition: background-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group)[data-emit-docked] {
+  padding-block: 12px;
   background: linear-gradient(150deg, rgba(38,44,56,0.96), rgba(20,23,30,0.98));
   backdrop-filter: blur(30px) saturate(150%);
-  box-shadow: inset 0 1px 0 var(--e-hair);
-  transition: box-shadow .2s var(--ease);
+  box-shadow: inset 0 1px 0 var(--e-hair), 0 -14px 30px rgba(0,0,0,0.30);
 }
-#emit-swagger .swagger-ui .opblock-body:has(.opblock-section-request-body) > :is(.execute-wrapper, .btn-group) { margin-top: var(--sp-5); }
-#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group)[data-emit-docked] { box-shadow: inset 0 1px 0 var(--e-hair), 0 -14px 30px rgba(0,0,0,0.30); }
 #emit-swagger .swagger-ui .btn-group .btn { flex: 0 0 auto; }
 .emit-sends { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; margin-right: auto; overflow: hidden; font: 500 var(--t-sm)/1 var(--f-mono); color: var(--e-dim); white-space: nowrap; }
 .emit-sends::before { content: ""; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--e-faint); }
