@@ -82,7 +82,8 @@ public class DocumentController {
             operationId = "requestDocumentGeneration",
             summary = "Request PDF generation",
             description = "Publishes the generation event to Kafka and answers `202` at once. "
-                    + "The document then runs PENDING, PROCESSING, DONE, or FAILED after three attempts.")
+                    + "The document then runs PENDING, PROCESSING, DONE, or FAILED after three attempts "
+                    + "1s and 2s apart, with the event routed to the dead-letter queue.")
     @ApiResponse(responseCode = "202", description = "PDF generation accepted")
     @ErrorCase(status = 404, name = "unknown-id", summary = "Document not found",
             message = "Document not found: " + ErrorCase.EXAMPLE_ID)
