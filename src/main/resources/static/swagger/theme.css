@@ -2375,15 +2375,15 @@ body {
    it docks at the top. Swagger draws it as .execute-wrapper, or as
    .btn-group once a response is in. */
 #emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) {
-  position: sticky;
-  bottom: 0;
-  z-index: 4;
+  position: relative;
+  z-index: 6;
   display: flex;
   align-items: center;
   gap: var(--sp-3);
   padding: var(--sp-5) var(--gutter);
   transition: background-color .2s var(--ease), box-shadow .2s var(--ease);
 }
+#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group)[data-emit-dockable] { position: sticky; bottom: 0; }
 #emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group)[data-emit-docked] {
   padding-block: 12px;
   background: linear-gradient(150deg, rgba(38,44,56,0.96), rgba(20,23,30,0.98));

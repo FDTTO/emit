@@ -35,6 +35,12 @@ V.until(function () { return !!sends('Authentication-login') && !!sends('Documen
 function docking() {
   document.getElementById('emit-window').style.height = '380px';
   var block = document.getElementById('operations-Documents-createDocument');
+  pane().scrollTop += block.getBoundingClientRect().top - pane().getBoundingClientRect().bottom + 120;
+  var early = bar('Documents-createDocument');
+  var above = early.previousElementSibling.getBoundingClientRect().bottom;
+  check('an operation just coming into view keeps its bar in place, off its request',
+        !early.hasAttribute('data-emit-dockable') && early.getBoundingClientRect().top >= above - 1,
+        { bar: early.getBoundingClientRect().top, above: above });
   pane().scrollTop += block.getBoundingClientRect().top - pane().getBoundingClientRect().top;
   V.until(function () { return bar('Documents-createDocument').hasAttribute('data-emit-docked'); }, function () {
     var box = bar('Documents-createDocument').getBoundingClientRect();

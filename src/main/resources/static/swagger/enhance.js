@@ -3049,9 +3049,16 @@
       var summary = block.querySelector('.opblock-summary');
       var stuck = !!summary && summary.getBoundingClientRect().top - block.getBoundingClientRect().top > 1;
       if (block.hasAttribute('data-emit-stuck') !== stuck) block.toggleAttribute('data-emit-stuck', stuck);
+      /* The bar docks only once the operation fills enough of the view for
+         its header, some of its request and the bar itself. Before that a
+         docked bar could climb no higher than the top of the request and
+         would sit over its first lines. */
       var bar = actionBarOf(block);
-      var docked = !!bar && Math.abs(bar.getBoundingClientRect().bottom - floor) < 1;
-      if (bar && bar.hasAttribute('data-emit-docked') !== docked) bar.toggleAttribute('data-emit-docked', docked);
+      if (!bar) return;
+      var roomy = floor - block.getBoundingClientRect().top > DOCK_ROOM;
+      if (bar.hasAttribute('data-emit-dockable') !== roomy) bar.toggleAttribute('data-emit-dockable', roomy);
+      var docked = roomy && Math.abs(bar.getBoundingClientRect().bottom - floor) < 1;
+      if (bar.hasAttribute('data-emit-docked') !== docked) bar.toggleAttribute('data-emit-docked', docked);
     });
   }
 
@@ -3149,6 +3156,8 @@
     });
     bar.appendChild(panel);
   }
+
+  var DOCK_ROOM = 280;
 
   function actionBarOf(block) {
     return block.querySelector('.opblock-body > .execute-wrapper, .opblock-body > .btn-group');
