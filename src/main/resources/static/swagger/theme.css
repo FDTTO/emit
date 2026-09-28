@@ -2599,7 +2599,7 @@ body {
 
 /* After Execute: the request as it went, then the result. Edit brings the
    editor back; a new answer sends the page back to the result. */
-.emit-well.emit-sent { display: none; margin: 0 var(--gutter) var(--sp-6); }
+.emit-well.emit-sent { display: none; margin: 0 var(--gutter); }
 /* Edit floats at the row's end, so the row keeps the label's height. */
 #emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header { position: relative; }
 .emit-tool--edit { display: none; position: absolute; right: var(--gutter); top: calc(var(--sp-6) - 8px); }
