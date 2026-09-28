@@ -79,7 +79,7 @@
             <tr><td><span class="chip round tenant" data-icon="apiKey">TENANT</span></td><td><code class="inline">X-API-Key: &lt;key&gt;</code></td><td>Submit and retrieve documents</td></tr>
           </table>
 
-          <div class="label rule">Getting started</div>
+          <div class="label rule">Getting started<button class="tool-quiet ink" type="button" id="run-all"><svg class="i" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z" fill="currentColor" stroke="none"/></svg>Run all steps</button></div>
           <ol class="steps" id="steps">
             <li class="done"><span class="mark"></span><span>Log in with the admin credentials<span class="ref">POST /v1/auth/login</span></span><span class="proof">token in Authorize</span></li>
             <li class="done"><span class="mark"></span><span>Create a tenant<span class="ref">POST /v1/tenants</span></span><span class="proof">key in Authorize</span></li>
@@ -89,10 +89,10 @@
           </ol>
         </section>
 
-        <div class="tag-head" data-tag="Authentication"><div class="label rule">Authentication <small>1 endpoint</small></div></div>
+        <div class="tag-head" data-tag="Authentication"><div class="label rule">Authentication <small>1 endpoint</small><button class="tool-quiet" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M8 9l4-4 4 4"/><path d="M8 15l4 4 4-4"/></svg>Open all</button></div></div>
         <article class="op" id="op-login" data-icon="key" data-scope="public" data-last="ok 200 · 142 ms"><div class="summary"><span class="chip post">POST</span><span class="path">/v1/auth/login</span><span class="desc">Login</span></div></article>
 
-        <div class="tag-head" data-tag="Documents"><div class="label rule">Documents <small>5 endpoints</small></div></div>
+        <div class="tag-head" data-tag="Documents"><div class="label rule">Documents <small>5 endpoints</small><button class="tool-quiet" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M8 9l4-4 4 4"/><path d="M8 15l4 4 4-4"/></svg>Open all</button></div></div>
         <article class="op" id="op-list" data-icon="list" data-scope="tenant"><div class="summary"><span class="chip get">GET</span><span class="path">/v1/documents</span><span class="desc">List documents</span></div></article>
         <article class="op" id="op-create" data-icon="docPlus" data-scope="tenant" data-last="ok 201 · 36 ms"><div class="summary"><span class="chip post">POST</span><span class="path">/v1/documents</span><span class="desc">Create document</span></div></article>
 
@@ -104,9 +104,9 @@
               <div class="param">
                 <div class="param-name"><b>id</b><div class="pills"><span class="chip type">string</span><span class="chip format round">uuid</span></div></div>
                 <div class="field well"><span class="value">31f7dfab-2c4e-4b1a-9d0e-7a5c3e8f1b20</span><span class="carry">from Create document</span></div>
-                <button class="btn-primary" type="button">Execute</button>
               </div>
             </div>
+            <div class="actionbar"><span class="sends is-held"><b>X-API-Key</b> held</span><kbd>Ctrl Enter</kbd><button class="btn-primary" type="button">Execute</button></div>
             <div class="block">
               <div class="label">Responses</div>
               <div class="rows">
@@ -134,10 +134,10 @@
               <div class="param">
                 <div class="param-name"><b>id</b><div class="pills"><span class="chip type">string</span><span class="chip format round">uuid</span></div></div>
                 <div class="field well"><span class="value">31f7dfab-2c4e-4b1a-9d0e-7a5c3e8f1b20</span><span class="carry">from Create document</span></div>
-                <button class="btn-primary" type="button" id="execute">Execute</button>
               </div>
-              <div class="result"><b>202</b> Accepted in 38 ms. Followed in the rail and in the lifecycle above.</div>
             </div>
+            <div class="actionbar"><span class="sends is-held"><b>X-API-Key</b> held</span><kbd>Ctrl Enter</kbd><button class="btn-primary" type="button" id="execute">Execute</button></div>
+            <div class="result"><b>202</b> Accepted in 38 ms. Followed in the rail and in the lifecycle above.</div>
             <div class="block">
               <div class="label">Responses</div>
               <div class="rows">
@@ -154,7 +154,7 @@
 
         <article class="op" id="op-pdf" data-icon="download" data-scope="tenant"><div class="summary"><span class="chip get">GET</span><span class="path">/v1/documents/{id}/pdf</span><span class="desc">Download PDF</span></div></article>
 
-        <div class="tag-head" data-tag="Tenants"><div class="label rule">Tenants <small>5 endpoints</small></div></div>
+        <div class="tag-head" data-tag="Tenants"><div class="label rule">Tenants <small>5 endpoints</small><button class="tool-quiet" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M8 9l4-4 4 4"/><path d="M8 15l4 4 4-4"/></svg>Open all</button></div></div>
         <article class="op" id="op-tenants" data-icon="list" data-scope="admin"><div class="summary"><span class="chip get">GET</span><span class="path">/v1/tenants</span><span class="desc">List tenants</span></div></article>
         <article class="op" id="op-tenant-create" data-icon="buildingPlus" data-scope="admin" data-last="ok 201 · 480 ms"><div class="summary"><span class="chip post">POST</span><span class="path">/v1/tenants</span><span class="desc">Create tenant</span></div></article>
         <article class="op" id="op-tenant-get" data-icon="building" data-scope="admin"><div class="summary"><span class="chip get">GET</span><span class="path">/v1/tenants/{id}</span><span class="desc">Get tenant by ID</span></div></article>
@@ -171,14 +171,15 @@
     <div>RateLimit 17 / 20 <span class="meter"><i></i></span></div>
     <button type="button" id="status-last" title="Go to the operation that answered">Last 202 · 38 ms</button>
     <button type="button" id="status-rid" title="Copy the request id">X-Request-Id 8c1f…a2</button>
+    <button type="button" id="status-density" title="Switch to the denser layout">Comfortable</button>
   </footer>
 </div>
 
 <div class="palette-back" id="palette-back" data-open="false">
   <div class="palette" role="dialog" aria-label="Jump to an operation">
-    <input id="palette-input" placeholder="Jump to an operation…" autocomplete="off">
+    <input id="palette-input" placeholder="Jump to an operation or run an action…" autocomplete="off">
     <ul id="palette-list" role="listbox"></ul>
-    <footer><span>↑↓ choose</span><span>Enter open</span><span>Esc close</span></footer>
+    <footer><span>↑↓ choose</span><span>Enter run</span><span>Esc close</span></footer>
   </div>
 </div>
 
@@ -261,6 +262,22 @@
   }
   editor.addEventListener('scroll', spy, { passive: true });
 
+  /* An open header docks once it has left its operation's top edge. */
+  function paintStuck() {
+    document.querySelectorAll('.op.open').forEach(function (op) {
+      op.classList.toggle('stuck', op.querySelector('.summary').getBoundingClientRect().top - op.getBoundingClientRect().top > 1);
+    });
+  }
+  editor.addEventListener('scroll', paintStuck, { passive: true });
+
+  /* Density: the same page on tighter spacing, remembered by the console. */
+  var density = document.getElementById('status-density');
+  density.addEventListener('click', function () {
+    var compact = document.documentElement.dataset.density !== 'compact';
+    document.documentElement.dataset.density = compact ? 'compact' : 'comfortable';
+    density.textContent = compact ? 'Compact' : 'Comfortable';
+  });
+
   document.querySelectorAll('.row-head').forEach(function (h) { h.addEventListener('click', function () { h.parentElement.classList.toggle('open'); }); });
 
   /* One run feeds the rail, the lifecycle figure, the journey and the statusbar. */
@@ -314,20 +331,32 @@
   document.getElementById('rail-toggle').addEventListener('click', toggleRail);
 
   var back = document.getElementById('palette-back'), input = document.getElementById('palette-input'), list = document.getElementById('palette-list');
-  var entries = ops.map(function (op) { return { id: op.id, icon: op.dataset.icon, path: op.querySelector('.chip').textContent + ' ' + op.querySelector('.path').textContent, name: op.querySelector('.desc').textContent }; });
+  /* Actions first, then operations, each under its label. */
+  var actions = [
+    { id: 'op-login', icon: 'key', path: 'the admin token', name: 'Log in', group: 'Actions' },
+    { id: 'overview', icon: 'shield', path: 'Authorize', name: 'Credentials', group: 'Actions' },
+    { id: 'overview', icon: 'list', path: 'density', name: 'Compact layout', group: 'Actions' },
+    { id: 'overview', icon: 'list', path: 'Getting started', name: 'Run all steps', group: 'Actions' },
+    { id: 'op-list', icon: 'list', path: '5 operations', name: 'Open all in Documents', group: 'Actions' }
+  ];
+  var entries = actions.concat(ops.map(function (op) { return { id: op.id, icon: op.dataset.icon, path: op.querySelector('.chip').textContent + ' ' + op.querySelector('.path').textContent, name: op.querySelector('.desc').textContent, group: 'Operations' }; }));
   var selected = 0, filtered = entries;
   function render() {
     var q = input.value.toLowerCase();
     filtered = entries.filter(function (e) { return (e.name + ' ' + e.path).toLowerCase().indexOf(q) >= 0; });
     selected = Math.min(selected, Math.max(0, filtered.length - 1));
-    list.innerHTML = filtered.map(function (e, i) { return '<li role="option" aria-selected="' + (i === selected) + '" data-id="' + e.id + '">' + icon(e.icon) + '<span>' + e.name + '</span><span class="p">' + e.path + '</span></li>'; }).join('');
+    var group = null;
+    list.innerHTML = filtered.map(function (e, i) {
+      var label = e.group !== group ? '<li class="group" role="presentation">' + (group = e.group) + '</li>' : '';
+      return label + '<li role="option" aria-selected="' + (i === selected) + '" data-id="' + e.id + '">' + icon(e.icon) + '<span>' + e.name + '</span><span class="p">' + e.path + '</span></li>';
+    }).join('');
   }
   function openPalette() { back.dataset.open = 'true'; input.value = ''; selected = 0; render(); input.focus(); }
   function closePalette() { back.dataset.open = 'false'; }
   function go(id) { closePalette(); var op = document.getElementById(id); if (op.querySelector('.op-body')) op.classList.add('open'); op.scrollIntoView({ block: 'start' }); }
   document.getElementById('jump').addEventListener('click', openPalette);
   back.addEventListener('click', function (e) { if (e.target === back) closePalette(); });
-  list.addEventListener('click', function (e) { var li = e.target.closest('li'); if (li) go(li.dataset.id); });
+  list.addEventListener('click', function (e) { var li = e.target.closest('li[data-id]'); if (li) go(li.dataset.id); });
   input.addEventListener('input', function () { selected = 0; render(); });
   input.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowDown') { selected = Math.min(selected + 1, filtered.length - 1); render(); e.preventDefault(); }

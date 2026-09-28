@@ -120,12 +120,41 @@ svg.i { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-widt
 /* Glass sheet: panels that sit on the window. */
 .sheet { background: var(--glass-2); border-radius: var(--r3); box-shadow: var(--lift); }
 
-/* Buttons: one primary (lit), one quiet. */
-.btn-primary { display: inline-flex; align-items: center; height: 38px; padding: 0 22px; border-radius: var(--r2); color: #04121c; font: 600 var(--f-body)/1 var(--sans);
-  background: linear-gradient(180deg, #bdecff, #82cff5); box-shadow: 0 0 0 1px rgba(143,220,255,0.35), 0 6px 22px rgba(80,180,255,0.20), inset 0 1px 0 rgba(255,255,255,0.6); }
-.btn-primary:hover { background: linear-gradient(180deg, #cff2ff, #92d8fa); }
+/* Buttons: one primary, one quiet. The primary is cyan ink on glass, the
+   material of the rail's NEXT: a faint gradient lit from above, the brand
+   edge, a soft light under it, and on hover the glint the window's rim
+   shows as the page arrives. Nothing in it glows harder than the rest. */
+.btn-primary { position: relative; isolation: isolate; display: inline-flex; align-items: center; height: 38px; padding: 0 var(--s5); border-radius: var(--r2); color: var(--text); font: 600 var(--f-body)/1 var(--sans);
+  background: linear-gradient(90deg, transparent, var(--ui), transparent) -40% 100% / 34% 1.5px no-repeat, linear-gradient(180deg, rgba(143,220,255,0.17), rgba(143,220,255,0.08));
+  box-shadow: inset 0 0 0 1px var(--ui-edge), inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 14px -6px rgba(143,220,255,0.28); transition: box-shadow .2s var(--ease); }
+.btn-primary::after { content: ""; position: absolute; inset: 0; z-index: -1; padding: 1px; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.7) 50%, transparent 62%) -200% 0 / 300% 100% no-repeat;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.btn-primary:hover { background-color: rgba(143,220,255,0.06); box-shadow: inset 0 0 0 1px rgba(143,220,255,0.6), inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 18px -6px rgba(143,220,255,0.38); }
+.btn-primary:hover::after { animation: glint .7s var(--ease); }
+/* A quiet tool on a label's line, after its rule: Open all, Run all steps. */
+.label .tool-quiet { order: 2; display: inline-flex; align-items: center; gap: 6px; height: 24px; margin: -7px 0; padding: 0 var(--s2); border-radius: var(--r1);
+  font: 500 var(--f-meta)/1 var(--sans); letter-spacing: 0; text-transform: none; color: var(--faint); }
+.label .tool-quiet:hover { color: var(--body); background: var(--fill); }
+.label .tool-quiet.ink { color: var(--ui); }
+.label .tool-quiet.ink:hover { background: var(--ui-fill); }
+.label .tool-quiet svg.i { width: 11px; height: 11px; }
 .btn-quiet { display: flex; align-items: center; gap: var(--s3); border-radius: var(--r2); background: var(--fill); box-shadow: inset 0 0 0 1px var(--hair); color: var(--body); }
 .btn-quiet:hover { background: var(--fill-hover); }
+
+/* A JSON answer as a tree: levels indented, a fold control in the gutter,
+   a folded one saying what it holds. */
+.json .ln { position: relative; white-space: pre; }
+.json .kids { padding-left: 2ch; }
+.json .fold { position: absolute; left: -14px; top: 0; width: 12px; height: 1.7em; }
+.json .fold::before { content: ""; position: absolute; left: 3px; top: calc(50% - 4px); width: 5px; height: 5px; border: solid var(--faint); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+.json .fold.closed::before { transform: rotate(-45deg); }
+.json .count { color: var(--faint); }
+
+/* Loading: placeholders under one light that sweeps the whole window. */
+.bone { display: block; border-radius: var(--r1); background-color: rgba(255,255,255,0.035);
+  background-image: linear-gradient(105deg, transparent 40%, rgba(143,220,255,0.10) 47%, rgba(255,255,255,0.15) 50%, rgba(143,220,255,0.10) 53%, transparent 60%);
+  background-size: 220vw 100%; background-attachment: fixed; background-repeat: no-repeat; animation: sweep 2.2s linear infinite; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
 
 kbd { padding: 3px 6px; border-radius: var(--r1); font: 500 var(--f-micro)/1 var(--mono); color: var(--dim); background: var(--fill); box-shadow: inset 0 0 0 1px var(--hair); }
 
@@ -277,7 +306,10 @@ code.inline { font: 500 var(--f-code)/1 var(--mono); color: var(--type); backgro
 .op:not(.open):hover { background: var(--fill-hover); }
 .op.open { background: var(--glass-2); box-shadow: var(--lift); margin: var(--s5) 0 var(--s6); }
 .summary { display: flex; align-items: center; gap: var(--s3); padding: 12px var(--s5); border-radius: var(--r3); cursor: pointer; }
-.op.open .summary { position: sticky; top: 0; z-index: 5; border-radius: var(--r3) var(--r3) 0 0; background: rgba(28,33,44,0.80); backdrop-filter: blur(24px) saturate(150%); box-shadow: inset 0 -1px 0 var(--hair), inset 0 1px 0 rgba(255,255,255,0.08); }
+.op.open .summary { position: sticky; top: 0; z-index: 5; border-radius: var(--r3) var(--r3) 0 0; background: rgba(28,33,44,0.80); backdrop-filter: blur(24px) saturate(150%); box-shadow: inset 0 -1px 0 var(--hair), inset 0 1px 0 rgba(255,255,255,0.08);
+  transition: border-radius .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease); }
+/* Stuck under the titlebar, it docks: square top and the dense glass. */
+.op.open.stuck .summary { border-radius: 0; background: linear-gradient(150deg, rgba(38,44,56,0.96), rgba(20,23,30,0.98)); backdrop-filter: blur(30px) saturate(150%); box-shadow: inset 0 -1px 0 var(--hair), 0 12px 28px rgba(0,0,0,0.35); }
 .op-icon { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--r1); background: var(--fill); box-shadow: inset 0 0 0 1px var(--hair); color: var(--dim); }
 .op.open .op-icon { color: var(--label); }
 .path { font: 500 var(--f-body)/1 var(--mono); color: var(--body); white-space: nowrap; }
@@ -301,7 +333,25 @@ code.inline { font: 500 var(--f-code)/1 var(--mono); color: var(--type); backgro
 .lede { margin: 0; padding: var(--s6) var(--inset) 0; max-width: 72ch; color: var(--body); }
 .block { padding: var(--s6) var(--inset); }
 .block + .block { box-shadow: inset 0 1px 0 var(--hair); }
-.param { display: grid; grid-template-columns: 140px minmax(0, 1fr) auto; gap: var(--s4); align-items: center; }
+.param { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: var(--s4); align-items: center; }
+/* The action bar closes the request: what the call sends, the key that
+   sends it, and Execute. In its place a plain row; while the request runs
+   past the bottom of the view it docks there in the header's glass. */
+.actionbar + .block { box-shadow: inset 0 1px 0 var(--hair); }
+/* A request body ends on its validity line; the bar below brings the room. */
+.block:has(> .validity) { padding-bottom: 0; }
+.actionbar + .result { margin: 0 var(--inset) var(--s5); }
+.actionbar { display: flex; align-items: center; gap: var(--s3); padding: var(--s5) var(--inset); }
+.actionbar.docked { position: sticky; bottom: 0; z-index: 6; padding-block: 12px; background: linear-gradient(150deg, rgba(38,44,56,0.96), rgba(20,23,30,0.98)); backdrop-filter: blur(30px) saturate(150%); box-shadow: inset 0 1px 0 var(--hair), 0 -14px 30px rgba(0,0,0,0.30); }
+.sends { display: flex; align-items: center; gap: var(--s2); min-width: 0; margin-right: auto; font: 500 var(--f-meta)/1 var(--mono); color: var(--dim); white-space: nowrap; }
+.sends::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--faint); }
+.sends b { font-weight: 500; color: var(--body); }
+.sends.is-held::before { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 14%, transparent); }
+.sends.is-running { color: var(--run); } .sends.is-running::before { background: var(--run); box-shadow: none; animation: blink 1s ease-in-out infinite; }
+.sends a { color: var(--ui); text-decoration: none; }
+.history-tool { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: var(--r1); color: var(--dim); font: 500 var(--f-meta)/1 var(--sans); }
+.history-tool:hover { color: var(--body); background: var(--fill); }
+.history-tool small { font: 500 var(--f-micro)/1 var(--mono); color: var(--faint); }
 .param-name { display: grid; gap: var(--s2); }
 .param-name b { font: 600 var(--f-body)/1 var(--mono); color: var(--text); }
 .pills { display: flex; gap: 5px; }
@@ -366,11 +416,23 @@ pre .k { color: #8fbcbb; } pre .s { color: #a3be8c; } pre .n { color: #b48ead; }
 .palette li { display: flex; align-items: center; gap: var(--s3); padding: 10px var(--s3); border-radius: var(--r2); color: var(--body); cursor: pointer; }
 .palette li .p { margin-left: auto; font: 400 var(--f-meta)/1 var(--mono); color: var(--faint); }
 .palette li[aria-selected="true"] { background: var(--ui-fill); color: var(--text); }
+.palette li.group { padding: var(--s3) var(--s3) var(--s1); font: 600 var(--f-micro)/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--faint); cursor: default; }
 .palette footer { display: flex; gap: var(--s4); padding: 10px var(--s5); box-shadow: inset 0 1px 0 var(--hair); font-size: var(--f-meta); color: var(--faint); }
 
 @keyframes blink { 50% { opacity: .35; } }
+@keyframes glint { from { background-position: -200% 0; } to { background-position: 150% 0; } }
+@keyframes sweep { from { background-position: 120vw 0; } to { background-position: -120vw 0; } }
 @keyframes rise { from { opacity: 0; transform: translateY(4px); } }
 @keyframes ring { from { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 45%, transparent); } }
 @keyframes pop { 40% { transform: scale(1.3); } }
 @keyframes travel { from { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } to { left: calc(100% - 7px); opacity: 0; } }
+/* Compact: the same page in whole pixels on tighter spacing for short
+   screens; chrome, rows and panels give up room, reading text does not. */
+:root[data-density="compact"] { --rail: 232px; --inset: 20px; }
+:root[data-density="compact"] body { padding: var(--s2) var(--s3) var(--s3); }
+:root[data-density="compact"] .window { grid-template-rows: 40px minmax(0, 1fr) 24px; }
+:root[data-density="compact"] .summary { padding: 8px var(--s4); }
+:root[data-density="compact"] .op { margin-bottom: 4px; }
+:root[data-density="compact"] .tag-head { margin: 28px 0 var(--s2); }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

@@ -12,9 +12,10 @@ no dependencies beyond two webfonts.
   `#run` (a document being followed), `#op` (an operation open at the top),
   `#rows`.
 - `cockpit-surfaces.html`: everything the window shows in other moments. The
-  result of a call, the request body editor, the credentials dialog, the
-  schemas, a description that did not load, the legend, and the phone. The
-  hash picks one: `#result`, `#body`, `#auth`, `#schemas`, `#failure`,
+  result of a call, the request body editor, a call that got no answer, the
+  page loading, the credentials dialog, the schemas, a description that did
+  not load, the legend, and the phone. The hash picks one: `#result`,
+  `#body`, `#unreachable`, `#loading`, `#auth`, `#schemas`, `#failure`,
   `#legend`, `#phone`.
 - `cockpit-system.css`: the one system both are built from. Every component
   uses its tokens and nothing else: five text steps, four radii, one type
@@ -60,6 +61,48 @@ first sheet, an open operation or a dialog a second, lit from above; machine
 output sits in a dark well. Nothing is drawn that is not built from the
 system's tokens.
 
+**One primary action, and it does not shout.** Execute and Authorize are
+cyan ink on glass, the material of the rail's next step. Nothing in them
+glows harder than anything else on the page; they stand out by colour and
+by being the only filled control in their row.
+
+**An open operation is a window.** Its header docks under the titlebar
+while its body scrolls, and its action bar, what the call sends, the key
+that sends it and Execute, docks at the bottom once the operation fills
+the view. In its place the bar is a plain row with room around it.
+
+## What the pages describe in words
+
+Some of the console is behaviour a static page cannot show well. It is
+specified here, and each item has a scenario in `scenarios/`.
+
+- **Density.** Compact is the same page in whole pixels on tighter
+  spacing: a 40px titlebar and 24px statusbar, a 232px rail, 20px panel
+  insets, 40px operation rows, 13px reading text unchanged. It starts on
+  its own under 820px of height; the statusbar switches it and the choice
+  is remembered. Below 0.8 device pixels per CSS pixel, a browser zoomed
+  out, the smallest type steps and the hairlines rise a step.
+- **Loading.** Placeholders hold the window until the description, the
+  rail's map and both faces are in, never longer than eight seconds; the
+  lifecycle's placeholder boots stage by stage; the content then rises in
+  turn and a glint runs the window's rim. Swagger's own spinners never
+  show: a resolving operation holds two lines, a call that is out holds
+  the shape of its result in place of the stale one.
+- **The palette.** Ctrl+K lists actions and operations, each group
+  labelled, each action saying what it would do now.
+- **The keyboard.** J and K walk the operations, Enter opens one, Ctrl+Enter
+  executes the operation at hand. Never while typing or with a dialog open.
+- **Run all steps.** The walkthrough runs itself: each step not done, in
+  order, the next only once the page sees this one done, the tenant under
+  a fresh name; the first step not done stops it on that operation.
+- **Recent calls.** Each operation keeps its last five calls in the page
+  only, never in storage; Load puts a body back in the editor.
+- **The server light.** Green while `/actuator/health` answers healthy;
+  amber with "not answering" or "not healthy", the part that is down on
+  hover.
+- **The map follows.** When the place it marks leaves its own view, the
+  map scrolls just enough to show it again.
+
 ## Checking the console against it
 
 ```
@@ -74,10 +117,6 @@ screenshots for `pixdiff.py`. The states are those of the two pages. See
 
 ## Where the console departs from them, on purpose
 
-- **After Execute, Execute again.** The result shows the request as it was
-  sent, with no editor, as `#result` draws it, but the action bar stays: a
-  call that failed is sent again from where the reader is. A quiet Edit
-  tool on the request body's label row brings the editor back.
 - **Which answer opens by default.** An operation that sends nothing opens its
   success row on its example (`#op`); one with a request body keeps its rows
   closed, since its editor already fills the view (`#body`).

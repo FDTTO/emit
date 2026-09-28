@@ -25,6 +25,8 @@
 .status-big { display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 12px; border-radius: var(--pill); font: 600 var(--f-code)/1 var(--mono);
   color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 28%, transparent); }
 .status-big::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.status-big.wait { color: var(--wait); background: color-mix(in srgb, var(--wait) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wait) 28%, transparent); }
+.well.words { font-family: var(--sans); white-space: normal; color: var(--body); }
 .meta { display: flex; align-items: center; gap: var(--s4); font: 500 var(--f-meta)/1 var(--mono); color: var(--dim); }
 .meta b { color: var(--body); font-weight: 500; }
 .rid { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: var(--r1); color: var(--dim); background: var(--fill); font: 500 var(--f-meta)/1 var(--mono); }
@@ -190,6 +192,8 @@
   <div class="segmented" role="tablist" aria-label="Surface" id="picker">
     <button type="button" data-s="result" aria-pressed="true">Result</button>
     <button type="button" data-s="body" aria-pressed="false">Body editor</button>
+    <button type="button" data-s="unreachable" aria-pressed="false">No answer</button>
+    <button type="button" data-s="loading" aria-pressed="false">Loading</button>
     <button type="button" data-s="auth" aria-pressed="false">Authorize</button>
     <button type="button" data-s="schemas" aria-pressed="false">Schemas</button>
     <button type="button" data-s="failure" aria-pressed="false">Spec failure</button>
@@ -230,7 +234,8 @@
     home: ['M4 11l8-7 8 7', 'M6 10v10h12V10'], braces: ['M8 4c-2 0-2 2-2 4s-2 4-2 4 2 2 2 4 0 4 2 4', 'M16 4c2 0 2 2 2 4s2 4 2 4-2 2-2 4 0 4-2 4'],
     copy: ['M8 8h11v11H8z', 'M5 16V5h11'], alert: ['M12 8v5', 'M12 16.5v.5', 'M10.3 3.9L2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'],
     eye: ['M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z', 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'], goTo: ['M7 17L17 7', 'M8 7h9v9'],
-    menu: ['M4 7h16M4 12h16M4 17h16'], close: ['M6 6l12 12M18 6L6 18'], format: ['M4 6h10M4 12h16M4 18h12'], reset: ['M4 12a8 8 0 1 0 2.34-5.66', 'M4 4v5h5']
+    menu: ['M4 7h16M4 12h16M4 17h16'], close: ['M6 6l12 12M18 6L6 18'], format: ['M4 6h10M4 12h16M4 18h12'], reset: ['M4 12a8 8 0 1 0 2.34-5.66', 'M4 4v5h5'],
+    history: ['M4 12a8 8 0 1 0 2.34-5.66', 'M4 4v5h5', 'M12 8v4l3 2'], pencil: ['M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z']
   };
   function icon(n, c) { return '<svg class="i' + (c ? ' ' + c : '') + '" viewBox="0 0 24 24">' + PATHS[n].map(function (d) { return '<path d="' + d + '"/>'; }).join('') + '</svg>'; }
   var OPS = [
@@ -278,12 +283,13 @@
       note: 'After Execute: one bar says how it went, tabs hold what came back.',
       crumb: '<i>Authentication</i><i>/</i><b>POST /v1/auth/login</b>', who: held(true, false), current: 'Login',
       content: '<article class="op open">' + summary(LOGIN, true, '200 <span>108 ms</span>') +
-        '<div class="op-body"><div class="op-inner"><div class="block"><div class="label">Request body</div><pre class="well">{ <span class="k">"username"</span>: <span class="s">"admin"</span>, <span class="k">"password"</span>: <span class="s">"admin123"</span> }</pre></div>' +
+        '<div class="op-body"><div class="op-inner"><div class="block"><div class="label-row"><div class="label">Request body</div><div class="right"><button class="tool" type="button">' + icon('pencil') + 'Edit</button></div></div><pre class="well">{ <span class="k">"username"</span>: <span class="s">"admin"</span>, <span class="k">"password"</span>: <span class="s">"admin123"</span> }</pre></div>' +
+        '<div class="actionbar"><span class="sends">Sends no credential</span><button class="history-tool" type="button">' + icon('history') + 'History<small>1</small></button><kbd>Ctrl Enter</kbd><button class="btn-primary" type="button">Execute</button></div>' +
         '<div class="note-bar">' + icon('shield') + 'Authorized as ADMIN with this token. Tenant operations will send it.</div>' +
         '<div class="result-sheet"><div class="result-head"><span class="status-big">200 OK</span><span class="meta"><span><b>108</b> ms</span><span><b>241</b> B</span></span>' +
         '<button class="rid" type="button" title="Copy the request id">' + icon('copy') + '09a7e9ad…c92a3e</button>' +
         '<div class="tabs" role="tablist"><button type="button" data-tab="b" aria-selected="true">Body</button><button type="button" data-tab="h" aria-selected="false">Headers<small>12</small></button><button type="button" data-tab="c" aria-selected="false">curl</button></div></div>' +
-        '<div class="tab-panel is-shown" data-panel="b"><pre class="well">{\n  <span class="k">"token"</span>: <span class="s">"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc5MDI5MTIyNSwiZXhwIjoxNzkwMzc3NjI1fQ.8_hTZAOG0SBu6M8RFseQnIMy1rb6lus-iI38zfYBPwU"</span>\n}</pre>' +
+        '<div class="tab-panel is-shown" data-panel="b"><pre class="well json"><div class="ln"><span class="fold"></span>{</div><div class="kids"><div class="ln"><span class="k">"token"</span>: <span class="s">"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc5MDI5MTIyNSwiZXhwIjoxNzkwMzc3NjI1fQ.8_hTZAOG0SBu6M8RFseQnIMy1rb6lus-iI38zfYBPwU"</span></div></div><div class="ln">}</div></pre>' +
         '<div class="tools"><button class="tool" type="button">' + icon('copy') + 'Copy</button><button class="tool" type="button">' + icon('download') + 'Save</button></div></div>' +
         '<div class="tab-panel" data-panel="h"><div class="kv">' +
         [['content-type', 'application/json'], ['date', 'Thu, 24 Sep 2026 23:07:05 GMT'], ['x-request-id', '09a7e9ad-3c66-427e-93cb-97aba5c92a3e', true], ['cache-control', 'no-cache, no-store, max-age=0, must-revalidate'], ['x-frame-options', 'DENY'], ['x-content-type-options', 'nosniff']]
@@ -303,11 +309,28 @@
         '<div class="block"><div class="label-row"><div class="label">Request body</div><span class="chip plain">REQUIRED</span><span class="constraint" style="margin-left:4px">application/json</span>' +
         '<div class="right"><div class="tabs"><button type="button" aria-selected="true">Edit</button><button type="button" aria-selected="false">Schema</button></div>' +
         '<button class="tool" type="button">' + icon('format') + 'Format</button><button class="tool" type="button">' + icon('reset') + 'Reset to example</button></div></div>' +
-        '<div class="editor-well well"><div class="gutter">1<br>2<br>3<br>4</div><pre class="code" contenteditable="true" spellcheck="false" id="body-code">{\n  "name": "Acme Corp",\n  "schemaName": "acme_corp"\n}</pre></div>' +
+        '<div class="editor-well well"><div class="gutter">1<br>2<br>3<br>4</div><pre class="code" contenteditable="true" spellcheck="false" id="body-code">{\n  <span class="k">"name"</span>: <span class="s">"Acme Corp"</span>,\n  <span class="k">"schemaName"</span>: <span class="s">"acme_corp"</span>\n}</pre></div>' +
         '<div class="validity" id="validity">Valid JSON <span>· 2 fields · matches CreateTenantRequest</span></div>' +
-        '<div style="display:flex;justify-content:flex-end;margin-top:var(--s5)"><button class="btn-primary" type="button">Execute</button></div></div>' +
+        '</div><div class="actionbar"><span class="sends is-held"><b>Authorization: Bearer</b> held</span><kbd>Ctrl Enter</kbd><button class="btn-primary" type="button">Execute</button></div>' +
         '<div class="block"><div class="label">Responses</div><div class="rows"><div class="row ok"><button class="row-head"><span class="d"></span><span class="c">201</span><span class="t">Tenant created. The apiKey field is returned exactly once.</span><span class="n"></span><span class="x"></span></button></div>' +
         '<div class="row bad"><button class="row-head"><span class="d"></span><span class="c">409</span><span class="t">Schema name already in use</span><span class="n"></span><span class="x"></span></button></div></div></div></div></div></article>'
+    },
+    loading: {
+      note: 'Until the description and the faces arrive: placeholders in the shape of what is coming, under one light that sweeps the whole window.',
+      crumb: '<b>Overview</b>', who: held(false, false), current: 'overview',
+      content: '<div class="overview sheet" style="display:grid;gap:12px;padding:40px 32px">' +
+        '<i class="bone" style="height:30px;width:36%;margin-bottom:12px"></i><i class="bone" style="height:11px;width:88%"></i><i class="bone" style="height:11px;width:92%"></i><i class="bone" style="height:11px;width:58%"></i>' +
+        '<i class="bone" style="height:8px;width:22%;margin-top:12px"></i><i class="bone" style="height:180px;border-radius:var(--r2)"></i></div>'
+    },
+    unreachable: {
+      note: 'A call that got no answer at all, the API down: said in words, where it tried and what to do, in the tone of wait, then retry.',
+      crumb: '<i>Authentication</i><i>/</i><b>POST /v1/auth/login</b>', who: held(false, false), current: 'Login',
+      content: '<article class="op open">' + summary(LOGIN, true) +
+        '<div class="op-body"><div class="op-inner"><div class="block"><div class="label-row"><div class="label">Request body</div><div class="right"><button class="tool" type="button">' + icon('pencil') + 'Edit</button></div></div><pre class="well">{ <span class="k">"username"</span>: <span class="s">"admin"</span>, <span class="k">"password"</span>: <span class="s">"admin123"</span> }</pre></div>' +
+        '<div class="actionbar"><span class="sends">Sends no credential</span><kbd>Ctrl Enter</kbd><button class="btn-primary" type="button">Execute</button></div>' +
+        '<div class="result-sheet"><div class="result-head"><span class="status-big wait">No answer</span><div class="tabs" role="tablist"><button type="button" data-tab="b" aria-selected="true">Body</button><button type="button" data-tab="h" aria-selected="false">Headers</button><button type="button" data-tab="c" aria-selected="false">curl</button></div></div>' +
+        '<div class="tab-panel is-shown" data-panel="b"><pre class="well words">The API did not answer. The request never reached it at http://localhost:8080: the application is not running there, or the connection was refused. Start it and Execute again.</pre></div></div>' +
+        '</div></div></article>'
     },
     auth: {
       note: 'Authorize as the credentials Execute sends: each one\'s state first (held, where from, until when), the way to get it when it is missing.',
