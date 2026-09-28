@@ -2394,6 +2394,9 @@ body {
 @keyframes emit-blink { 50% { opacity: .35; } }
 @media (max-width: 900px) {
   .emit-execute-key { display: none; }
+  /* Narrow, the sentence runs as text and wraps as one. */
+  .emit-sends { display: block; flex: 1 1 auto; text-align: left; white-space: normal; line-height: 1.5; }
+  .emit-sends::before { display: inline-block; margin-right: var(--sp-2); vertical-align: 1px; }
   #emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) { padding: 10px var(--sp-4); }
 }
 /* Wide: one row per parameter, the name over its chips, then the value. */
@@ -2584,7 +2587,7 @@ body {
   caret-color: var(--e-text);
 }
 #emit-swagger .swagger-ui .opblock-section-request-body .body-param:has(> .emit-paint) > textarea.body-param__text::selection { color: transparent; background: rgba(143,220,255,0.22); }
-.emit-validity { display: flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-3); font: 500 var(--t-sm)/1 var(--f-mono); color: var(--s2-c); }
+.emit-validity { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--sp-2); margin-top: var(--sp-3); font: 500 var(--t-sm)/1 var(--f-mono); color: var(--s2-c); }
 .emit-validity::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .emit-validity.is-bad { color: var(--s4-c); }
 .emit-validity span { color: var(--e-faint); }
