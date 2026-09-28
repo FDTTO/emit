@@ -1997,6 +1997,75 @@
     target.appendChild(document.createTextNode(text.slice(last)));
   }
 
+  /* A JSON answer as a tree: every object and list folds, and a folded one
+     says how many keys or items it holds; Alt+click folds or opens one with
+     everything inside it. Levels from the third start folded, so a long
+     answer reads as its outline first. Built as nodes, like the colours. */
+  var FOLD_FROM_DEPTH = 3;
+
+  function renderJsonTree(target, value) {
+    target.classList.add('emit-json');
+    target.textContent = '';
+    target.appendChild(jsonNode(value, null, 0, true));
+  }
+
+  function jsonNode(value, key, depth, last) {
+    var comma = last ? '' : ',';
+    var head = el('div', 'emit-json__line');
+    if (key !== null) {
+      head.appendChild(el('span', 'k', JSON.stringify(key)));
+      head.appendChild(document.createTextNode(': '));
+    }
+    if (value === null || typeof value !== 'object') {
+      head.appendChild(el('span', typeof value === 'string' ? 's' : 'n', JSON.stringify(value)));
+      head.appendChild(document.createTextNode(comma));
+      return head;
+    }
+    var list = Array.isArray(value);
+    var keys = list ? value.map(function (item, index) { return index; }) : Object.keys(value);
+    var close = (list ? ']' : '}') + comma;
+    if (!keys.length) {
+      head.appendChild(document.createTextNode((list ? '[' : '{') + close));
+      return head;
+    }
+    var node = el('div', 'emit-json__node');
+    var toggle = el('button', 'emit-json__toggle');
+    toggle.type = 'button';
+    head.insertBefore(toggle, head.firstChild);
+    head.appendChild(document.createTextNode(list ? '[' : '{'));
+    var kids = el('div', 'emit-json__kids');
+    keys.forEach(function (at, index) { kids.appendChild(jsonNode(value[at], list ? null : at, depth + 1, index === keys.length - 1)); });
+    node.appendChild(head);
+    node.appendChild(kids);
+    node.appendChild(el('div', 'emit-json__line emit-json__close', close));
+    node.dataset.close = close;
+    node.dataset.count = plural(keys.length, list ? 'item' : 'key');
+    toggle.addEventListener('click', function (event) {
+      var folded = !node.classList.contains('is-folded');
+      foldJson(node, folded);
+      if (event.altKey) node.querySelectorAll('.emit-json__node').forEach(function (inner) { foldJson(inner, folded); });
+    });
+    foldJson(node, depth >= FOLD_FROM_DEPTH);
+    return node;
+  }
+
+  function foldJson(node, folded) {
+    node.classList.toggle('is-folded', folded);
+    var head = node.firstChild;
+    var toggle = head.firstChild;
+    toggle.setAttribute('aria-expanded', String(!folded));
+    toggle.setAttribute('aria-label', folded ? 'Open ' + node.dataset.count : 'Fold');
+    var summary = head.querySelector(':scope > .emit-json__summary');
+    if (folded && !summary) {
+      summary = el('span', 'emit-json__summary');
+      summary.appendChild(el('small', null, ' ' + node.dataset.count + ' '));
+      summary.appendChild(document.createTextNode(node.dataset.close));
+      head.appendChild(summary);
+    } else if (!folded && summary) {
+      summary.remove();
+    }
+  }
+
   function prettyJson(text, inline) {
     try {
       var value = JSON.parse(text);
@@ -2107,7 +2176,7 @@
       pre.textContent = 'The API did not answer. The request never reached it at ' + apiAddress()
         + ': the application is not running there, or the connection was refused. Start it and Execute again.';
     }
-    else if (pretty) highlightJson(pre, pretty);
+    else if (pretty) renderJsonTree(pre, JSON.parse(body));
     else if (body instanceof Blob || !/json|text/.test(type)) pre.textContent = (type || 'binary') + ', ' + size + ' B. Save it to open it.';
     else pre.textContent = body || 'No body.';
     bodyPanel.appendChild(pre);

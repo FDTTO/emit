@@ -2687,6 +2687,18 @@ body {
   color: #c9d4de;
   overflow-x: auto;
 }
+/* A JSON answer as a tree: each level indented, a fold control in the
+   gutter to the left of its opening bracket. */
+.emit-json .emit-json__line { position: relative; white-space: pre; }
+.emit-json .emit-json__kids { padding-left: 2ch; }
+.emit-json .emit-json__node.is-folded > .emit-json__kids,
+.emit-json .emit-json__node.is-folded > .emit-json__close { display: none; }
+.emit-json .emit-json__toggle { position: absolute; left: -14px; top: 0; width: 12px; height: 1.7em; padding: 0; border: 0; background: none; cursor: pointer; }
+.emit-json .emit-json__toggle::before { content: ""; position: absolute; left: 3px; top: calc(50% - 4px); width: 5px; height: 5px; border: solid var(--e-faint); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); transition: transform .15s var(--ease); }
+.emit-json .emit-json__toggle:hover::before { border-color: var(--e-body); }
+.emit-json .is-folded > .emit-json__line > .emit-json__toggle::before { transform: rotate(-45deg); }
+.emit-json .emit-json__summary small { font-size: inherit; color: var(--e-faint); }
+.emit-json .emit-json__summary small::before { content: "\2026"; margin-right: 4px; }
 /* Words written for the reader inside a well, not machine output. */
 .emit-well.emit-well--words { font-family: var(--f-body); white-space: normal; color: var(--e-body); }
 .emit-well .k, .emit-paint .k { color: #8fbcbb; }
