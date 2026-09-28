@@ -1949,8 +1949,19 @@
   var OWN_HEADERS = ['x-request-id', 'ratelimit-limit', 'ratelimit-remaining', 'ratelimit-reset', 'retry-after'];
 
   /* Amber is "wait, then retry": a 429 or a server error. */
+  /* A call that got no answer at all (the API down, the connection
+     refused) has no status: it reads as wait, then retry, like a 5xx. */
   function toneOf(status) {
-    return status === 429 || status >= 500 ? 'wait' : status >= 400 ? 'bad' : 'ok';
+    return !status || status === 429 || status >= 500 ? 'wait' : status >= 400 ? 'bad' : 'ok';
+  }
+
+  function statusWords(status) {
+    return status ? String(status) : 'No answer';
+  }
+
+  function apiAddress() {
+    var first = spec && spec.servers && spec.servers[0];
+    return first ? first.url : location.origin;
   }
 
   function routeOf(block) {
@@ -2034,9 +2045,9 @@
 
     var sheet = el('div', 'emit-result');
     var head = el('div', 'emit-result__head');
-    head.appendChild(el('span', 'emit-result__status emit-result__status--' + toneOf(status), status + (REASONS[status] ? ' ' + REASONS[status] : '')));
+    head.appendChild(el('span', 'emit-result__status emit-result__status--' + toneOf(status), statusWords(status) + (REASONS[status] ? ' ' + REASONS[status] : '')));
     var meta = el('span', 'emit-result__meta');
-    [[response.get('duration'), 'ms'], [size, 'B']].forEach(function (pair) {
+    [[response.get('duration'), 'ms'], [status ? size : null, 'B']].forEach(function (pair) {
       if (pair[0] == null) return;
       var item = el('span');
       item.appendChild(el('b', null, String(pair[0])));
@@ -2080,7 +2091,12 @@
     var bodyPanel = el('div', 'emit-result__panel');
     var pretty = typeof body === 'string' ? prettyJson(body) : null;
     var pre = el('pre', 'emit-well');
-    if (pretty) highlightJson(pre, pretty);
+    if (!status) {
+      pre.classList.add('emit-well--words');
+      pre.textContent = 'The API did not answer. The request never reached it at ' + apiAddress()
+        + ': the application is not running there, or the connection was refused. Start it and Execute again.';
+    }
+    else if (pretty) highlightJson(pre, pretty);
     else if (body instanceof Blob || !/json|text/.test(type)) pre.textContent = (type || 'binary') + ', ' + size + ' B. Save it to open it.';
     else pre.textContent = body || 'No body.';
     bodyPanel.appendChild(pre);
@@ -3297,8 +3313,8 @@
       budget.appendChild(meter);
     }
     last.hidden = false;
-    last.textContent = 'Last ' + answer.status + (typeof answer.duration === 'number' ? ' · ' + answer.duration + ' ms' : '');
-    last.className = 'emit-status__last ' + (answer.status < 400 ? 'is-ok' : 'is-bad');
+    last.textContent = 'Last ' + statusWords(answer.status).toLowerCase() + (typeof answer.duration === 'number' ? ' · ' + answer.duration + ' ms' : '');
+    last.className = 'emit-status__last is-' + toneOf(answer.status);
     if (request.dataset.copied) return;
     request.hidden = !latestRequestId;
     if (latestRequestId) {
@@ -3315,8 +3331,8 @@
       var answer = lastAnswers[key];
       var target = index[key];
       if (!target) return;
-      var tone = answer.status < 400 ? 'is-ok' : 'is-bad';
-      var text = String(answer.status);
+      var tone = 'is-' + toneOf(answer.status);
+      var text = statusWords(answer.status);
       var took = typeof answer.duration === 'number' ? answer.duration + ' ms' : '';
 
       var block = document.getElementById('operations-' + target.tag + '-' + target.id);

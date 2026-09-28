@@ -351,6 +351,7 @@ body {
 #emit-swagger .swagger-ui .opblock-summary .emit-last::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 #emit-swagger .swagger-ui .opblock-summary .emit-last.is-ok { color: var(--s2-c); }
 #emit-swagger .swagger-ui .opblock-summary .emit-last.is-bad { color: var(--s4-c); }
+#emit-swagger .swagger-ui .opblock-summary .emit-last.is-wait { color: var(--s5-c); }
 #emit-swagger .swagger-ui .opblock-summary .emit-last__time { color: var(--e-faint); }
 #emit-swagger .swagger-ui .opblock-summary .emit-last + .emit-scopes { margin-left: var(--sp-3); }
 /* A narrow row keeps the code and lets the time go. */
@@ -360,6 +361,7 @@ body {
 .emit-map__ran { flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; }
 .emit-map__ran.is-ok { background: var(--s2-c); }
 .emit-map__ran.is-bad { background: var(--s4-c); }
+.emit-map__ran.is-wait { background: var(--s5-c); }
 
 @keyframes emit-rise { from { opacity: 0; transform: translateY(4px); } }
 @keyframes emit-blink { 50% { opacity: .35; } }
@@ -2627,6 +2629,8 @@ body {
   color: #c9d4de;
   overflow-x: auto;
 }
+/* Words written for the reader inside a well, not machine output. */
+.emit-well.emit-well--words { font-family: var(--f-body); white-space: normal; color: var(--e-body); }
 .emit-well .k, .emit-paint .k { color: #8fbcbb; }
 .emit-well .s, .emit-paint .s { color: #a3be8c; }
 .emit-well .n, .emit-paint .n { color: #b48ead; }
