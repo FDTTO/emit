@@ -12,6 +12,10 @@ Accepts an HTTP request to generate a PDF, returns `202 Accepted` immediately, a
 
 Five structural decisions. 198 tests that prove the contract holds.
 
+<br/>
+
+<img src="docs/images/console-overview.webp" alt="The EMIT console after running its walkthrough: the document lifecycle lit at DONE, the rail following the document, every step done" width="880">
+
 </div>
 
 ---
@@ -394,7 +398,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 The `dev` profile holds the local JWT secret and admin credentials. Without a profile the application refuses to start rather than run on built-in secrets.
 
-Open `http://localhost:8080/swagger-ui/index.html`. The steps below work from any HTTP client; in the console each response also hands its result to the next step.
+Open `http://localhost:8080/swagger-ui/index.html`. The console is Swagger UI redrawn as a cockpit: **Run all steps** on its overview does the whole walkthrough below in one click, in about fifteen seconds, the lifecycle lighting up as the document runs through Kafka. The steps also work from any HTTP client; in the console each response hands its result to the next step.
 
 **1. Authenticate as admin**
 
@@ -438,6 +442,8 @@ GET  /v1/documents/{id}/pdf         # download the generated PDF
 ```
 
 In the console the created id is filled into these operations, and after `generate` the page follows the document to `DONE`, says how long it took, and offers the PDF.
+
+<img src="docs/images/console-operation.webp" alt="An open operation in the console: the request body coloured as it is typed, the credential the call sends, Execute, the created id carried onward, and the answer as a folding tree" width="880">
 
 ---
 
