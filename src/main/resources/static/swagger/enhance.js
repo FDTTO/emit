@@ -2659,6 +2659,11 @@
     return !!layout && ids.length > 0 && ids.every(function (id) { return layout.isShown(['operations', tag, id]); });
   }
 
+  function showAllOf(tag, open) {
+    window.ui.layoutActions.show(['operations-tag', tag], true);
+    operationsOfTag(tag).forEach(function (id) { window.ui.layoutActions.show(['operations', tag, id], open); });
+  }
+
   function paintTagTools() {
     document.querySelectorAll('h3.opblock-tag').forEach(function (header) {
       var tag = header.getAttribute('data-tag');
@@ -2668,9 +2673,7 @@
         button.type = 'button';
         button.addEventListener('click', function (event) {
           event.stopPropagation();
-          var open = !allShown(tag);
-          window.ui.layoutActions.show(['operations-tag', tag], true);
-          operationsOfTag(tag).forEach(function (id) { window.ui.layoutActions.show(['operations', tag, id], open); });
+          showAllOf(tag, !allShown(tag));
         });
         var chevron = header.querySelector('.expand-operation');
         if (chevron) header.insertBefore(button, chevron);
@@ -3412,12 +3415,15 @@
     applyDensity();
   }
 
-  /* Ctrl+K: type part of a name or path, Enter lands on the operation. */
+  /* Ctrl+K: one field for everything. Type part of an operation's name or
+     path and land on it, or part of an action and run it. Actions are read
+     afresh each time it opens, so each says what it would do now. */
   var palette = null;
 
   function openPalette() {
     if (!spec) return;
     if (!palette) palette = buildPalette();
+    palette.entries = paletteActions().concat(paletteOperations());
     palette.back.hidden = false;
     palette.input.value = '';
     palette.selected = 0;
@@ -3429,29 +3435,69 @@
     if (palette) palette.back.hidden = true;
   }
 
+  function paletteOperations() {
+    var entries = [];
+    mapEntries().forEach(function (group) {
+      group.operations.forEach(function (operation) {
+        entries.push({
+          group: 'Operations', name: operation.name, icon: iconFor(operation.method, operation.path),
+          detail: operation.method.toUpperCase() + ' ' + operation.path,
+          run: function () { openOperation({ tag: operation.tag, id: operation.id }); }
+        });
+      });
+    });
+    return entries;
+  }
+
+  function paletteActions() {
+    var win = document.getElementById('emit-window');
+    var compact = document.documentElement.dataset.density === 'compact';
+    var folded = win && win.dataset.rail === 'closed';
+    var actions = [];
+    var login = CREDENTIAL_SOURCES[0] && operationIndex()[CREDENTIAL_SOURCES[0].method.toUpperCase() + ' ' + CREDENTIAL_SOURCES[0].path];
+    if (login) actions.push({ name: 'Log in', icon: 'lockClosed', detail: 'the admin token', run: function () { openOperation(login); } });
+    actions.push({ name: 'Credentials', icon: 'shield', detail: 'Authorize', run: openCredentials });
+    actions.push({ name: compact ? 'Comfortable layout' : 'Compact layout', icon: compact ? 'comfortable' : 'compact', detail: 'density', run: toggleDensity });
+    if (!PHONE.matches) actions.push({ name: folded ? 'Unfold the rail' : 'Fold the rail', icon: 'chevronLeft', detail: 'Ctrl B', run: toggleRail });
+    actions.push({ name: 'Legend', icon: 'braces', detail: 'reading this page', run: function () { document.getElementById('emit-legend-btn').click(); } });
+    mapEntries().forEach(function (group) {
+      var open = allShown(group.tag);
+      actions.push({ name: (open ? 'Close all in ' : 'Open all in ') + group.tag, icon: open ? 'fold' : 'unfold',
+                     detail: plural(group.operations.length, 'operation'), run: function () { showAllOf(group.tag, !open); } });
+    });
+    actions.push({ name: 'Go to the overview', icon: 'home', detail: 'top', run: function () {
+      var info = document.querySelector('.information-container');
+      if (info) info.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } });
+    if (document.getElementById('emit-schemas')) {
+      actions.push({ name: 'Go to the schemas', icon: 'braces', detail: 'models', run: function () {
+        document.getElementById('emit-schemas').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } });
+    }
+    return actions.map(function (action) { action.group = 'Actions'; return action; });
+  }
+
   function buildPalette() {
     var back = el('div', 'emit-palette');
     back.hidden = true;
     var box = el('div', 'emit-palette__box');
     box.setAttribute('role', 'dialog');
-    box.setAttribute('aria-label', 'Jump to an operation');
+    box.setAttribute('aria-label', 'Jump to an operation or run an action');
     var input = el('input', 'emit-palette__input');
-    input.placeholder = 'Jump to an operation…';
-    input.setAttribute('aria-label', 'Operation name or path');
+    input.placeholder = 'Jump to an operation or run an action…';
+    input.setAttribute('aria-label', 'Operation or action');
     input.autocomplete = 'off';
     var list = el('ul', 'emit-palette__list');
     list.setAttribute('role', 'listbox');
     var foot = el('div', 'emit-palette__foot');
-    ['↑↓ choose', 'Enter open', 'Esc close'].forEach(function (hint) { foot.appendChild(el('span', null, hint)); });
+    ['↑↓ choose', 'Enter run', 'Esc close'].forEach(function (hint) { foot.appendChild(el('span', null, hint)); });
     box.appendChild(input);
     box.appendChild(list);
     box.appendChild(foot);
     back.appendChild(box);
     document.body.appendChild(back);
 
-    var entries = [];
-    mapEntries().forEach(function (group) { entries = entries.concat(group.operations); });
-    var state = { back: back, input: input, list: list, entries: entries, shown: entries, selected: 0 };
+    var state = { back: back, input: input, list: list, entries: [], shown: [], selected: 0 };
 
     back.addEventListener('click', function (event) { if (event.target === back) closePalette(); });
     input.addEventListener('input', function () { state.selected = 0; renderPalette(); });
@@ -3462,35 +3508,41 @@
       if (event.key === 'Escape') closePalette();
     });
     list.addEventListener('click', function (event) {
-      var item = event.target.closest('li');
+      var item = event.target.closest('li[data-index]');
       if (item) choose(state.shown[Number(item.dataset.index)]);
     });
     return state;
   }
 
-  function choose(operation) {
+  function choose(entry) {
     closePalette();
-    openOperation({ tag: operation.tag, id: operation.id });
+    entry.run();
   }
 
   function renderPalette() {
     var query = palette.input.value.trim().toLowerCase();
     palette.shown = palette.entries.filter(function (entry) {
-      return (entry.name + ' ' + entry.method + ' ' + entry.path).toLowerCase().indexOf(query) !== -1;
+      return (entry.name + ' ' + entry.detail).toLowerCase().indexOf(query) !== -1;
     });
     palette.selected = Math.min(palette.selected, Math.max(0, palette.shown.length - 1));
     palette.list.textContent = '';
+    var group = null;
     palette.shown.forEach(function (entry, index) {
+      if (entry.group !== group) {
+        group = entry.group;
+        palette.list.appendChild(el('li', 'emit-palette__group', group)).setAttribute('role', 'presentation');
+      }
       var item = el('li', 'emit-palette__item');
       item.dataset.index = String(index);
       item.setAttribute('role', 'option');
       item.setAttribute('aria-selected', String(index === palette.selected));
-      item.appendChild(icon(iconFor(entry.method, entry.path)));
+      item.appendChild(icon(entry.icon));
       item.appendChild(el('span', 'emit-palette__name', entry.name));
-      item.appendChild(el('span', 'emit-palette__path', entry.method.toUpperCase() + ' ' + entry.path));
+      item.appendChild(el('span', 'emit-palette__path', entry.detail));
       palette.list.appendChild(item);
     });
-    var current = palette.list.children[palette.selected];
+    if (!palette.shown.length) palette.list.appendChild(el('li', 'emit-palette__empty', 'Nothing matches'));
+    var current = palette.list.querySelector('[aria-selected="true"]');
     if (current) current.scrollIntoView({ block: 'nearest' });
   }
 

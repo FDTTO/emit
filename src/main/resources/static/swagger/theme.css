@@ -543,6 +543,9 @@ body {
 
 /* The palette: a sheet of glass over the window. */
 .emit-palette { position: fixed; inset: 0; z-index: 9500; background: rgba(4,6,9,0.5); backdrop-filter: blur(4px); }
+/* Operations and actions in one list, each group under a quiet label. */
+.emit-palette__group { padding: var(--sp-3) var(--sp-3) var(--sp-1); font: 600 var(--t-xs)/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--e-faint); list-style: none; }
+.emit-palette__empty { padding: var(--sp-4) var(--sp-3); font-size: var(--t-md); color: var(--e-dim); list-style: none; }
 .emit-palette[hidden] { display: none; }
 .emit-palette__box {
   width: min(560px, calc(100vw - 32px));
