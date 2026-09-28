@@ -1,4 +1,5 @@
 // @widths 1280
+// @alone
 // The credentials dialog is Authorize as Execute uses it: each scheme's state
 // first, where a credential came from and until when, the way to get a
 // missing one, and pasting, logging out and closing that act on the store.

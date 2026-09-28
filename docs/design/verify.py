@@ -26,6 +26,9 @@ comment lines at the top of the file:
                               as soon as the scenario calls done()
     // @virtual 40000         run on virtual time instead
     // @spec-url /missing     point the page at another spec
+    // @alone                 run after the parallel batch, by itself: for
+                              scenarios that send real key presses, which a
+                              machine busy with other browsers can drop
 It prints one line per run and exits 1 if any check failed, any console error
 was logged, or a run produced no log at all.
 
@@ -130,15 +133,17 @@ def run(name, wait, virtual, width, clips, out):
 
 
 def header(path):
-    settings = {'widths': [1280], 'wait': 30000, 'virtual': None, 'spec_url': None}
+    settings = {'widths': [1280], 'wait': 30000, 'virtual': None, 'spec_url': None, 'alone': False}
     with open(path, encoding='utf-8-sig') as f:
         for line in f:
-            match = re.match(r'\s*//\s*@(\S+)\s+(.+)', line)
+            match = re.match(r'\s*//\s*@(\S+)(?:\s+(.+))?', line)
             if not match:
                 if line.strip() and not line.strip().startswith('//'):
                     break
                 continue
-            key, value = match.group(1), match.group(2).strip()
+            key, value = match.group(1), (match.group(2) or '').strip()
+            if key == 'alone':
+                settings['alone'] = True
             if key == 'widths':
                 settings['widths'] = [int(w) for w in value.split(',')]
             elif key == 'wait':
@@ -182,9 +187,15 @@ def suite(directory, only, jobs, verbose):
         return stem, width, run(name, settings['wait'], settings['virtual'], width, [], out)
 
     failed = False
+    jobs_all = list(zip(runs, names))
+    shared = [job for job in jobs_all if not job[0][2]['alone']]
+    alone = [job for job in jobs_all if job[0][2]['alone']]
     try:
         with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
-            results = list(pool.map(execute, zip(runs, names)))
+            done = dict(zip([job[1] for job in shared], pool.map(execute, shared)))
+        for job in alone:
+            done[job[1]] = execute(job)
+        results = [done[name] for name in names]
     finally:
         for name in names:
             remove(name)

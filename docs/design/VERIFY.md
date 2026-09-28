@@ -71,7 +71,10 @@ log as JSON and removes what it published.
 `docs/design/scenarios/`, once per width it declares, three at a time, and
 prints one line per run. A scenario declares its settings in its header:
 `// @widths 320,1280`, `// @wait 20000`, `// @virtual 40000`,
-`// @spec-url /missing`. `--only topbar` narrows it, `--verbose` prints every
+`// @spec-url /missing`, and `// @alone` for a scenario that sends real key
+presses: those run after the parallel batch, one at a time, because a
+machine busy with other browsers can drop a trusted key and the check then
+fails for a reason that is not the page's. `--only topbar` narrows it, `--verbose` prints every
 check. It exits 1 if a check fails, a console error is logged, or a run
 produces no checks. Each scenario records a behaviour that was verified when
 it shipped, so the suite is the

@@ -1,4 +1,5 @@
 // @widths 1280
+// @alone
 // @wait 34000
 // Walking the page with real Tab presses. Each control the
 // keyboard reaches must show where focus is, and focus must never change a
