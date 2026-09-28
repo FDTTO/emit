@@ -2896,8 +2896,14 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
 .emit-legend h3 { margin: 0 0 var(--sp-4); font: 600 var(--t-lg)/1 var(--f-body); color: var(--e-text); }
 .emit-legend section + section { margin-top: var(--sp-4); padding-top: var(--sp-4); box-shadow: inset 0 1px 0 var(--e-hair); }
 .emit-legend .emit-rail__label { margin-bottom: var(--sp-3); }
-.emit-legend__grid { display: grid; grid-template-columns: auto 1fr; gap: 9px var(--sp-3); align-items: center; font-size: var(--t-md); color: var(--e-body); }
+/* One first column across the sections, so every description starts on
+   the same line: each section is a grid of its own, so the width is set,
+   as wide as the widest mark (Ctrl Enter). */
+.emit-legend__grid { display: grid; grid-template-columns: 148px 1fr; gap: 9px var(--sp-3); align-items: center; font-size: var(--t-md); color: var(--e-body); }
 .emit-legend__grid small { font-size: var(--t-sm); color: var(--e-faint); }
+/* Keys start their column like the chips above them; the jump field's
+   rule pushes its kbd to the end. */
+.emit-legend__grid kbd { justify-self: start; margin-left: 0; }
 .emit-legend__outcome { display: inline-flex; align-items: center; gap: 7px; font: 600 var(--t-md)/1 var(--f-mono); }
 .emit-legend__outcome::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .emit-legend__outcome--ok { color: var(--s2-c); }

@@ -1673,8 +1673,8 @@
     legendRow(fields, required, 'required');
 
     var keys = legendSection(panel, 'Keys');
-    legendRow(keys, el('kbd', null, 'Ctrl K'), 'jump to an operation or run an action');
-    legendRow(keys, el('kbd', null, 'J  K'), 'next or previous operation, Enter opens it');
+    legendRow(keys, el('kbd', null, 'Ctrl K'), 'jump anywhere, run an action');
+    legendRow(keys, el('kbd', null, 'J K'), 'walk the operations, Enter opens');
     legendRow(keys, el('kbd', null, 'Ctrl Enter'), 'execute the operation at hand');
     legendRow(keys, el('kbd', null, 'Ctrl B'), 'fold the rail');
     win.appendChild(panel);

@@ -71,6 +71,10 @@ function legend() {
   check('the legend reads outcomes, callers, fields and keys, amber as wait then retry',
         all('#emit-legend-panel section').length === 4 && outcomes.join(',') === '2xx,4xx,429,RUN'
         && /wait, then retry/.test(q('#emit-legend-panel').textContent), outcomes);
+  var starts = all('#emit-legend-panel .emit-legend__grid').map(function (grid) { return Math.round(grid.children[1].getBoundingClientRect().left); });
+  check('every section starts its words on the same line, its marks on the left',
+        starts.every(function (x) { return x === starts[0]; })
+        && all('#emit-legend-panel kbd').every(function (k) { return Math.abs(k.getBoundingClientRect().left - k.parentNode.getBoundingClientRect().left) < 1; }), starts);
   q('#emit-legend-panel').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
   check('Escape closes it', q('#emit-legend-panel').hidden && q('#emit-legend-btn').getAttribute('aria-expanded') === 'false');
   q('#emit-topbar-auth').click();
