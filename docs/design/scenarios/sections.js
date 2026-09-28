@@ -4,7 +4,9 @@
 // or closes all of its operations at once, an open header docks under the
 // titlebar once stuck, the body editor colours what is typed, an array
 // parameter keeps its controls inside its fields, and the rail keeps its
-// content's width while it folds.
+// content's width while it folds. A click anywhere on a row opens it, an
+// operation Swagger is still resolving holds placeholders instead of a
+// spinner, and the map keeps the reader's place in its own view.
 var pane = function () { return document.querySelector('#emit-window .swagger-container > .swagger-ui'); };
 var head = function (tag) { return document.querySelector('h3.opblock-tag[data-tag="' + tag + '"]'); };
 var opened = function (tag) { return document.querySelectorAll('[id^="operations-' + tag + '-"].is-open').length; };
@@ -82,5 +84,38 @@ function rail() {
   document.querySelector('.emit-rail-toggle').click();
   check('folding, the rail keeps its content at full width', aside.querySelector('.emit-map').getBoundingClientRect().width === width, width);
   document.querySelector('.emit-rail-toggle').click();
-  done();
+  resolving();
+}
+
+function resolving() {
+  var body = document.querySelector('#operations-Documents-createDocument .opblock-body');
+  var spinner = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  spinner.setAttribute('class', 'opblock-loading-animation');
+  body.insertBefore(spinner, body.firstChild);
+  check('an operation still resolving holds placeholders, not the spinner Swagger draws',
+        getComputedStyle(spinner).display === 'none' && getComputedStyle(body, '::before').content !== 'none');
+  spinner.remove();
+  following();
+}
+
+function following() {
+  var win = document.getElementById('emit-window');
+  var map = document.getElementById('emit-map');
+  win.style.height = '460px';
+  map.scrollTop = 0;
+  pane().scrollTop = pane().scrollHeight;
+  V.until(function () { return map.dataset.current === 'emit-schemas'; }, function () {
+    V.until(function () {
+      var item = map.querySelector('.emit-map__item.is-current');
+      var a = item.getBoundingClientRect(), b = map.getBoundingClientRect();
+      return a.top >= b.top && a.bottom <= b.bottom;
+    }, function () {
+      var item = map.querySelector('.emit-map__item.is-current');
+      var a = item.getBoundingClientRect(), b = map.getBoundingClientRect();
+      check('the map scrolls to keep the place of the reader in view',
+            a.top >= b.top && a.bottom <= b.bottom && map.scrollTop > 0, { item: [a.top, a.bottom], map: [b.top, b.bottom], scrolled: map.scrollTop });
+      win.style.height = '';
+      done();
+    }, 3000);
+  }, 3000);
 }

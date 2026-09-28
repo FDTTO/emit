@@ -2987,8 +2987,27 @@
     map.querySelectorAll('.emit-map__item').forEach(function (link) {
       link.classList.toggle('is-current', link.dataset.target === current);
     });
+    if (map.dataset.current !== current) {
+      map.dataset.current = current;
+      keepInView(map, map.querySelector('.emit-map__item.is-current'));
+    }
     paintCrumb(current);
     paintStuck();
+  }
+
+  /* The map follows the reader: when the place it marks leaves the map's
+     own view, the map scrolls just enough to show it again. Only on a
+     change of place, so a reader scrolling the map is left alone. */
+  function keepInView(scroller, item) {
+    if (!item) return;
+    var view = scroller.getBoundingClientRect();
+    var box = item.getBoundingClientRect();
+    var margin = 3 * box.height;
+    var by = box.top < view.top + margin ? box.top - view.top - margin
+      : box.bottom > view.bottom - margin ? box.bottom - view.bottom + margin : 0;
+    if (!by) return;
+    var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    scroller.scrollBy({ top: by, behavior: still ? 'auto' : 'smooth' });
   }
 
   /* A sticky header is stuck once it has left its block's top edge, and the
