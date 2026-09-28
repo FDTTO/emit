@@ -57,6 +57,8 @@ function running() {
     check('and the button stays lit', getComputedStyle(button).opacity === '1');
     V.until(function () { return !login.querySelector('button.execute').disabled; }, function () {
       check('the count ends with the call', sends('Authentication-login').textContent === 'Sends no credential');
+      var again = login.querySelector('button.execute');
+      check('with the answer shown, Execute stays at hand to send it again', !!again && again.getBoundingClientRect().height > 0);
       V.logoutHeld();
       done();
     }, 8000);

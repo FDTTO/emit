@@ -51,10 +51,10 @@ V.until(function () { return !!q(TENANT + '.emit-validity') && !!q(LOGIN + '.emi
       check('curl is one tab away', /^curl /.test(text(LOGIN + '.emit-result__panel:not([hidden]) .emit-well')));
 
       check('the request shows as it was sent', seen(q(LOGIN + '.emit-sent')) && /"username": "admin"/.test(text(LOGIN + '.emit-sent')));
-      check('without the editor or Execute', !seen(q(LOGIN + 'textarea')) && !seen(q(LOGIN + 'button.execute')));
+      check('without the editor, with Execute at hand to send it again', !seen(q(LOGIN + 'textarea')) && seen(q(LOGIN + 'button.execute')));
       q(LOGIN + '.emit-tool--edit').click();
       V.until(function () { return seen(q(LOGIN + 'textarea')); }, function () {
-        check('Edit brings the editor and Execute back', seen(q(LOGIN + 'textarea')) && seen(q(LOGIN + 'button.execute')));
+        check('Edit brings the editor back', seen(q(LOGIN + 'textarea')) && seen(q(LOGIN + 'button.execute')));
         done();
       }, 3000);
     }, 3000);

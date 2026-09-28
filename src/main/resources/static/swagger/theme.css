@@ -2605,8 +2605,7 @@ body {
 #emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-section-request-body > .opblock-description-wrapper,
 #emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-section-request-body .emit-body-schema,
 #emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-body-tools > :not(.emit-tool--edit),
-#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-body-type,
-#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-body:has(.opblock-section-request-body) > :is(.execute-wrapper, .btn-group) { display: none; }
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-body-type { display: none; }
 #emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-section-request-body h4.required::after { content: none; }
 #emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-sent,
 #emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-tool--edit { display: block; }

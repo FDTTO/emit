@@ -74,9 +74,10 @@ screenshots for `pixdiff.py`. The states are those of the two pages. See
 
 ## Where the console departs from them, on purpose
 
-- **After Execute, Edit.** The result shows the request as it was sent, with
-  no editor and no Execute, as `#result` draws it. A quiet Edit tool on the
-  request body's label row brings the editor back, so a call can be run again.
+- **After Execute, Execute again.** The result shows the request as it was
+  sent, with no editor, as `#result` draws it, but the action bar stays: a
+  call that failed is sent again from where the reader is. A quiet Edit
+  tool on the request body's label row brings the editor back.
 - **Which answer opens by default.** An operation that sends nothing opens its
   success row on its example (`#op`); one with a request body keeps its rows
   closed, since its editor already fills the view (`#body`).
