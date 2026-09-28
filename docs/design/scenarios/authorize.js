@@ -23,13 +23,20 @@ function opened() {
   check('the capsule opens the dialog, in view', box.width > 400 && box.top >= 0 && box.bottom <= innerHeight, { top: box.top, bottom: box.bottom });
   check('focus moves into it', document.getElementById('emit-auth').contains(document.activeElement));
   q('.emit-auth__foot .emit-quiet').focus();
+  /* Every Tab that reaches the page, when and from where: this check has
+     failed now and then under a parallel suite, and its detail says which. */
+  var pressed = performance.now();
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Tab') tabs.push(Math.round(performance.now() - pressed) + 'ms from ' + (document.activeElement && document.activeElement.className));
+  }, true);
   V.press('Tab');
   V.until(function () { return document.activeElement !== q('.emit-auth__foot .emit-quiet'); }, cards, 3000);
 }
+var tabs = [];
 
 function cards() {
   check('Tab past the last control comes back to the first', document.activeElement === q('.emit-auth__close'),
-        document.activeElement && document.activeElement.className);
+        { now: document.activeElement && document.activeElement.className, tabs: tabs, focused: document.hasFocus() });
   check('a credential from a response says where it came from and until when',
         /^Held, filled from Login/.test(state(0)) && /expires in (58|57|59) min/.test(state(0)), state(0));
   check('a missing one says how to get it', /^Not held/.test(state(1)) &&
