@@ -1188,7 +1188,14 @@ body {
 @media (prefers-reduced-motion: reduce) {
   #emit-swagger .swagger-ui .opblock.is-open .opblock-summary,
   #emit-swagger .swagger-ui .topbar .topbar-wrapper > a.link,
-  #emit-swagger .swagger-ui .opblock-tag > .emit-tag-all { transition: none; }
+  #emit-swagger .swagger-ui .opblock-tag > .emit-tag-all,
+  #emit-swagger .swagger-ui .btn.execute,
+  #emit-swagger .emit-primary { transition: none; }
+  #emit-swagger .swagger-ui .btn.execute:disabled,
+  #emit-swagger .swagger-ui .btn.execute:disabled::before,
+  #emit-swagger .swagger-ui .btn.execute:hover::after,
+  #emit-swagger .emit-primary:hover::after,
+  .emit-sends[data-state="running"]::before { animation: none; }
 }
 /* Stock gives this button `all: inherit`, so it would also inherit the open
    header's glass, shadow and stickiness and draw a second panel inside it. */
@@ -2220,23 +2227,87 @@ body {
 }
 #emit-swagger .swagger-ui .btn:hover { box-shadow: none; }
 /* The one lit button, and its quiet sibling. */
+/* The primary action is lit glass: cyan-tinted glass with light rising
+   from inside, the window's rim light on its edge (brightest at the top
+   left), and on hover the glint that runs the window's rim as the page
+   arrives. Execute also carries a lifecycle stage ring; while its call is
+   out (Swagger disables it) the ring beats and a pulse runs along the
+   bottom edge, as a document runs along the figure's. */
 #emit-swagger .swagger-ui .btn.execute,
 #emit-swagger .emit-primary {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
+  gap: 10px;
   width: auto;
   height: 38px;
-  padding: 0 22px;
+  padding: 0 var(--sp-5) 0 var(--sp-4);
   border: 0;
   border-radius: var(--r-code);
-  color: #04121c;
+  color: #eaf8ff;
   font: 600 var(--t-lg)/1 var(--f-body);
-  background: linear-gradient(180deg, #bdecff, #82cff5);
-  box-shadow: var(--ui-glow), inset 0 1px 0 rgba(255,255,255,0.6);
+  text-shadow: 0 0 12px rgba(143,220,255,0.55);
+  background:
+    linear-gradient(90deg, transparent, var(--ui-c), transparent) -40% 100% / 34% 2px no-repeat,
+    linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0) 52%),
+    radial-gradient(120% 140% at 50% 125%, rgba(143,220,255,0.34), transparent 70%),
+    linear-gradient(150deg, rgba(143,220,255,0.26), rgba(60,130,190,0.16));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.22),
+    inset 0 0 0 1px rgba(143,220,255,0.30),
+    0 0 0 1px rgba(0,0,0,0.35),
+    0 8px 22px -8px rgba(80,180,255,0.55),
+    0 0 24px rgba(143,220,255,0.12);
+  backdrop-filter: blur(12px) saturate(140%);
   cursor: pointer;
+  transition: box-shadow .25s var(--ease), transform .12s var(--ease), color .2s;
+}
+#emit-swagger .swagger-ui .btn.execute::after,
+#emit-swagger .emit-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.95) 50%, transparent 62%) -200% 0 / 300% 100% no-repeat,
+    linear-gradient(150deg, rgba(255,255,255,0.75), rgba(143,220,255,0.30) 35%, rgba(143,220,255,0.10) 65%, rgba(255,255,255,0.32));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 #emit-swagger .swagger-ui .btn.execute:hover,
-#emit-swagger .emit-primary:hover { background: linear-gradient(180deg, #cff2ff, #92d8fa); box-shadow: var(--ui-glow), inset 0 1px 0 rgba(255,255,255,0.6); }
+#emit-swagger .emit-primary:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.28),
+    inset 0 0 0 1px rgba(143,220,255,0.45),
+    0 0 0 1px rgba(0,0,0,0.35),
+    0 10px 28px -8px rgba(80,180,255,0.75),
+    0 0 36px rgba(143,220,255,0.22);
+}
+#emit-swagger .swagger-ui .btn.execute:hover::after,
+#emit-swagger .emit-primary:hover::after { animation: emit-rim-glint .7s var(--ease); }
+#emit-swagger .swagger-ui .btn.execute:active,
+#emit-swagger .emit-primary:active { transform: translateY(1px); }
+#emit-swagger .swagger-ui .btn.execute::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--ui-c), 0 0 8px rgba(143,220,255,0.6);
+  transition: background .2s var(--ease);
+}
+#emit-swagger .swagger-ui .btn.execute:hover::before { background: radial-gradient(circle, var(--ui-c) 0 30%, transparent 34%); }
+/* Counter: .btn[disabled]{opacity:.3}. A call that is out is alive, not off. */
+#emit-swagger .swagger-ui .btn.execute:disabled { opacity: 1; cursor: progress; color: rgba(234,248,255,0.7); animation: emit-edge-run 1.2s linear infinite; }
+#emit-swagger .swagger-ui .btn.execute:disabled::before { animation: emit-beacon 1.2s var(--ease) infinite; }
+@keyframes emit-rim-glint { from { background-position: -200% 0, 0 0; } to { background-position: 150% 0, 0 0; } }
+@keyframes emit-edge-run { from { background-position: -40% 100%, 0 0, 0 0, 0 0; } to { background-position: 140% 100%, 0 0, 0 0, 0 0; } }
+@keyframes emit-beacon { 0%, 100% { box-shadow: inset 0 0 0 1.5px var(--ui-c), 0 0 4px rgba(143,220,255,0.4); } 45% { box-shadow: inset 0 0 0 1.5px var(--ui-c), 0 0 0 4px rgba(143,220,255,0.18), 0 0 16px rgba(143,220,255,0.9); } }
 #emit-swagger .emit-quiet {
   height: 38px;
   padding: 0 var(--sp-4);
@@ -2289,28 +2360,45 @@ body {
   border-color: var(--e-edge);
   color: var(--e-body);
 }
-/* Execute sits at the right edge under the parameters it sends. */
-#emit-swagger .swagger-ui .btn-group { display: flex; justify-content: flex-end; padding: 0 var(--gutter) var(--sp-6); gap: var(--sp-2); }
+/* The action bar closes the request: what the call sends, the key that
+   sends it, and Execute. It is the open operation's bottom edge, as the
+   header is its top: while the request runs past the bottom of the view,
+   the bar docks there in the same frosted glass. Swagger draws it as
+   .execute-wrapper, or as .btn-group once a response is in. */
+#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 12px var(--gutter);
+  background: linear-gradient(150deg, rgba(38,44,56,0.96), rgba(20,23,30,0.98));
+  backdrop-filter: blur(30px) saturate(150%);
+  box-shadow: inset 0 1px 0 var(--e-hair);
+  transition: box-shadow .2s var(--ease);
+}
+#emit-swagger .swagger-ui .opblock-body:has(.opblock-section-request-body) > :is(.execute-wrapper, .btn-group) { margin-top: var(--sp-5); }
+#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group)[data-emit-docked] { box-shadow: inset 0 1px 0 var(--e-hair), 0 -14px 30px rgba(0,0,0,0.30); }
 #emit-swagger .swagger-ui .btn-group .btn { flex: 0 0 auto; }
-#emit-swagger .swagger-ui .execute-wrapper { display: flex; justify-content: flex-end; padding: 0 var(--gutter) var(--sp-6); }
-/* Wide: one row per parameter, the name over its chips, then the value, and
-   Execute closes the last row. A request body keeps Execute on a row of its
-   own under the editor. */
+.emit-sends { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; margin-right: auto; overflow: hidden; font: 500 var(--t-sm)/1 var(--f-mono); color: var(--e-dim); white-space: nowrap; }
+.emit-sends::before { content: ""; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--e-faint); }
+.emit-sends b { font-weight: 500; color: var(--e-body); }
+.emit-sends[data-state="held"]::before { background: var(--s2-c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s2-c) 14%, transparent); }
+.emit-sends[data-state="expired"]::before { background: var(--s4-c); box-shadow: none; }
+.emit-sends[data-state="running"] { color: var(--run-c); }
+.emit-sends[data-state="running"]::before { background: var(--run-c); box-shadow: none; animation: emit-blink 1s ease-in-out infinite; }
+.emit-sends button { padding: 0; border: 0; background: none; color: var(--ui-c); font: inherit; cursor: pointer; }
+.emit-sends button:hover { text-decoration: underline; }
+.emit-execute-key { flex: 0 0 auto; padding: 3px 6px; border-radius: var(--r-sm); background: var(--e-raised); box-shadow: inset 0 0 0 1px var(--e-hair); font: 500 var(--t-xs)/1 var(--f-mono); color: var(--e-dim); }
+@keyframes emit-blink { 50% { opacity: .35; } }
+@media (max-width: 900px) {
+  .emit-execute-key { display: none; }
+  #emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) { padding: 10px var(--sp-4); }
+}
+/* Wide: one row per parameter, the name over its chips, then the value. */
 @media (min-width: 721px) {
-  #emit-swagger .swagger-ui .opblock-body:has(.parameters):not(:has(.opblock-section-request-body)) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-  #emit-swagger .swagger-ui .opblock-body:has(.parameters):not(:has(.opblock-section-request-body)) > * { grid-column: 1 / -1; }
-  #emit-swagger .swagger-ui .opblock-body:has(.parameters):not(:has(.opblock-section-request-body)) > .opblock-section:has(.parameters) {
-    grid-column: 1;
-    padding-bottom: var(--sp-6);
-  }
-  #emit-swagger .swagger-ui .opblock-body:has(.parameters):not(:has(.opblock-section-request-body)) > .execute-wrapper {
-    grid-column: 2;
-    align-self: end;
-    padding: 0 var(--gutter) 25.5px 0;
-  }
+  #emit-swagger .swagger-ui .opblock-body > .opblock-section:has(.parameters) { padding-bottom: var(--sp-6); }
   #emit-swagger .swagger-ui .opblock table.parameters > tbody > tr > td { padding: 0; border: 0; vertical-align: middle; }
   #emit-swagger .swagger-ui .opblock table.parameters > tbody > tr + tr > td { padding-top: var(--sp-4); }
   #emit-swagger .swagger-ui .opblock table.parameters > tbody > tr > td.parameters-col_name { width: calc(140px + var(--gutter)); padding-left: var(--gutter); }
@@ -2500,8 +2588,6 @@ body {
 .emit-validity::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .emit-validity.is-bad { color: var(--s4-c); }
 .emit-validity span { color: var(--e-faint); }
-/* Execute closes the body's block on a row of its own. */
-#emit-swagger .swagger-ui .opblock-body:has(.opblock-section-request-body) > :is(.execute-wrapper, .btn-group) { padding: var(--sp-5) var(--gutter) var(--sp-6); }
 #emit-swagger .swagger-ui .opblock-body > .btn-group .btn-clear { display: none; }
 
 /* The Schema tab: the body's fields as rows, the way Schemas draws a model. */
