@@ -10,6 +10,8 @@ var loading = function () { return !!win() && win().hasAttribute('data-loading')
 
 V.until(function () { return !!document.querySelector('.emit-skel'); }, function () {
   check('placeholders hold the window while it loads', loading() && !!document.querySelector('.emit-skel--main'));
+  check('the figure placeholder boots through the three stages of the lifecycle',
+        document.querySelectorAll('.emit-skel__figure .emit-skel__node').length === 3);
   var seen = Date.now();
   V.until(function () { return !loading(); }, function () {
     var waited = Date.now() - seen;

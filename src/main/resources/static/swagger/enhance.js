@@ -2839,6 +2839,9 @@
     shapes.forEach(function (shape) {
       var bone = column.appendChild(el('i', 'emit-skel__' + shape[0]));
       if (shape[1]) bone.style.width = shape[1] + '%';
+      if (shape[0] === 'figure') {
+        ['node', 'edge', 'node', 'edge', 'node'].forEach(function (part) { bone.appendChild(el('span', 'emit-skel__' + part)); });
+      }
     });
     return node;
   }
@@ -2882,7 +2885,7 @@
     setTimeout(function () {
       win.removeAttribute('data-revealing');
       document.querySelectorAll('.emit-skel').forEach(function (node) { node.remove(); });
-    }, 400);
+    }, 1200);
   }
 
   /* Tags and operations in the order Swagger shows them: tags and paths
