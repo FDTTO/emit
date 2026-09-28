@@ -39,7 +39,8 @@
     <script src="/swagger-ui/swagger-ui-standalone-preset.js" charset="UTF-8"></script>
     <script>
       /* Built from the config the app serves, so scenarios run under the
-         settings a reader gets. configUrl is dropped because Swagger would
+         settings a reader gets, unless a scenario sets window.scenarioConfig
+         to run under others. configUrl is dropped because Swagger would
          fetch it again over what is set here. */
       window.onload = function () {
         fetch('/v3/api-docs/swagger-config').then(function (response) { return response.json(); }).then(function (served) {
@@ -54,7 +55,7 @@
             url: '/v3/api-docs',
             defaultModelsExpandDepth: 5,
             defaultModelExpandDepth: 5
-          }));
+          }, window.scenarioConfig || {}));
         });
       };
     </script>

@@ -2837,8 +2837,17 @@
   }
 
   var facesReady = false;
+  var loadingExpired = false;
 
-  function waitForFaces() {
+  /* Whatever else is late or never comes, the placeholders never outstay
+     this: a half-dressed page beats one that never appears. */
+  var LOADING_CEILING_MS = 8000;
+
+  function watchLoading() {
+    setTimeout(function () {
+      loadingExpired = true;
+      schedule();
+    }, LOADING_CEILING_MS);
     var faces = document.fonts && document.fonts.load
       ? Promise.all(['400 13px Inter', '600 13px Inter', '400 12px "JetBrains Mono"'].map(function (face) {
           return document.fonts.load(face);
@@ -2856,9 +2865,11 @@
   function settleLoading() {
     var win = document.getElementById('emit-window');
     if (!win || !win.hasAttribute('data-loading')) return;
+    /* What arrives with the description, not what a reader opens: with
+       every section folded no operation is ever in the DOM. */
     var map = document.getElementById('emit-map');
-    var drawn = spec && facesReady && document.querySelector('.opblock') && map && map.dataset.built;
-    if (!drawn && !specFailed()) return;
+    var drawn = spec && facesReady && map && map.dataset.built && document.querySelector('.information-container .info');
+    if (!drawn && !specFailed() && !loadingExpired) return;
     win.removeAttribute('data-loading');
     win.setAttribute('data-revealing', '');
     setTimeout(function () {
@@ -3393,7 +3404,7 @@
 
   function start() {
     buildShell();
-    waitForFaces();
+    watchLoading();
     restoreRail();
     paint();
     placeStatusbar();
