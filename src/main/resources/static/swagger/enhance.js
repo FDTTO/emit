@@ -1673,7 +1673,9 @@
     legendRow(fields, required, 'required');
 
     var keys = legendSection(panel, 'Keys');
-    legendRow(keys, el('kbd', null, 'Ctrl K'), 'jump to an operation');
+    legendRow(keys, el('kbd', null, 'Ctrl K'), 'jump to an operation or run an action');
+    legendRow(keys, el('kbd', null, 'J  K'), 'next or previous operation, Enter opens it');
+    legendRow(keys, el('kbd', null, 'Ctrl Enter'), 'execute the operation at hand');
     legendRow(keys, el('kbd', null, 'Ctrl B'), 'fold the rail');
     win.appendChild(panel);
 
@@ -3802,9 +3804,37 @@
     if (current) current.scrollIntoView({ block: 'nearest' });
   }
 
+  /* J and K walk the operations, as in a mail client: from the one holding
+     focus, or else from the first in view. Enter then opens it, since focus
+     is on its own button. Never while typing, nor with a dialog open. */
+  function stepOperation(by) {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('.opblock .opblock-summary-control'));
+    if (!rows.length) return;
+    var at = rows.indexOf(document.activeElement);
+    if (at < 0) {
+      var pane = contentPane();
+      var top = pane && !PHONE.matches ? pane.getBoundingClientRect().top : 0;
+      at = rows.findIndex(function (row) { return row.getBoundingClientRect().bottom > top; }) - (by > 0 ? 1 : 0);
+    }
+    var next = rows[Math.max(0, Math.min(rows.length - 1, at + by))];
+    next.focus({ preventScroll: true });
+    next.closest('.opblock').scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+
+  function typing(target) {
+    return !!target && (/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName) || target.isContentEditable);
+  }
+
   function bindShortcuts() {
     document.addEventListener('keydown', function (event) {
       var win = document.getElementById('emit-window');
+      var modal = document.querySelector('.emit-palette:not([hidden]), #emit-auth:not([hidden])');
+      if (!event.ctrlKey && !event.metaKey && !event.altKey && !typing(event.target) && !modal
+          && (event.key === 'j' || event.key === 'k')) {
+        event.preventDefault();
+        stepOperation(event.key === 'j' ? 1 : -1);
+        return;
+      }
       if (event.key === 'Escape' && win && win.dataset.drawer === 'open') setDrawer(false);
       if (event.key === 'Escape') closeHistory();
       if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
