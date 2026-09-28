@@ -1545,9 +1545,11 @@
     var menu = document.getElementById('emit-menu');
     if (menu) menu.setAttribute('aria-expanded', String(open));
     if (open) {
-      /* Focus waits a frame: the drawer is not focusable while still hidden. */
+      /* A hidden drawer cannot take focus. Reading its computed visibility
+         applies the open state now, where waiting for a frame could wait
+         long in a throttled tab. */
       var here = document.querySelector('#emit-map .emit-map__item.is-current') || document.querySelector('#emit-map .emit-map__item');
-      if (here) requestAnimationFrame(function () { here.focus(); });
+      if (here && getComputedStyle(document.getElementById('emit-rail')).visibility === 'visible') here.focus();
     } else if (menu && document.getElementById('emit-rail').contains(document.activeElement)) {
       menu.focus();
     }

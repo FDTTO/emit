@@ -3234,9 +3234,11 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
     box-shadow: 20px 0 60px rgba(0,0,0,0.5), inset -1px 0 0 rgba(255,255,255,0.08);
     transform: translateX(-105%);
     visibility: hidden;
-    transition: transform .3s var(--ease), visibility .3s;
+    /* Hidden only once it has slid away; shown at once when it opens, so
+       focus can move into it in the same moment. */
+    transition: transform .3s var(--ease), visibility 0s linear .3s;
   }
-  #emit-window[data-drawer="open"] > #emit-rail { transform: none; visibility: visible; }
+  #emit-window[data-drawer="open"] > #emit-rail { transform: none; visibility: visible; transition: transform .3s var(--ease), visibility 0s; }
   #emit-window[data-drawer="open"] > .emit-drawer-scrim { display: block; position: fixed; inset: 0; z-index: 190; background: rgba(4,6,9,0.5); backdrop-filter: blur(3px); }
   #emit-rail #emit-live { display: none; }
   #emit-rail .emit-map { padding-top: var(--sp-2); }
