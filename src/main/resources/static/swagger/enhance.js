@@ -90,6 +90,9 @@
     { method: 'post', path: '/v1/tenants',    field: 'apiKey', scheme: 'apiKeyAuth', noun: 'key',   action: 'Create a tenant' }
   ];
 
+  /* Where the API says whether it is up. The OpenAPI document does not. */
+  var HEALTH_PATH = '/actuator/health';
+
   /* -------------------------------------------------------------- lifecycle
    * The transitions are not in the OpenAPI document. Rendering is gated on
    * the spec still declaring these states, so the figure cannot outlive the
@@ -366,6 +369,7 @@
       if (!response || response === seenResponses[source.key]) return;
       seenResponses[source.key] = response;
       rememberAnswer(source.key, response);
+      if (!response.get('status')) checkHealth();
 
       var ok = response.get('ok');
       var body = ok ? jsonBody(response) : null;
@@ -3157,6 +3161,43 @@
     server.appendChild(el('i', 'emit-status__led'));
     server.appendChild(document.createTextNode(first.url.replace(/^https?:\/\//, '')
       + (first.description ? ' · ' + first.description : '')));
+    server.appendChild(el('span', 'emit-status__health'));
+    checkHealth();
+  }
+
+  /* The server's own light: green while it answers, amber while it answers
+     unhealthy or does not answer at all. Checked every fifteen seconds while
+     the page is in view, as soon as the reader comes back to it, and right
+     after a call got no answer. Any HTTP answer means the server is there;
+     only a health body that says otherwise makes it unhealthy. */
+  var HEALTH_EVERY_MS = 15000;
+  var HEALTH_WAIT_MS = 4000;
+
+  function checkHealth() {
+    if (!spec || document.hidden) return;
+    var controller = typeof AbortController === 'function' ? new AbortController() : null;
+    var abort = setTimeout(function () { if (controller) controller.abort(); }, HEALTH_WAIT_MS);
+    fetch(apiAddress().replace(/\/$/, '') + HEALTH_PATH, { cache: 'no-store', signal: controller ? controller.signal : undefined })
+      .then(function (response) {
+        return response.json().catch(function () { return {}; }).then(function (body) {
+          var components = body.components || {};
+          var down = Object.keys(components).filter(function (name) { return components[name].status !== 'UP'; });
+          if (!body.status || body.status === 'UP') paintHealth('up', '');
+          else paintHealth('unwell', down.length ? down.join(', ') + ' down' : 'reports ' + body.status);
+        });
+      })
+      .catch(function () { paintHealth('down', 'no answer at ' + apiAddress()); })
+      .then(function () { clearTimeout(abort); });
+  }
+
+  function paintHealth(state, detail) {
+    var server = document.getElementById('emit-status-server');
+    var words = server && server.querySelector('.emit-status__health');
+    if (!words || server.dataset.health === state + detail) return;
+    server.dataset.health = state + detail;
+    server.setAttribute('data-state', state);
+    words.textContent = state === 'down' ? ' · not answering' : state === 'unwell' ? ' · not healthy' : '';
+    server.title = detail ? 'The API: ' + detail : '';
   }
 
   function currentFollow() {
@@ -3641,8 +3682,9 @@
 
     /* Background tabs throttle timers; repaint when the tab comes back. */
     document.addEventListener('visibilitychange', function () {
-      if (!document.hidden) schedule();
+      if (!document.hidden) { schedule(); checkHealth(); }
     });
+    setInterval(checkHealth, HEALTH_EVERY_MS);
 
     /* Whether a region overflows depends on the width, which no mutation reports. */
     window.addEventListener('resize', schedule);

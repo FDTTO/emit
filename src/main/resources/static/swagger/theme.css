@@ -256,7 +256,10 @@ body {
   #emit-statusbar > * { display: flex; align-items: center; gap: var(--sp-2); height: 100%; padding: 0 var(--sp-4); white-space: nowrap; }
   #emit-statusbar > .emit-status__server { width: var(--rail); padding-left: var(--sp-6); }
 }
-.emit-status__led { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--s2-c); }
+.emit-status__led { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--s2-c); transition: background .3s var(--ease); }
+/* The server not answering, or answering unhealthy: wait, then retry. */
+#emit-status-server:is([data-state="down"], [data-state="unwell"]) .emit-status__led { background: var(--s5-c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s5-c) 16%, transparent); }
+.emit-status__health { color: var(--s5-c); }
 #emit-statusbar > [hidden] { display: none; }
 #emit-statusbar > button { height: 100%; padding: 0 var(--sp-4); border: 0; border-radius: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
 #emit-statusbar > button:hover { color: var(--e-body); background: var(--e-raised); }
