@@ -217,6 +217,9 @@ def suite(directory, only, jobs, verbose):
                                         '' if c['pass'] or c['detail'] is None else '  -> ' + json.dumps(c['detail'], ensure_ascii=False)))
         for e in errors:
             print('       error: ' + e.splitlines()[0][:200])
+        if not ok:
+            for waited in log.get('timeouts') or []:
+                print('       timed out waiting for: ' + waited)
         if not checks and not errors:
             print('       (no checks recorded)')
     if COVERAGE:
