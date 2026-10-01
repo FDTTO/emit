@@ -44,12 +44,17 @@
           <span><small>Next</small><span id="next-text">Generate the PDF</span></span>
           <svg class="i" viewBox="0 0 24 24"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
         </button>
+        <div class="journey-tools">
+          <button class="journey-tool when-off" type="button"><svg class="i play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>Run all steps</button>
+          <button class="journey-tool when-on" type="button"><svg class="i play" viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/></svg>Stop</button>
+          <button class="journey-tool camera when-on" type="button" aria-pressed="true"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>Following</button>
+        </div>
       </div>
       <nav class="map" id="map"></nav>
       <section class="live">
         <div class="live-head"><span class="dot"></span>Document 31f7dfab<small id="elapsed">0.0s</small></div>
         <div class="track" id="track"><div class="stage"><i></i><b>PENDING</b></div><div class="stage"><i></i><b>PROCESSING</b></div><div class="stage"><i></i><b>DONE</b></div><small class="span" data-took="11 ms" style="left:33.333%"></small><small class="span" data-took="34 ms" style="left:66.667%"></small></div>
-        <div class="live-foot"><span id="live-text">Queued in Kafka</span><a href="#op-pdf" id="live-link" hidden>Download PDF</a></div>
+        <div class="live-foot"><span id="live-text">Queued in Kafka</span><a href="#op-pdf" class="live-action" id="live-link" hidden><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>Download PDF</a></div>
       </section>
     </aside>
 
@@ -79,7 +84,7 @@
             <tr><td><span class="chip round tenant" data-icon="apiKey">TENANT</span></td><td><code class="inline">X-API-Key: &lt;key&gt;</code></td><td>Submit and retrieve documents</td></tr>
           </table>
 
-          <div class="label rule">Getting started<button class="tool-quiet ink" type="button" id="run-all"><svg class="i" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z" fill="currentColor" stroke="none"/></svg>Run all steps</button></div>
+          <div class="label rule">Getting started<button class="btn-primary run-all" type="button" id="run-all"><svg class="i" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z" fill="currentColor" stroke="none"/></svg>Run all steps</button></div>
           <ol class="steps" id="steps">
             <li class="done"><span class="mark"></span><span>Log in with the admin credentials<span class="ref">POST /v1/auth/login</span></span><span class="proof">token in Authorize</span></li>
             <li class="done"><span class="mark"></span><span>Create a tenant<span class="ref">POST /v1/tenants</span></span><span class="proof">key in Authorize</span></li>

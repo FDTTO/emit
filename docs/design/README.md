@@ -110,6 +110,25 @@ specified here, and each item has a scenario in `scenarios/`.
   hover.
 - **The map follows.** When the place it marks leaves its own view, the
   map scrolls just enough to show it again.
+- **The camera is the reader's.** While Run all steps runs, the page
+  follows the step being run until the reader scrolls; from then on the run
+  goes on without moving the page, and Following in the rail hands the
+  camera back. No correction of a scroll survives the reader's own.
+- **The walkthrough counts facts.** A document's later step proves the
+  earlier ones: a PDF downloaded was generated, a document generated was
+  created. A 409 from generate is read as news, not only as a refusal: the
+  document is read at once, and one already DONE offers its PDF.
+- **An operation still resolving.** Swagger draws the action bar before an
+  operation can run; it stays, at its height, as a ghost with nothing to
+  press, under the placeholder of the fields.
+- **On a phone.** Credentials are cards in a sheet, each with its way to a
+  credential as a button; a finished run's pill hands over the PDF; the
+  drawer's foot reads its telemetry on a line, its two tools side by side;
+  the authentication table stacks a block per scope.
+- **The PDF.** The document the API renders carries the same identity: the
+  wordmark on a dark band, metadata in mono, Inter and JetBrains Mono
+  embedded. It states no lifecycle state, since it is rendered while the
+  document is PROCESSING.
 
 ## Checking the console against it
 

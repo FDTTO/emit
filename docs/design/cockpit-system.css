@@ -251,7 +251,18 @@ kbd { padding: 3px 6px; border-radius: var(--r1); font: 500 var(--f-micro)/1 var
 .stage.good i { background: var(--ok); box-shadow: 0 0 0 4px rgba(142,224,164,.12); animation: ring .7s var(--ease); } .stage.good b { color: var(--ok); }
 .track .span { position: absolute; top: -14px; transform: translateX(-50%); font: 400 var(--f-tiny)/1 var(--mono); color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .live-foot { display: flex; align-items: center; font-size: var(--f-meta); color: var(--dim); }
-.live-foot a { margin-left: auto; color: var(--ui); text-decoration: none; font-weight: 500; }
+.live-foot { display: grid; gap: var(--s3); }
+.live-action[hidden] { display: none; }
+.live-action { display: flex; align-items: center; justify-content: center; gap: var(--s2); height: 34px; border-radius: var(--r2); background: var(--ui-fill); box-shadow: inset 0 0 0 1px var(--ui-edge); color: var(--text); text-decoration: none; font: 500 var(--f-body)/1 var(--sans); }
+.live-action svg.i { width: 14px; height: 14px; color: var(--ui); }
+.journey-tools { display: flex; align-items: center; gap: var(--s2); margin: var(--s3) calc(-1 * var(--s2)) 0; }
+.journey-tool { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 var(--s2); border-radius: 6px; color: var(--ui); font: 500 var(--f-meta)/1 var(--sans); }
+.journey-tool svg.i { width: 13px; height: 13px; }
+.journey-tool svg.play { width: 10px; height: 10px; fill: currentColor; stroke: none; }
+.journey-tool.camera { margin-left: auto; background: var(--ui-fill); box-shadow: inset 0 0 0 1px var(--ui-edge); }
+[data-run="off"] .journey-tool.when-on, [data-run="on"] .journey-tool.when-off { display: none; }
+.run-all { order: 2; gap: var(--s2); height: 32px; margin: -11px 0; padding: 0 var(--s4); font-size: 12px; letter-spacing: 0; text-transform: none; }
+.run-all svg.i { width: 10px; height: 10px; fill: var(--ui); stroke: none; }
 
 /* ---------- Editor ---------- */
 .editor { overflow-y: auto; min-height: 0; }
