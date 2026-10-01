@@ -1,0 +1,23 @@
+[
+  { "name": "login with a wrong password", "method": "POST", "path": "/v1/auth/login", "auth": "none", "body": { "username": "admin", "password": "wrong" } },
+  { "name": "login with nothing", "method": "POST", "path": "/v1/auth/login", "auth": "none", "body": {} },
+  { "name": "tenants without a credential", "method": "GET", "path": "/v1/tenants", "auth": "none" },
+  { "name": "tenants with an invalid token", "method": "GET", "path": "/v1/tenants", "auth": "badToken" },
+  { "name": "tenants with a tenant key", "method": "GET", "path": "/v1/tenants", "auth": "tenant" },
+  { "name": "tenants with an unknown key", "method": "GET", "path": "/v1/tenants", "auth": "badKey" },
+  { "name": "a tenant with nothing", "method": "POST", "path": "/v1/tenants", "auth": "admin", "body": {} },
+  { "name": "a tenant with a schema name out of pattern", "method": "POST", "path": "/v1/tenants", "auth": "admin", "body": { "name": "Bad", "schemaName": "Bad Name" } },
+  { "name": "a tenant on a schema already taken", "method": "POST", "path": "/v1/tenants", "auth": "admin", "body": { "name": "Again", "schemaName": "{schema}" } },
+  { "name": "a tenant that does not exist", "method": "GET", "path": "/v1/tenants/{unknown}", "auth": "admin" },
+  { "name": "a tenant by an id that is not one", "method": "GET", "path": "/v1/tenants/abc", "auth": "admin" },
+  { "name": "documents without a credential", "method": "GET", "path": "/v1/documents", "auth": "none" },
+  { "name": "documents with an unknown key", "method": "GET", "path": "/v1/documents", "auth": "badKey" },
+  { "name": "documents with an admin token", "method": "GET", "path": "/v1/documents", "auth": "admin" },
+  { "name": "a document with nothing", "method": "POST", "path": "/v1/documents", "auth": "tenant", "body": {} },
+  { "name": "a document with a title too long", "method": "POST", "path": "/v1/documents", "auth": "tenant", "body": { "title": "{long}", "content": "x" } },
+  { "name": "a document that does not exist", "method": "GET", "path": "/v1/documents/{unknown}", "auth": "tenant" },
+  { "name": "a document by an id that is not one", "method": "GET", "path": "/v1/documents/abc", "auth": "tenant" },
+  { "name": "the PDF of a pending document", "method": "GET", "path": "/v1/documents/{pending}/pdf", "auth": "tenant" },
+  { "name": "generating a finished document", "method": "POST", "path": "/v1/documents/{done}/generate", "auth": "tenant" },
+  { "name": "documents of an inactive tenant", "method": "GET", "path": "/v1/documents", "auth": "inactive" }
+]

@@ -10,11 +10,13 @@
 
 Accepts an HTTP request to generate a PDF, returns `202 Accepted` immediately, and processes asynchronously through Kafka. Each tenant runs in an isolated PostgreSQL schema. Rate limiting is distributed and atomic across any number of instances.
 
-Five structural decisions. 198 tests that prove the contract holds.
+Five structural decisions. 203 tests that prove the contract holds.
+
+**[Try the console live](https://fdtto.github.io/emit/)**, nothing to install.
 
 <br/>
 
-<img src="docs/images/console-overview.webp" alt="The EMIT console after running its walkthrough: the document lifecycle lit at DONE, the rail following the document, every step done" width="880">
+<a href="https://fdtto.github.io/emit/"><img src="docs/images/console-overview.webp" alt="The EMIT console after running its walkthrough: the document lifecycle lit at DONE, the rail following the document, every step done" width="880"></a>
 
 </div>
 
@@ -388,6 +390,8 @@ interface TenantRepositoryAdapter
 
 ## Quick Start
 
+To look before installing, the [live demo](https://fdtto.github.io/emit/) is this console recorded from the running app on every push to `main`: its page, spec, timings and a PDF it rendered, with the API answered inside the page. CI holds its answers against the real app's before publishing it (`demo/`).
+
 Requires Docker Desktop, Java 21, and Maven 3.9+.
 
 ```bash
@@ -516,7 +520,7 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 
 ## Testing
 
-**198 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
+**203 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
 
 **Unit** (Mockito + JUnit 5) · 92 tests
 
