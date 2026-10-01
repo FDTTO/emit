@@ -3139,8 +3139,12 @@
     var under = PHONE.matches && strip ? strip.getBoundingClientRect().bottom : 0;
     var line = Math.max(pane.getBoundingClientRect().top, under) + 64;
     var current = 'overview';
-    document.querySelectorAll('.opblock').forEach(function (block) {
-      if (block.getBoundingClientRect().top <= line) current = block.id;
+    /* Headings count as places too: past a section's heading and before its
+       first operation, the reader is in that section, not in the last
+       operation of the one before. */
+    document.querySelectorAll('h3.opblock-tag, .opblock').forEach(function (node) {
+      if (node.getBoundingClientRect().top > line) return;
+      current = node.classList.contains('opblock') ? node.id : 'tag:' + node.getAttribute('data-tag');
     });
     /* The section starts where its heading's space does, above the heading. */
     var heading = document.querySelector('.emit-schemas__head');
@@ -3375,11 +3379,16 @@
     var crumb = document.getElementById('emit-crumb');
     if (!crumb) return;
     var failed = specFailed();
-    var block = failed || current === 'overview' ? null : document.getElementById(current);
-    var key = failed ? 'failed' : block ? current : 'overview';
+    var section = !failed && current.indexOf('tag:') === 0 ? current.slice(4) : null;
+    var block = failed || section || current === 'overview' ? null : document.getElementById(current);
+    var key = failed ? 'failed' : section ? current : block ? current : 'overview';
     if (crumb.dataset.key === key) return;
     crumb.dataset.key = key;
     crumb.textContent = '';
+    if (section) {
+      crumb.appendChild(el('b', null, section));
+      return;
+    }
     if (!block || key === 'emit-schemas') {
       crumb.appendChild(el('b', null, key === 'failed' ? 'No API description' : block ? 'Schemas' : 'Overview'));
       return;
