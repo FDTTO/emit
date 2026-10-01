@@ -164,6 +164,15 @@ class ErrorContractTest extends ContainerizedTest {
                 }),
                 Map.entry("pdf-not-ready", operation -> send(operation.method(), withId(operation, createDocument()),
                         apiKey(tenantKey), null)),
+                Map.entry("limiter-unavailable", operation -> {
+                    String container = REDIS.getContainerId();
+                    REDIS.getDockerClient().pauseContainerCmd(container).exec();
+                    try {
+                        return call(operation, apiKey(tenantKey));
+                    } finally {
+                        REDIS.getDockerClient().unpauseContainerCmd(container).exec();
+                    }
+                }),
                 Map.entry("not-queued", operation -> {
                     String id = createDocument();
                     String container = KAFKA.getContainerId();

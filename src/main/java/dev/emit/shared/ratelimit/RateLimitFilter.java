@@ -20,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
+    private static final int UNAVAILABLE_RETRY_SECONDS = 5;
+
     private final RateLimiterService rateLimiterService;
     private final ApiErrorWriter errorWriter;
 
@@ -39,7 +41,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
         // Every tenant response says where the budget stands, so a client can
         // pace itself instead of learning the limit from a 429. Names follow
         // the IETF RateLimit header fields draft; Retry-After is RFC 9110's.
-        RateLimitDecision decision = rateLimiterService.tryConsume(tenantSchema);
+        RateLimitDecision decision;
+        try {
+            decision = rateLimiterService.tryConsume(tenantSchema);
+        } catch (RateLimiterUnavailableException unavailable) {
+            // Fails closed, as the server's fault: the tenant may well be within budget.
+            response.setHeader(HttpHeaders.RETRY_AFTER, String.valueOf(UNAVAILABLE_RETRY_SECONDS));
+            errorWriter.write(response, HttpStatus.SERVICE_UNAVAILABLE.value(), RefusalMessages.LIMITER_UNAVAILABLE);
+            return;
+        }
         response.setHeader("RateLimit-Limit", String.valueOf(decision.limit()));
         response.setHeader("RateLimit-Remaining", String.valueOf(decision.remaining()));
         response.setHeader("RateLimit-Reset", String.valueOf(decision.resetSeconds()));

@@ -20,6 +20,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 import dev.emit.shared.multitenancy.TenantContext;
 import dev.emit.shared.web.ApiErrorWriter;
+import dev.emit.shared.web.RefusalMessages;
 import jakarta.servlet.FilterChain;
 
 @ExtendWith(MockitoExtension.class)
@@ -78,5 +79,25 @@ class RateLimitFilterTest {
         verify(chain, never()).doFilter(any(), any());
         assertThat(response.getHeader("Retry-After")).isEqualTo("13");
         assertThat(response.getHeader("RateLimit-Remaining")).isEqualTo("0");
+    }
+
+    /*
+     * Without the limiter there is no knowing whether the tenant is within its
+     * budget, so the request is refused, but as the server's fault (503), not
+     * the tenant's (429), and with no budget it could not read.
+     */
+    @Test
+    void shouldReturn503WithoutABudgetWhenTheLimiterIsUnavailable() throws Exception {
+        TenantContext.setTenant("tenant_abc");
+        when(rateLimiterService.tryConsume("tenant_abc")).thenThrow(new RateLimiterUnavailableException(new IllegalStateException("down")));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        rateLimitFilter.doFilterInternal(new MockHttpServletRequest(), response, chain);
+
+        verify(errorWriter).write(any(), eq(503), eq(RefusalMessages.LIMITER_UNAVAILABLE));
+        verify(chain, never()).doFilter(any(), any());
+        assertThat(response.getHeader("Retry-After")).isNotNull();
+        assertThat(response.getHeader("RateLimit-Remaining")).isNull();
     }
 }

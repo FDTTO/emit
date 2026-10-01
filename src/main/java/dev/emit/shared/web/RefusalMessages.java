@@ -13,6 +13,7 @@ public final class RefusalMessages {
     public static final String TENANT_INACTIVE = "Tenant is inactive.";
     public static final String WRONG_CREDENTIAL = "This credential cannot access this route. "
             + "Tenant management needs an admin token; documents need a tenant API key.";
+    public static final String LIMITER_UNAVAILABLE = "The rate limiter is unavailable. Try again in a few seconds.";
 
     private RefusalMessages() {
     }

@@ -1,6 +1,7 @@
 package dev.emit.shared.ratelimit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -79,6 +80,22 @@ class RateLimiterServiceTest {
         assertThat(blocked.limit()).isEqualTo(3);
         assertThat(blocked.remaining()).isZero();
         assertThat(blocked.resetSeconds()).isBetween(55L, 60L);
+    }
+
+    @Test
+    void shouldSayTheLimiterIsUnavailableWhenRedisCannotBeReached() {
+        LettuceConnectionFactory nowhere = new LettuceConnectionFactory("127.0.0.1", 1);
+        nowhere.afterPropertiesSet();
+        StringRedisTemplate unreachable = new StringRedisTemplate(nowhere);
+        unreachable.afterPropertiesSet();
+        RateLimitProperties properties = new RateLimitProperties();
+        properties.setRequestsPerMinute(3);
+        try {
+            assertThatThrownBy(() -> new RateLimiterService(unreachable, properties).tryConsume("tenant_a"))
+                    .isInstanceOf(RateLimiterUnavailableException.class);
+        } finally {
+            nowhere.destroy();
+        }
     }
 
     @Test

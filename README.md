@@ -10,7 +10,7 @@
 
 Accepts an HTTP request to generate a PDF, returns `202 Accepted` as soon as the request is durable in Kafka, and processes it asynchronously. Each tenant runs in an isolated PostgreSQL schema. Rate limiting is distributed and atomic across any number of instances.
 
-Five structural decisions. 203 tests that prove the contract holds.
+Five structural decisions. 217 tests that prove the contract holds.
 
 **[Try the console live](https://fdtto.github.io/emit/)**, nothing to install.
 
@@ -238,7 +238,9 @@ Bucket4j is a well-engineered library. The limitation is not in the library: it 
 
 A token bucket stored in a `ConcurrentHashMap` is process-local. A deployment behind a load balancer with N replicas gives every tenant N times the configured limit, because each JVM enforces its own independent counter. The only way to fix this with Bucket4j is to configure a distributed backend, at which point Bucket4j becomes a wrapper around the same Redis operations EMIT uses directly.
 
-EMIT uses a Redis sorted set with a Lua script that executes atomically: remove entries outside the window, count what remains, conditionally insert the new request, set expiry. Redis executes Lua scripts single-threaded. The read-modify-write is indivisible. No distributed lock, no `WATCH/MULTI/EXEC`, no race condition. Any number of application instances sharing the cluster enforce the exact same limit per tenant.
+EMIT uses a Redis sorted set with a Lua script that executes atomically: remove entries outside the window, count what remains, conditionally insert the new request, set expiry. Redis executes Lua scripts single-threaded. The read-modify-write is indivisible. No distributed lock, no `WATCH/MULTI/EXEC`, no race condition. Any number of application instances sharing the cluster enforce the exact same limit per tenant, and the script reads the time from Redis itself (`TIME`), so instances whose clocks drift apart still share one window.
+
+When Redis cannot be reached within two seconds, the request is refused with `503` and `Retry-After`: without the limiter there is no knowing whether the tenant is within its budget, and the fault is the server's, not the tenant's, so it is not a `429`.
 
 ```lua
 -- Four commands, one atomic operation
@@ -520,7 +522,7 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 
 ## Testing
 
-**203 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
+**217 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
 
 **Unit** (Mockito + JUnit 5) · 92 tests
 

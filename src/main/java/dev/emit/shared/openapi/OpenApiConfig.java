@@ -46,7 +46,7 @@ import jakarta.validation.constraints.NotBlank;
 @Configuration
 public class OpenApiConfig {
 
-    private static final Set<String> ANSWERED_BEFORE_THE_LIMITER = Set.of("401", "403");
+    private static final Set<String> ANSWERED_WITHOUT_A_BUDGET = Set.of("401", "403", "503");
     private static final String ERROR_SCHEMA = "ErrorResponse";
     private static final String EXAMPLE_TIMESTAMP = "2026-01-15T10:30:00Z";
     private static final ParameterNameDiscoverer PARAMETER_NAMES = new DefaultParameterNameDiscoverer();
@@ -118,7 +118,8 @@ public class OpenApiConfig {
      * Stated once, from each operation's own security requirement, rather than
      * repeated per endpoint where one could be forgotten. Not on 401 or 403:
      * those are answered before the limiter runs, so they carry no budget, and
-     * documenting headers they never send would be a false contract.
+     * documenting headers they never send would be a false contract. Nor on
+     * 503, which the limiter answers itself when it cannot read the budget.
      */
     @Bean
     public OpenApiCustomizer rateLimitHeaders() {
@@ -129,7 +130,7 @@ public class OpenApiConfig {
                 return;
             }
             operation.getResponses().forEach((code, response) -> {
-                if (ANSWERED_BEFORE_THE_LIMITER.contains(code)) {
+                if (ANSWERED_WITHOUT_A_BUDGET.contains(code)) {
                     return;
                 }
                 response.addHeaderObject("RateLimit-Limit", header("Requests this tenant may make per rolling minute."));
@@ -216,7 +217,9 @@ public class OpenApiConfig {
                     new Case(401, "invalid-api-key", "Unknown API key", RefusalMessages.INVALID_API_KEY),
                     wrong,
                     new Case(403, "tenant-inactive", "Tenant deactivated", RefusalMessages.TENANT_INACTIVE),
-                    new Case(429, "rate-limited", "Rate limit exceeded", RefusalMessages.rateLimited(12)));
+                    new Case(429, "rate-limited", "Rate limit exceeded", RefusalMessages.rateLimited(12)),
+                    new Case(503, "limiter-unavailable", "The rate limiter cannot be reached",
+                            RefusalMessages.LIMITER_UNAVAILABLE));
         }
         return List.of(missing,
                 new Case(401, "invalid-token", "Rejected token", RefusalMessages.INVALID_TOKEN),
