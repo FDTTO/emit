@@ -4,107 +4,181 @@
 <head>
     <meta charset="UTF-8" />
     <style>
+        @page {
+            size: A4;
+            margin: 16mm 0 20mm 0;
+
+            @bottom-left {
+                content: "EMIT";
+                padding-left: 18mm;
+                font-family: 'JetBrains Mono';
+                font-size: 7pt;
+                letter-spacing: 1pt;
+                color: #8a96a8;
+            }
+
+            @bottom-right {
+                content: counter(page) " / " counter(pages);
+                padding-right: 18mm;
+                font-family: 'JetBrains Mono';
+                font-size: 7pt;
+                color: #8a96a8;
+            }
+        }
+
+        /* The band runs to the top edge of the first page only. */
+        @page :first {
+            margin-top: 0;
+        }
+
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 40px;
-            color: #333;
+            font-family: 'Inter';
+            font-size: 10pt;
+            line-height: 1.6;
+            color: #1b2230;
         }
 
-        .header {
-            border-bottom: 3px solid #2c3e50;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+        .band {
+            padding: 13mm 18mm 11mm;
+            background-color: #0b0f16;
+            color: #e8eef7;
         }
 
-        .brand {
-            font-size: 28px;
-            font-weight: bold;
-            color: #2c3e50;
-            letter-spacing: 2px;
+        .wordmark {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #ffffff;
         }
 
-        .brand span {
-            color: #3498db;
+        .wordmark span {
+            color: #8fdcff;
         }
 
-        .document-title {
-            font-size: 20px;
-            margin-top: 10px;
-            color: #555;
+        .eyebrow {
+            margin-top: 10mm;
+            font-size: 6.5pt;
+            font-weight: 600;
+            letter-spacing: 1.6pt;
+            text-transform: uppercase;
+            color: #8fdcff;
+        }
+
+        .title {
+            margin-top: 2mm;
+            font-size: 22pt;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #ffffff;
+        }
+
+        .sheet {
+            padding: 0 18mm;
         }
 
         .meta {
-            background-color: #f8f9fa;
-            padding: 15px 20px;
-            border-left: 4px solid #3498db;
-            margin-bottom: 30px;
-            font-size: 13px;
+            width: 100%;
+            margin: 7mm 0 8mm;
+            border-collapse: collapse;
         }
 
-        .meta-row {
-            margin-bottom: 5px;
+        .meta td {
+            padding: 0 6mm 3mm 0;
+            vertical-align: top;
         }
 
-        .meta-label {
-            font-weight: bold;
-            color: #555;
+        .label {
+            font-size: 6pt;
+            font-weight: 600;
+            letter-spacing: 1.2pt;
+            text-transform: uppercase;
+            color: #6b7a8f;
         }
 
-        .content-section {
-            line-height: 1.7;
-            font-size: 14px;
+        .value {
+            margin-top: 1mm;
+            font-family: 'JetBrains Mono';
+            font-size: 8pt;
+            color: #2a3344;
         }
 
-        .footer {
-            margin-top: 60px;
-            border-top: 1px solid #ddd;
-            padding-top: 15px;
-            font-size: 11px;
-            color: #999;
-            text-align: center;
+        .divider {
+            height: 0;
+            margin-bottom: 8mm;
+            border-top: 0.75pt solid #d9dee6;
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 3px;
-            font-size: 11px;
-            font-weight: bold;
-            background-color: #e8f4f8;
-            color: #2980b9;
+        .content h1, .content h2, .content h3 {
+            margin: 0 0 3mm;
+            font-weight: 700;
+            line-height: 1.25;
+            color: #0b0f16;
+        }
+
+        .content h1 { font-size: 16pt; }
+        .content h2 { font-size: 13pt; }
+        .content h3 { font-size: 11pt; }
+
+        .content p {
+            margin: 0 0 3mm;
+        }
+
+        .content table {
+            width: 100%;
+            margin: 2mm 0 5mm;
+            border-collapse: collapse;
+        }
+
+        .content th, .content td {
+            padding: 2mm 3mm;
+            border-bottom: 0.75pt solid #e3e7ee;
+            text-align: left;
+        }
+
+        .content th {
+            font-size: 7pt;
+            font-weight: 600;
+            letter-spacing: 1pt;
+            text-transform: uppercase;
+            color: #6b7a8f;
+        }
+
+        .content code, .content pre {
+            font-family: 'JetBrains Mono';
+            font-size: 8.5pt;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header">
-        <div class="brand">EM<span>IT</span></div>
-        <div class="document-title" th:text="${document.title}">Document Title</div>
+    <div class="band">
+        <div class="wordmark">EMIT<span>.</span></div>
+        <div class="eyebrow">Document</div>
+        <div class="title" th:text="${document.title}">Document title</div>
     </div>
 
-    <div class="meta">
-        <div class="meta-row">
-            <span class="meta-label">ID: </span>
-            <span th:text="${document.id}">uuid</span>
-        </div>
-        <div class="meta-row">
-            <span class="meta-label">Status: </span>
-            <span class="status-badge" th:text="${document.status}">PENDING</span>
-        </div>
-        <div class="meta-row">
-            <span class="meta-label">Generated at: </span>
-            <span th:text="${generatedAt}">2026-01-01</span>
-        </div>
-    </div>
+    <div class="sheet">
+        <table class="meta">
+            <tr>
+                <td>
+                    <div class="label">Document ID</div>
+                    <div class="value" th:text="${document.id}">3fa85f64-5717-4562-b3fc-2c963f66afa6</div>
+                </td>
+                <td>
+                    <div class="label">Created</div>
+                    <div class="value" th:text="${createdAt}">2026-01-15 10:30 UTC</div>
+                </td>
+                <td>
+                    <div class="label">Rendered</div>
+                    <div class="value" th:text="${renderedAt}">2026-01-15 10:31 UTC</div>
+                </td>
+            </tr>
+        </table>
 
-    <div class="content-section">
-        <div th:utext="${document.content}">Document content appears here.</div>
-    </div>
+        <div class="divider"></div>
 
-    <div class="footer">
-        Generated by EMIT - Document Processing Engine
+        <div class="content" th:utext="${document.content}">Document content appears here.</div>
     </div>
 
 </body>

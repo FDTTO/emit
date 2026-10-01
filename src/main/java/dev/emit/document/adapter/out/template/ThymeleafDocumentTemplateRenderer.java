@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 class ThymeleafDocumentTemplateRenderer implements DocumentTemplateRenderer {
 
-    private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'");
 
     private final TemplateEngine templateEngine;
 
@@ -24,7 +24,8 @@ class ThymeleafDocumentTemplateRenderer implements DocumentTemplateRenderer {
     public String render(Document document) {
         Context context = new Context();
         context.setVariable("document", document);
-        context.setVariable("generatedAt", OffsetDateTime.now(ZoneOffset.UTC).format(TIMESTAMP_FORMAT));
+        context.setVariable("createdAt", document.getCreatedAt().withOffsetSameInstant(ZoneOffset.UTC).format(TIMESTAMP_FORMAT));
+        context.setVariable("renderedAt", OffsetDateTime.now(ZoneOffset.UTC).format(TIMESTAMP_FORMAT));
         return templateEngine.process("document-pdf", context);
     }
 }

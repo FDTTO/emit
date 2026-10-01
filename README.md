@@ -445,7 +445,7 @@ GET  /v1/documents/{id}             # poll until status: DONE
 GET  /v1/documents/{id}/pdf         # download the generated PDF
 ```
 
-The document records each stage on the server's clock: `queuedAt` when `generate` was accepted, `startedAt` when a worker picked it up, `finishedAt` when it reached `DONE` or `FAILED`. On a local machine, once the app is warm, a document waits about 10 to 30 ms in Kafka and renders in about 30 ms.
+The document records each stage on the server's clock: `queuedAt` when `generate` was accepted, `startedAt` when a worker picked it up, `finishedAt` when it reached `DONE` or `FAILED`. On a local machine, once the app is warm, a document waits about 10 to 30 ms in Kafka and renders in about 30 to 40 ms.
 
 In the console the created id is filled into these operations, and after `generate` the page follows the document to `DONE`, shows the time queued and the time rendering on the lifecycle, and offers the PDF.
 

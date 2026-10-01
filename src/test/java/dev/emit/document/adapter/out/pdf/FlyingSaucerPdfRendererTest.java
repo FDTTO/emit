@@ -59,4 +59,15 @@ class FlyingSaucerPdfRendererTest {
         assertThat(new String(pdf, 0, 5)).isEqualTo("%PDF-");
         assertThat(new String(pdf)).contains("/Image");
     }
+
+    @Test
+    void shouldEmbedTheFontsTheTemplateNames() {
+        String html = "<html><body><p style=\"font-family: 'Inter'\">Fatura nº 7</p>"
+                + "<p style=\"font-family: 'JetBrains Mono'\">3fa85f64</p></body></html>";
+
+        String pdf = new String(renderer.render(html), java.nio.charset.StandardCharsets.ISO_8859_1);
+
+        assertThat(pdf).containsPattern("/BaseFont\\s*/[A-Z]{6}\\+Inter");
+        assertThat(pdf).containsPattern("/BaseFont\\s*/[A-Z]{6}\\+JetBrainsMono");
+    }
 }
