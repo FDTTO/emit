@@ -134,9 +134,9 @@
   var JOURNEY = [
     { label: 'Log in', method: 'post', path: '/v1/auth/login', done: { held: 'bearerAuth' }, proof: 'token in Authorize' },
     { label: 'Create a tenant', method: 'post', path: '/v1/tenants', done: { held: 'apiKeyAuth' }, proof: 'key in Authorize' },
-    { label: 'Create a document', method: 'post', path: '/v1/documents', done: { answered: true }, proof: 'id carried' },
-    { label: 'Generate the PDF', method: 'post', path: '/v1/documents/{id}/generate', done: { run: 'DONE' }, proof: 'pdf ready' },
-    { label: 'Download the PDF', method: 'get', path: '/v1/documents/{id}/pdf', done: { answered: true }, proof: 'downloaded' }
+    { label: 'Create a document', method: 'post', path: '/v1/documents', done: { answered: true }, proof: 'id carried', chain: true },
+    { label: 'Generate the PDF', method: 'post', path: '/v1/documents/{id}/generate', done: { run: 'DONE' }, proof: 'pdf ready', chain: true },
+    { label: 'Download the PDF', method: 'get', path: '/v1/documents/{id}/pdf', done: { answered: true }, proof: 'downloaded', chain: true }
   ];
 
   var spec = null;
@@ -381,7 +381,7 @@
       var notes = {
         credential: body ? captureCredential(source.key, body) : null,
         carry: body ? carryId(source.path, body) : null,
-        follow: ok ? startFollow(source, response) : null,
+        follow: ok ? startFollow(source, response) : resumeFollow(source, response),
         denied: ok ? null : captureDenial(source, response)
       };
       responseNotes[source.key] = notes.credential || notes.carry || notes.follow || notes.denied ? notes : null;
@@ -574,11 +574,12 @@
 
   /* ------------------------------------------------------------ live follow
    * After `generate` is accepted, read the document state back until it is
-   * terminal. Reads spend the tenant's rate limit (20/min), so they back off:
-   * 1s, 2s, 4s, then every 8s, eight at most. They stop at a terminal state,
-   * a 429 or any failure, with a manual retry.
+   * terminal. A run takes tens of milliseconds, so the first read comes
+   * soon; reads spend the tenant's rate limit (20/min), so the rest back
+   * off: 1s, 2s, 4s, then every 8s, nine at most. They stop at a terminal
+   * state, a 429 or any failure, with a manual retry.
    */
-  var FOLLOW_DELAYS = [1000, 2000, 4000, 8000, 8000, 8000, 8000, 8000];
+  var FOLLOW_DELAYS = [250, 1000, 2000, 4000, 8000, 8000, 8000, 8000, 8000];
   var followRun = 0;
 
   /* Stops while `RateLimit-Remaining` still leaves the reader requests of
@@ -618,6 +619,23 @@
     var follow = { id: id, state: LIFECYCLE.run[0].state, phase: 'following', reads: 0, run: 0,
                    startedAt: Date.now(), endedAt: null, stamps: null };
     restartFollow(follow);
+    return follow;
+  }
+
+  /* A 409 from `generate` says the document is already past PENDING: it is
+     followed from a read at once, so a document already DONE still offers
+     its PDF instead of leaving the reader on a refusal. */
+  function resumeFollow(source, response) {
+    var start = followOperation('start');
+    if (!start || source.method !== start.method || source.path !== start.path || response.get('status') !== 409) return null;
+    var id = idFromUrl(start.path, response.get('url'));
+    if (!id) return null;
+    var body = jsonBody(response);
+    var named = body && /but is ([A-Z]+)/.exec(body.message || '');
+    var state = named && lifecycleStep(named[1]) ? named[1] : LIFECYCLE.run[2].state;
+    var follow = { id: id, state: state, phase: 'following', reads: 0, run: ++followRun,
+                   startedAt: Date.now(), endedAt: null, stamps: null, resumed: true };
+    readState(follow, 0);
     return follow;
   }
 
@@ -807,8 +825,11 @@
       said = 'checking';
     } else if (follow.phase === 'ended' && follow.state === 'DONE' && followOperation('result')) {
       var took = stageSpans(follow).total;
-      said = took !== null ? 'PDF ready ' + formatSpan(took) + ' after generate.' : 'PDF ready.';
-      action = el('button', 'emit-note__action', 'Download PDF');
+      said = (follow.resumed ? 'Already generated: ' : '')
+        + (took !== null ? 'PDF ready ' + formatSpan(took) + ' after generate.' : 'PDF ready.');
+      action = el('button', 'emit-note__action');
+      action.appendChild(icon('download'));
+      action.appendChild(document.createTextNode('Download PDF'));
       action.addEventListener('click', function () { openFollowed('result', follow.id); });
     } else if (follow.phase === 'ended') {
       var failedAfter = stageSpans(follow).total;
@@ -3524,6 +3545,11 @@
 
   function journeyState() {
     var done = JOURNEY.map(stepDone);
+    /* A document's later step proves the earlier ones: a PDF downloaded was
+       generated, a document generated was created. */
+    for (var i = JOURNEY.length - 2; i >= 0; i--) {
+      if (JOURNEY[i].chain && JOURNEY[i + 1].chain && done[i + 1]) done[i] = true;
+    }
     return { done: done, next: done.indexOf(false) };
   }
 

@@ -2147,7 +2147,8 @@ body {
 #emit-swagger .swagger-ui .emit-note--tenant { --c: var(--sc-tenant-c); }
 /* Refusal explained. */
 #emit-swagger .swagger-ui .emit-note--denied { --c: var(--s4-c); }
-#emit-swagger .swagger-ui .emit-note__action { margin-left: auto; cursor: pointer; }
+#emit-swagger .swagger-ui .emit-note__action { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; cursor: pointer; }
+#emit-swagger .swagger-ui .emit-note__action svg { width: 12px; height: 12px; }
 /* Followed document; the trail colours match the lifecycle figure. */
 #emit-swagger .swagger-ui .emit-note--follow { --c: var(--run-c); }
 #emit-swagger .swagger-ui .emit-note__trail {
