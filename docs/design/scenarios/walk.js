@@ -18,9 +18,12 @@ V.until(function () { return !!document.querySelector('.opblock .opblock-summary
   var row = document.activeElement.closest('.opblock').getBoundingClientRect();
   check('the row it lands on is in view', row.top >= 0 && row.bottom <= innerHeight, { top: row.top, bottom: row.bottom });
   V.press('Enter');
-  V.until(function () { return !!document.querySelector('#operations-Documents-listDocuments.is-open'); }, function () {
+  /* Open is not enough: an operation opened the first time is still being
+     resolved, and its fields come after. */
+  var pageField = function () { return document.querySelector('#operations-Documents-listDocuments tr[data-param-name="page"] input'); };
+  V.until(function () { return !!pageField(); }, function () {
     check('Enter opens the operation it is on', !!document.querySelector('#operations-Documents-listDocuments.is-open'));
-    var field = document.querySelector('#operations-Documents-listDocuments tr[data-param-name="page"] input');
+    var field = pageField();
     field.focus();
     press('j', field);
     check('typing in a field keeps its letters', document.activeElement === field);
