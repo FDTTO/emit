@@ -42,9 +42,9 @@ public class PdfGenerationService {
     // Not @Transactional: PDF rendering can take seconds. Holding a DB connection
     // for the entire render exhausts the pool under load. Two short transactions
     // bracket the long I/O operation instead.
-    // The PROCESSING branch makes this idempotent for @RetryableTopic retries:
-    // if a prior attempt failed after markAsProcessing() was committed, the next
-    // attempt skips the state transition and proceeds directly to rendering.
+    // A failed attempt leaves the document PROCESSING so the retry renders again;
+    // only the dead-letter handler marks it FAILED. A finished document means a
+    // duplicate request (generate called twice) and is skipped, not retried.
     public void generateSync(UUID id, OffsetDateTime requestedAt) {
         Document document = transactionTemplate.execute(tx -> {
             Document fetched = documentRepository.findById(id)
@@ -52,33 +52,30 @@ public class PdfGenerationService {
             if (fetched.getStatus() == DocumentStatus.PENDING) {
                 fetched.markAsProcessing(requestedAt);
                 return documentRepository.save(fetched);
-            } else if (fetched.getStatus() == DocumentStatus.PROCESSING) {
-                return fetched;
-            } else {
-                throw new IllegalStateException(
-                        "Cannot generate PDF for document in state " + fetched.getStatus() + ": " + id);
             }
+            return fetched;
         });
+
+        if (document.getStatus() == DocumentStatus.DONE || document.getStatus() == DocumentStatus.FAILED) {
+            log.warn("Document already {}, skipping duplicate generation request documentId={}", document.getStatus(), id);
+            return;
+        }
 
         log.info("PDF generation started documentId={}", id);
 
         String html = templateRenderer.render(document);
 
+        byte[] pdfBytes;
         try {
-            byte[] pdfBytes = pdfRenderer.render(html);
-            transactionTemplate.execute(tx -> {
-                document.markAsDone(pdfBytes);
-                documentRepository.save(document);
-                return null;
-            });
-            log.info("PDF generation completed documentId={}", id);
+            pdfBytes = pdfRenderer.render(html);
         } catch (Exception exception) {
-            transactionTemplate.execute(tx -> {
-                document.markAsFailed();
-                documentRepository.save(document);
-                return null;
-            });
             throw new PdfGenerationException("Failed to generate PDF for document " + id, exception);
         }
+        transactionTemplate.execute(tx -> {
+            document.markAsDone(pdfBytes);
+            documentRepository.save(document);
+            return null;
+        });
+        log.info("PDF generation completed documentId={}", id);
     }
 }

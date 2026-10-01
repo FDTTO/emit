@@ -17,6 +17,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -72,7 +74,7 @@ class PdfGenerationServiceTest {
     }
 
     @Test
-    void generateSyncShouldSetStatusToFailedWhenRenderingFails() {
+    void generateSyncShouldLeaveTheDocumentProcessingWhenRenderingFails() {
         UUID id = UUID.randomUUID();
         Document document = buildDocument();
 
@@ -84,9 +86,8 @@ class PdfGenerationServiceTest {
         assertThatThrownBy(() -> pdfGenerationService.generateSync(id, QUEUED_AT))
                 .isInstanceOf(PdfGenerationException.class);
 
-        // markAsFailed is now in its own transaction - actually persisted, not rolled back
-        assertThat(document.getStatus()).isEqualTo(DocumentStatus.FAILED);
-        verify(documentRepository, times(2)).save(document);
+        assertThat(document.getStatus()).isEqualTo(DocumentStatus.PROCESSING);
+        verify(documentRepository, times(1)).save(document);
     }
 
     @Test
@@ -143,17 +144,42 @@ class PdfGenerationServiceTest {
     }
 
     @Test
-    void generateSyncShouldThrowWhenDocumentIsInTerminalState() {
+    void generateSyncShouldRenderAgainOnTheRetryAfterARenderFailure() {
+        UUID id = UUID.randomUUID();
+        Document document = buildDocument();
+
+        when(documentRepository.findById(id)).thenReturn(Optional.of(document));
+        when(documentRepository.save(any())).thenReturn(document);
+        when(templateRenderer.render(any())).thenReturn("<html></html>");
+        when(pdfRenderer.render(anyString()))
+                .thenThrow(new RuntimeException("render failed"))
+                .thenReturn(new byte[] { 1, 2, 3 });
+
+        assertThatThrownBy(() -> pdfGenerationService.generateSync(id, QUEUED_AT))
+                .isInstanceOf(PdfGenerationException.class);
+        pdfGenerationService.generateSync(id, QUEUED_AT);
+
+        assertThat(document.getStatus()).isEqualTo(DocumentStatus.DONE);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = DocumentStatus.class, names = { "DONE", "FAILED" })
+    void generateSyncShouldSkipARequestForAFinishedDocument(DocumentStatus finished) {
         UUID id = UUID.randomUUID();
         Document document = buildDocument();
         document.markAsProcessing(QUEUED_AT);
-        document.markAsFailed();
+        if (finished == DocumentStatus.DONE) {
+            document.markAsDone(new byte[] { 1 });
+        } else {
+            document.markAsFailed();
+        }
         when(documentRepository.findById(id)).thenReturn(Optional.of(document));
 
-        assertThatThrownBy(() -> pdfGenerationService.generateSync(id, QUEUED_AT))
-                .isInstanceOf(IllegalStateException.class);
+        pdfGenerationService.generateSync(id, QUEUED_AT);
 
+        assertThat(document.getStatus()).isEqualTo(finished);
         verify(documentRepository, never()).save(any());
+        verify(pdfRenderer, never()).render(anyString());
     }
 
     @Test
