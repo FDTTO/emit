@@ -2,9 +2,9 @@
 //
 // Why it exists: `msedge --virtual-time-budget` fast-forwards the clock
 // whenever the page is idle, so any behaviour paced by timers against a real
-// backend - the lifecycle follow waits 1s, 2s, 4s, 8s between reads while the
-// PDF pipeline takes ~8s of wall-clock time - runs out its schedule in well
-// under a second of real time and reports a state the real page never shows.
+// backend - the lifecycle follow waits 1s, 2s, 4s, 8s between reads - runs
+// out its schedule in well under a second of real time and reports a state
+// the real page never shows.
 // This runs the page on the real clock instead. It also captures regions below
 // the fold without scrolling, which `--screenshot` cannot do.
 //
