@@ -90,8 +90,6 @@ public class OpenApiConfig {
                 // No document-level security requirement: the two credentials are not
                 // interchangeable, so each controller declares the scheme it accepts.
                 .components(new Components()
-                        .addSchemas(ERROR_SCHEMA, ModelConverters.getInstance()
-                                .readAllAsResolvedSchema(ErrorResponse.class).schema)
                         .addSecuritySchemes("bearerAuth", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
@@ -110,6 +108,17 @@ public class OpenApiConfig {
         }
 
         return api;
+    }
+
+    /*
+     * The error schema joins the description once it is built. springdoc
+     * copies the bean above with a plain ObjectMapper, which cannot write the
+     * schema's date-time example: swagger-core holds it as an OffsetDateTime.
+     */
+    @Bean
+    public OpenApiCustomizer errorSchema() {
+        return api -> api.getComponents().addSchemas(ERROR_SCHEMA,
+                ModelConverters.getInstance().readAllAsResolvedSchema(ErrorResponse.class).schema);
     }
 
     /*
