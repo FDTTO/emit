@@ -1232,6 +1232,8 @@ body {
   /* Stock text colour #3b4151 disappears on the dark ground. */
   color: var(--e-body);
 }
+/* A closed row says, under the pointer, that the whole of it opens. */
+#emit-swagger .swagger-ui .opblock:not(.is-open) .opblock-summary:hover { background: rgba(255,255,255,0.025); }
 /* The open header stays in view while its operation scrolls under it. */
 #emit-swagger .swagger-ui .opblock.is-open .opblock-summary {
   position: sticky;
@@ -1252,17 +1254,6 @@ body {
   box-shadow: inset 0 -1px 0 var(--e-hair), 0 12px 28px rgba(0,0,0,0.35);
 }
 /* These outrank the reduced-motion reset of section 2. */
-@media (prefers-reduced-motion: reduce) {
-  #emit-swagger .swagger-ui .opblock.is-open .opblock-summary,
-  #emit-swagger .swagger-ui .topbar .topbar-wrapper > a.link,
-  #emit-swagger .swagger-ui .opblock-tag > .emit-tag-all,
-  #emit-swagger .swagger-ui .btn.execute,
-  #emit-swagger .emit-primary { transition: none; }
-  #emit-swagger .swagger-ui .btn.execute:disabled,
-  #emit-swagger .swagger-ui .btn.execute:hover::after,
-  #emit-swagger .emit-primary:hover::after,
-  .emit-sends[data-state="running"]::before { animation: none; }
-}
 /* The whole row opens the operation, not only Swagger's button inside it:
    the button's hit area is stretched over the row, and the row's own
    controls sit above it. Half the row answered nothing before. */
@@ -2353,6 +2344,18 @@ body {
 #emit-swagger .swagger-ui .btn.execute:disabled { opacity: 1; cursor: progress; color: var(--e-body); animation: emit-edge-run 1.2s linear infinite; }
 @keyframes emit-rim-glint { from { background-position: -200% 0; } to { background-position: 150% 0; } }
 @keyframes emit-edge-run { from { background-position: -40% 100%, 0 0; } to { background-position: 140% 100%, 0 0; } }
+/* After the rules it quiets: at equal weight, the later rule wins. */
+@media (prefers-reduced-motion: reduce) {
+  #emit-swagger .swagger-ui .opblock.is-open .opblock-summary,
+  #emit-swagger .swagger-ui .topbar .topbar-wrapper > a.link,
+  #emit-swagger .swagger-ui .opblock-tag > .emit-tag-all,
+  #emit-swagger .swagger-ui .btn.execute,
+  #emit-swagger .emit-primary { transition: none; }
+  #emit-swagger .swagger-ui .btn.execute:disabled,
+  #emit-swagger .swagger-ui .btn.execute:hover::after,
+  #emit-swagger .emit-primary:hover::after,
+  .emit-sends[data-state="running"]::before { animation: none; }
+}
 #emit-swagger .emit-quiet {
   height: 38px;
   padding: 0 var(--sp-4);

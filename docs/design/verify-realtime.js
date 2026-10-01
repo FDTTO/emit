@@ -78,6 +78,17 @@ async function press(send, name) {
   await send('Input.dispatchKeyEvent', { type: 'keyUp', ...base });
 }
 
+// The pointer moved onto the centre of the first element the selector matches.
+async function hover(send, evaluate, selector) {
+  const point = await evaluate(`(function () {
+    var element = document.querySelector(${JSON.stringify(selector)});
+    if (!element) return null;
+    var box = element.getBoundingClientRect();
+    return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+  })()`);
+  if (point) await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: point.x, y: point.y });
+}
+
 // A ceiling, not a delay: under load (parallel runs, a JVM starting) Edge can
 // take well over ten seconds to write DevToolsActivePort.
 async function target() {
@@ -201,14 +212,17 @@ function killProfileProcesses() {
       await Promise.race([expired, sleep(virtual + 20000)]);
     } else {
       await send('Page.navigate', { url });
-      // While waiting, deliver the keys the page asked for (V.press) as real,
-      // trusted input. Synthetic events from inside the page are untrusted,
-      // and Chromium only shows :focus-visible after real keyboard input, so
-      // anything about keyboard focus can only be judged this way.
+      // While waiting, deliver the input the page asked for (V.press, V.hover)
+      // as real, trusted events. Synthetic events from inside the page are
+      // untrusted: Chromium shows :focus-visible only after real keyboard
+      // input, and :hover only follows a real pointer.
       const end = Date.now() + Number(waitMs);
       while (Date.now() < end) {
-        const keys = await evaluate('(window.__verifyKeys || []).splice(0)');
-        for (const key of keys || []) await press(send, key);
+        const inputs = await evaluate('(window.__verifyKeys || []).splice(0)');
+        for (const input of inputs || []) {
+          if (input && input.hover) await hover(send, evaluate, input.hover);
+          else await press(send, input);
+        }
         if (await evaluate('!!(window.__log && window.__log.done)')) break;
         await sleep(40);
       }

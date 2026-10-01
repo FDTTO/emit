@@ -163,6 +163,9 @@
       return found;
     },
     press: function (key) { (window.__verifyKeys = window.__verifyKeys || []).push(key); },
+    /* A real pointer over the element, delivered by the runner like keys;
+       wait for element.matches(':hover') before reading what it changes. */
+    hover: function (selector) { (window.__verifyKeys = window.__verifyKeys || []).push({ hover: selector }); },
     definition: function (scheme) { return ui().specSelectors.securityDefinitions().get(scheme); },
     /* Authorizes with the store's own immutable definition, as the dialog
        does; a plain object makes Swagger's persistence step throw. */

@@ -319,6 +319,7 @@ code.inline { font: 500 var(--f-code)/1 var(--mono); color: var(--type); backgro
 .op:not(.open):hover { background: var(--fill-hover); }
 .op.open { background: var(--glass-2); box-shadow: var(--lift); margin: var(--s5) 0 var(--s6); }
 .summary { display: flex; align-items: center; gap: var(--s3); padding: 12px var(--s5); border-radius: var(--r3); cursor: pointer; }
+.op:not(.open) .summary:hover { background: rgba(255,255,255,0.025); }
 .op.open .summary { position: sticky; top: 0; z-index: 5; border-radius: var(--r3) var(--r3) 0 0; background: rgba(28,33,44,0.80); backdrop-filter: blur(24px) saturate(150%); box-shadow: inset 0 -1px 0 var(--hair), inset 0 1px 0 rgba(255,255,255,0.08);
   transition: border-radius .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease); }
 /* Stuck under the titlebar, it docks: square top and the dense glass. */
