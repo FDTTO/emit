@@ -10,7 +10,7 @@
 
 Accepts an HTTP request to generate a PDF, returns `202 Accepted` as soon as the request is durable in Kafka, and processes it asynchronously. Each tenant runs in an isolated PostgreSQL schema. Rate limiting is distributed and atomic across any number of instances.
 
-Five structural decisions. 217 tests that prove the contract holds.
+Five structural decisions. 223 tests that prove the contract holds.
 
 **[Try the console live](https://fdtto.github.io/emit/)**, nothing to install.
 
@@ -31,6 +31,7 @@ Five structural decisions. 217 tests that prove the contract holds.
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
 - [Testing](#testing)
+- [Deliberate limits](#deliberate-limits)
 - [Roadmap](#roadmap)
 
 ---
@@ -86,289 +87,22 @@ flowchart TD
 | Concern | Chosen | Rejected | Root reason |
 |:---|:---|:---|:---|
 | Tenant isolation | Schema per tenant | Row-level security | Structural guarantee, not policy enforcement |
-| Async processing | Kafka + DLQ | @Async + ThreadPool | Durable before response, retries explicit |
-| Rate limiting | Redis Lua sliding window | Bucket4j ConcurrentHashMap | Distributed correctness across instances |
-| Filter execution | SecurityFilterChain | @Order servlet filters | SecurityContext initialized, ASYNC dispatch handled |
-| Code organization | Package by Feature + Hexagonal | Layered (controller/service/repository) | Feature cohesion, domain free of framework dependencies |
+| Async processing | Kafka + DLQ | @Async + ThreadPool | Durable before the `202`, retries explicit |
+| Rate limiting | Redis Lua sliding window | Bucket4j ConcurrentHashMap | One window across instances, on one clock |
+| Filter execution | SecurityFilterChain | @Order servlet filters | Security context in place, order stated once |
+| Code organization | Package by Feature + Hexagonal | Layered (controller/service/repository) | Feature cohesion, dependency rules held by a test |
 
-Each section below names a failure mode, the structural choice that eliminates it, and the trade-off accepted in return.
+Each one has a record in [`docs/decisions`](docs/decisions/README.md): the failure mode it removes, the choice, and the trade-off accepted in return.
 
----
+**Schema per tenant** ([0001](docs/decisions/0001-schema-per-tenant.md)). A `tenant_id` filter forgotten on one query leaks every tenant, silently. Here each tenant is a PostgreSQL schema, and `SET search_path` on every connection checkout makes a wrong or missing schema resolve no tables at all. The cost is provisioning per tenant and objects in `pg_catalog`, right for a bounded B2B set of tenants.
 
-### Schema Isolation
+**Kafka, acknowledged before the `202`** ([0002](docs/decisions/0002-kafka-with-dead-letter-queue.md)). `@Async` loses work under a burst or a restart and leaves no trace. `generate` answers `202` only once the broker holds the event (`acks=all`), and `503` when it does not confirm in seconds. Three attempts later a failing document goes to a dead-letter queue, and the worker is idempotent, since delivery is at least once.
 
-*The boundary lives in the database, not the application.*
+**One atomic Lua script on Redis** ([0003](docs/decisions/0003-redis-lua-rate-limiting.md)). An in-memory bucket behind N replicas gives every tenant N times its limit. One script on a Redis sorted set evicts, counts and admits in a single step on Redis's own clock, so any number of instances share one window; without Redis the answer is `503`, not a `429` that blames the tenant.
 
-Row-level security enforces boundaries through policies on shared tables. A missing policy on a new table returns cross-tenant data with no error. The application has no indication anything is wrong. This failure mode requires active vigilance across every migration and every repository method.
+**Filters inside the security chain** ([0004](docs/decisions/0004-filters-in-the-security-chain.md)). `@Order` filters run before the security context exists, so the tenant one writes is gone when the next reads it. Registered inside the `SecurityFilterChain`, they run in a stated order with the context in place.
 
-Schema isolation moves the boundary to the database namespace. `SchemaMultiTenantConnectionProvider` issues `SET search_path TO {schema}` on every JDBC connection checkout. A missing schema resolves zero tables. A wrong schema resolves zero tables. No policy to forget, no filter to omit.
-
-Tenant schemas are provisioned automatically on creation and reconciled against the full Liquibase changelog on every application startup.
-
-```
-POST /v1/tenants
-  ├── INSERT INTO public.tenants    (SHA-256 stored, raw key returned once)
-  ├── CREATE SCHEMA {schemaName}
-  └── liquibase.update(schema = {schemaName})
-        ├── 001_create_documents.sql
-        └── 002_add_updated_at.sql
-
-Application startup: TenantMigrationRunner
-  ├── SELECT schema_name FROM public.tenants
-  └── for each: liquibase.update()    (idempotent, schema drift is impossible)
-```
-
-> [!NOTE]
-> Schema isolation adds provisioning overhead and increases the object count in `pg_catalog`. The right trade for a B2B service with a bounded, known tenant set. For a consumer product with millions of users, row-level filtering scales better.
-
-<details>
-<summary>Side-by-side: what the repository layer looks like with and without schema isolation</summary>
-
-```java
-// Column-based: tenant_id on every table, filter on every query.
-// One method without the filter leaks all tenants' data silently.
-
-Optional<Document> findByIdAndTenantId(UUID id, UUID tenantId);
-List<Document> findAllByTenantIdOrderByCreatedAtDesc(UUID tenantId, Pageable p);
-// ...every migration, every repository, every query: add the filter or leak
-```
-
-```java
-// EMIT: no tenant_id in the domain. No filters in queries.
-
-Optional<Document> findById(UUID id);
-List<Document> findAll(Pageable pageable);
-
-// SchemaMultiTenantConnectionProvider sets search_path before any query executes.
-// Standard Spring Data JPA. The isolation is invisible to application code.
-// Wrong search_path resolves zero tables. Leaks are structurally impossible.
-```
-
-</details>
-
----
-
-### Kafka + Dead-Letter Queue
-
-*The event is durable before the HTTP response returns.*
-
-`@Async` has two failure modes that matter in production.
-
-Thread pool exhaustion under burst traffic causes callers to receive `RejectedExecutionException` or block indefinitely. The request is gone. No record, no retry, no alert. Process restarts silently drop everything in-flight. Again: no record, no retry, no alert. Both failures are undetectable from the outside.
-
-Kafka shifts the durability boundary. `generate` answers `202` only after the broker has acknowledged the event with `acks=all`, so the event is on broker disk before the HTTP response leaves the server. A broker that does not confirm within seconds gets the caller a `503` instead: nothing was queued, the document stays `PENDING`, and asking again is safe. Consumer lag is a metric. Retry policy is a configuration, not a catch block. Messages that exhaust three attempts with 1s + 2s exponential backoff route to `document.generation.requested.dlq` for inspection and replay. The caller's `202` waits on the broker, never on the consumer: rendering happens after the answer, whatever the consumer's state.
-
-Tenant context crosses the thread boundary via `TenantContextDecorator`, which sets schema name and MDC entries from the deserialized event before any JDBC connection is checked out, then clears both in a `finally` block. This isolates the restore-and-clear pattern as a single responsibility in `shared/multitenancy`, so any number of consumers propagate tenant context without duplicating the try/finally logic.
-
-`generateSync` is idempotent for `@RetryableTopic` retries: if a prior attempt failed after `PROCESSING` was committed to the database, the next attempt recognizes the state and proceeds directly to rendering. Without this, a second attempt throws `IllegalStateException` on a `PROCESSING` document, logs a misleading error, and retries the wrong failure mode all the way to the dead-letter queue.
-
-`TenantFilter` writes `tenantSchema` and a per-request `requestId` into the MDC on every request. Every log line emitted inside Kafka consumer threads, after the context is restored from the event, carries these fields automatically. HTTP request logs and consumer processing logs share the same `requestId`, making production correlation trivial without any tracing infrastructure.
-
-```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'fontFamily': '"Segoe UI", system-ui, sans-serif', 'actorBkg': '#1e293b', 'actorBorder': '#334155', 'actorTextColor': '#f1f5f9', 'signalColor': '#64748b', 'signalTextColor': '#cbd5e1', 'noteBkgColor': '#0f172a', 'noteBorderColor': '#3b5279', 'noteTextColor': '#93c5fd'}}}%%
-sequenceDiagram
-    participant CL as Client
-    participant H as HTTP Thread
-    participant K as Kafka Broker
-    participant C as Consumer Thread
-    participant DB as PostgreSQL
-
-    CL->>H: POST /generate
-    note over H: TenantContext set, MDC populated
-    H->>K: publish DocumentGenerationRequestedEvent
-    K-->>H: ack (event durable)
-    H-->>CL: 202 Accepted
-
-    K->>C: deliver message
-    note over C: TenantContextDecorator.run()
-    C->>DB: checkout connection
-    DB-->>C: SET search_path TO acme_corp
-    note over C: PdfGenerationService.generateSync()
-    note over C: TenantContext.clear() [finally]
-```
-
-<details>
-<summary>Side-by-side: what changes when you swap @Async for Kafka</summary>
-
-```java
-// @Async: fast to write, invisible failure modes
-
-@Async
-public CompletableFuture<Void> generatePdf(UUID documentId) {
-    // Thread pool full? RejectedExecutionException. Caller fails. No trace.
-    // Process restart? Task gone. No retry. No log.
-    // How many are in-flight? You cannot know.
-    pdfRenderer.render(documentId);
-    return CompletableFuture.completedFuture(null);
-}
-```
-
-```java
-// EMIT: 202 + durable event
-
-@PostMapping("/{id}/generate")
-public ResponseEntity<Void> generate(@PathVariable UUID id) {
-    documentService.requestGeneration(id);
-    return ResponseEntity.accepted().build();
-    // Event is on disk before this line executes.
-}
-
-@RetryableTopic(attempts = "3",
-                backoff = @Backoff(delay = 1000, multiplier = 2),
-                dltTopicSuffix = ".dlq")
-@KafkaListener(topics = TOPIC, groupId = "emit-pdf-processor")
-void consume(ConsumerRecord<String, DocumentGenerationRequestedEvent> record) {
-    DocumentGenerationRequestedEvent event = record.value();
-    tenantContextDecorator.run(
-            event.tenantSchema(),
-            Map.of("tenantSchema", event.tenantSchema(), "documentId", event.documentId().toString()),
-            () -> pdfGenerationService.generateSync(event.documentId()));
-}
-```
-
-</details>
-
----
-
-### Redis Lua Rate Limiting
-
-*One atomic operation, any number of instances.*
-
-Bucket4j is a well-engineered library. The limitation is not in the library: it is in where the state lives.
-
-A token bucket stored in a `ConcurrentHashMap` is process-local. A deployment behind a load balancer with N replicas gives every tenant N times the configured limit, because each JVM enforces its own independent counter. The only way to fix this with Bucket4j is to configure a distributed backend, at which point Bucket4j becomes a wrapper around the same Redis operations EMIT uses directly.
-
-EMIT uses a Redis sorted set with a Lua script that executes atomically: remove entries outside the window, count what remains, conditionally insert the new request, set expiry. Redis executes Lua scripts single-threaded. The read-modify-write is indivisible. No distributed lock, no `WATCH/MULTI/EXEC`, no race condition. Any number of application instances sharing the cluster enforce the exact same limit per tenant, and the script reads the time from Redis itself (`TIME`), so instances whose clocks drift apart still share one window.
-
-When Redis cannot be reached within two seconds, the request is refused with `503` and `Retry-After`: without the limiter there is no knowing whether the tenant is within its budget, and the fault is the server's, not the tenant's, so it is not a `429`.
-
-```lua
--- Four commands, one atomic operation
-ZREMRANGEBYSCORE key -inf (now - window)   -- evict stale entries
-count = ZCARD key                           -- count current window
-
-if count < limit then
-    ZADD  key now jti                       -- admit: record this request
-    PEXPIRE key window                      -- self-cleaning, no eviction job
-    return 1                                -- allowed
-end
-return 0                                    -- rejected: 429 Too Many Requests
-```
-
-<details>
-<summary>Side-by-side: what the rate limiter looks like in-memory vs. distributed</summary>
-
-```java
-// Bucket4j in-memory: correct on one JVM, wrong on N
-
-private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
-
-public boolean tryConsume(String tenantSchema) {
-    return buckets
-        .computeIfAbsent(tenantSchema, k -> Bucket.builder()
-            .addLimit(Bandwidth.simple(100, Duration.ofMinutes(1)))
-            .build())
-        .tryConsume(1);
-    // Three replicas: effective limit is 300 req/min per tenant.
-    // Memory grows with tenant count, never shrinks.
-    // No cross-instance visibility.
-}
-```
-
-```java
-// EMIT: one atomic operation, any number of instances
-
-public boolean tryConsume(String tenantSchema) {
-    long now = System.currentTimeMillis();
-    Long result = redisTemplate.execute(
-            SLIDING_WINDOW_SCRIPT,
-            List.of("rl:" + tenantSchema),
-            String.valueOf(now),
-            String.valueOf(60_000L),
-            String.valueOf(properties.getRequestsPerMinute()),
-            UUID.randomUUID().toString());
-    return Long.valueOf(1L).equals(result);
-}
-```
-
-</details>
-
----
-
-### SecurityFilterChain
-
-*Initialization order that `@Order` cannot guarantee.*
-
-Servlet filters registered with `@Order` execute as independent filters before `SecurityFilterChain` runs. `SecurityContextHolder` is not initialized at that point.
-
-`TenantFilter` writes a `TenantAuthentication` object to `SecurityContextHolder`. With `@Order`, the write happens before the context exists and is overwritten when the chain initializes. `RateLimitFilter` reads the tenant identity that `TenantFilter` established: with `@Order`, that identity is not there.
-
-Registering inside `SecurityFilterChain` via `addFilterBefore` / `addFilterAfter` gives initialized `SecurityContext`, explicit ordering, and correct handling of `DispatcherType.ASYNC` requests: all from a single configuration point.
-
-```java
-http
-    .addFilterBefore(tenantFilter,     UsernamePasswordAuthenticationFilter.class)
-    .addFilterAfter(rateLimitFilter,   TenantFilter.class)
-    .addFilterBefore(jwtFilter,        UsernamePasswordAuthenticationFilter.class);
-```
-
-> [!IMPORTANT]
-> `DispatcherType.ASYNC` must be `permitAll()` in `SecurityConfig`. Kafka consumer threads re-enter the servlet container when dispatching async responses. Without this, `JwtAuthFilter` intercepts them and rejects them. This is exactly the class of subtle breakage that `@Order` filters never expose: they execute outside the security context entirely.
-
----
-
-### Package by Feature + Hexagonal
-
-*Each feature owns its complete vertical slice.*
-
-Layered architecture organizes code by technical concern: `controller/`, `service/`, `repository/`. One feature spans three packages. A change in document processing touches files across all three. Import boundaries are invisible: nothing prevents `TenantService` from importing `DocumentRepository`.
-
-Package by Feature inverts that axis.
-
-```
-document/
-├── domain/         Document, DocumentRepository (port), DocumentStatus
-├── application/    DocumentService, PdfGenerationService, PdfRenderer (port)
-└── adapter/
-    ├── in/rest/          DocumentController
-    ├── in/messaging/     DocumentGenerationConsumer
-    ├── out/persistence/  DocumentRepositoryAdapter
-    ├── out/pdf/          FlyingSaucerPdfRenderer
-    └── out/template/     ThymeleafDocumentTemplateRenderer
-```
-
-Hexagonal Architecture (Ports & Adapters) enforces the dependency direction inside each feature. The domain has no framework imports. Ports are plain Java interfaces. Adapters are package-private: `FlyingSaucerPdfRenderer` is not accessible outside `adapter/out/pdf/`, only through the `PdfRenderer` port. Framework leaks into the domain are structurally impossible (compile-time, not discipline).
-
-<details>
-<summary>Side-by-side: what TenantRepository looks like layered vs. hexagonal</summary>
-
-```java
-// Layered: TenantRepository leaks Spring Data and JPA into the domain.
-// Replacing the persistence layer requires touching the domain interface.
-
-public interface TenantRepository extends JpaRepository<Tenant, UUID> {
-    Optional<Tenant> findByApiKeyHash(String hash);
-}
-```
-
-```java
-// EMIT: TenantRepository is a plain Java interface: no framework imports.
-
-public interface TenantRepository {
-    Optional<Tenant> findById(UUID id);
-    Optional<Tenant> findByApiKeyHash(String apiKeyHash);
-    Tenant save(Tenant tenant);
-    List<Tenant> findAll();
-}
-
-// The adapter lives in adapter/out/persistence/ and is package-private.
-// Spring Data generates the full implementation automatically.
-interface TenantRepositoryAdapter
-        extends JpaRepository<Tenant, UUID>, TenantRepository {
-}
-```
-
-</details>
+**Package by feature, ports and adapters** ([0005](docs/decisions/0005-package-by-feature-hexagonal.md)). Each feature owns its slice, its adapters are package-private behind ports, and `ArchitectureTest` holds the dependency rules on the compiled classes.
 
 ---
 
@@ -487,7 +221,7 @@ Every document response tells the client where its budget stands, so it can pace
 | `RateLimit-Limit` | requests allowed per sliding window (per tenant, per minute) |
 | `RateLimit-Remaining` | requests left in the current window |
 | `RateLimit-Reset` | seconds until the oldest request leaves the window |
-| `Retry-After` | on `429` only: seconds until a slot frees |
+| `Retry-After` | on `429`: seconds until a slot frees; on `503`: when to try again |
 
 Every response, refusals included, also carries `X-Request-Id`: the id the request is logged under, so an error can be traced to its exact log lines.
 
@@ -513,6 +247,7 @@ Every response, refusals included, also carries `X-Request-Id`: the id the reque
 PENDING → PROCESSING → DONE
                     └── FAILED
 
+generate: 202 once the broker holds the request, 503 when it does not confirm
 Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.generation.requested.dlq
 ```
 
@@ -522,106 +257,24 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 
 ## Testing
 
-**217 tests.** No mocks for infrastructure: PostgreSQL, Kafka, and Redis use real containers.
+**223 tests**, run with `mvn test` (Docker must be running). No mocks for infrastructure: PostgreSQL, Kafka and Redis are real containers.
 
-**Unit** (Mockito + JUnit 5) · 92 tests
+- **Unit** (JUnit 5, Mockito): the document's state machine, the services, the filters, the consumer and its tenant context, the PDF renderer's refusal to fetch anything a document references.
+- **Slice** (`@WebMvcTest`): every controller's validation and status codes.
+- **Integration** (Testcontainers): the whole lifecycle from login to the downloaded PDF and its stage times; tenant migrations, concurrent and at startup; and `ErrorContractTest`, which triggers every error the published spec documents against the running API, a paused Kafka and a paused Redis included, and requires the status and message the spec shows.
+- **Architecture** (ArchUnit): the dependency rules of [0005](docs/decisions/0005-package-by-feature-hexagonal.md).
 
-```
-├── DocumentTest                       [13]  factory method, state machine transitions,
-│                                            invariants (null PDF, wrong state)
-├── DocumentServiceTest                [9]   create, find, requestGeneration, getPdf,
-│                                            all not-found and status-conflict paths
-├── PdfGenerationServiceTest           [9]   generateSync: success, pdf failure, template
-│                                            failure, retry idempotency (PROCESSING state),
-│                                            terminal state guard; abandonGeneration
-├── FlyingSaucerPdfRendererTest        [2]   URLs in document content are never fetched,
-│                                            embedded data: images still render
-├── DocumentGenerationConsumerTest     [5]   generateSync called with correct id,
-│                                            context cleared on success and on exception,
-│                                            DLT handler abandons and clears context
-├── TenantServiceTest                  [9]   create, findById, deactivate, reactivate,
-│                                            not-found paths, API key generation
-├── TenantContextDecoratorTest         [5]   context set before action, MDC populated,
-│                                            both cleared on success and on exception
-├── TenantFilterTest                   [6]   valid key, absent key, invalid key,
-│                                            inactive tenant, requestId always in MDC,
-│                                            finally cleanup on downstream exception
-├── TenantIdentifierResolverTest       [3]   resolves from context, falls back to public
-├── TenantSchemaValidatorTest          [7]   valid, public, null, single-char,
-│                                            digit-start, uppercase, hyphen
-├── ApiKeyHasherTest                   [3]   hash determinism, hex format, length
-├── JwtServiceTest                     [4]   generate, validate, extract subject,
-│                                            reject expired token
-├── JwtAuthenticationFilterTest        [4]   valid token sets context, invalid token 401,
-│                                            absent header passes through, an earlier
-│                                            tenant role is kept alongside admin
-├── RateLimitFilterTest                [3]   tenant absent, budget headers within limit,
-│                                            429 with Retry-After
-├── ApiErrorWriterTest                 [2]   JSON declared as UTF-8, status and message
-│                                            in the body
-├── RequestIdFilterTest                [3]   the id returned is the id logged under,
-│                                            one per request, cleared even on failure
-└── GlobalExceptionHandlerTest         [5]   unknown URL and removed static file are 404,
-                                             a missing internal resource stays 500,
-                                             generic 500 leaks no internal detail
-```
+The console has its own suite: 34 scenarios, run at the widths each declares, in headless Chrome against the running application in CI, a new check being run against the code before it to prove it can fail ([`docs/design/VERIFY.md`](docs/design/VERIFY.md)). The live demo's answers are held against the application's own on every push ([`demo/`](demo/README.md)).
 
-**Slice** (@WebMvcTest) · 32 tests
+---
 
-```
-├── DocumentControllerTest             [16]  list empty, list paginated, create 201,
-│                                            find by id, 404, 400 validations (blank title,
-│                                            title >255, blank content, content >50k,
-│                                            missing body), 202 generate, 409 status
-│                                            conflict, 404 on generate, PDF download,
-│                                            PDF 409, PDF 404
-├── TenantControllerTest               [13]  create 201 with API key, 409 duplicate schema,
-│                                            400 validations (digit-start, uppercase,
-│                                            hyphen, single-char, blank name), findById,
-│                                            404, listAll 200, deactivate 204, deactivate
-│                                            404, reactivate 204, reactivate 404
-└── AuthControllerTest                 [3]   valid credentials 200, wrong username 401,
-                                             wrong password 401
-```
+## Deliberate limits
 
-**Integration** (Testcontainers: real containers, no test doubles) · 74 tests
-
-```
-├── RateLimiterServiceTest             [4]   within limit, remaining counts down to zero,
-│                                            exhausted limit says when a slot frees,
-│                                            per-tenant isolation
-│   └── GenericContainer  redis:7-alpine
-├── RouteAccessTest                    [5]   unknown route: 401 without a credential,
-│                                            404 with one; a path id that is not a
-│                                            UUID is 400; the actuator stays closed;
-│                                            even a refusal carries X-Request-Id
-├── TenantMigrationsStartupTest        [1]   tenant schemas are migrated before the
-│                                            web server accepts a request
-├── TenantProvisionerConcurrencyTest   [1]   concurrent tenant schema migrations all
-│                                            complete (Liquibase scope is shared across
-│                                            threads, so runs are serialized)
-│   └── PostgreSQLContainer  16
-├── ErrorContractTest                 [59]   every error example in the published spec,
-│                                            triggered against the API: status and
-│                                            message must match what the spec shows,
-│                                            asked in Portuguese to prove one language
-├── ApiDocsTest                        [1]   no required string with a length rule is
-│                                            published as accepting an empty value
-└── DocumentIntegrationTest            [3]   full lifecycle: login → create tenant →
-                                             create document → request generation →
-                                             await DONE → download PDF; admin token
-                                             refused on tenant routes, API key refused
-                                             on admin routes, both as 403
-    ├── PostgreSQLContainer  16
-    ├── ConfluentKafkaContainer  7.6.1
-    └── GenericContainer  redis:7-alpine
-```
-
-Docker must be running:
-
-```bash
-mvn test
-```
+- **One administrator, from configuration.** Tenant management is a back-office task for one operator, whose credentials come from the environment and are compared in constant time. A user store with roles is out of scope.
+- **Unknown routes answer `401` without a credential.** With one they answer `404`. A caller who has not authenticated learns nothing about which routes exist.
+- **Latin text in PDFs.** Inter and JetBrains Mono are embedded in their Latin subsets, the coverage the PDF's built-in fonts had; other scripts do not render.
+- **Clients poll for the outcome.** A document is followed by reading it; a webhook on completion is on the roadmap.
+- **The console suite covers Chromium engines.** It runs in Chrome, Edge and Opera; Firefox and Safari are not verified.
 
 ---
 
