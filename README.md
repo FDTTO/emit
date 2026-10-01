@@ -8,7 +8,7 @@
 
 **B2B multi-tenant document processing engine.**
 
-Accepts an HTTP request to generate a PDF, returns `202 Accepted` immediately, and processes asynchronously through Kafka. Each tenant runs in an isolated PostgreSQL schema. Rate limiting is distributed and atomic across any number of instances.
+Accepts an HTTP request to generate a PDF, returns `202 Accepted` as soon as the request is durable in Kafka, and processes it asynchronously. Each tenant runs in an isolated PostgreSQL schema. Rate limiting is distributed and atomic across any number of instances.
 
 Five structural decisions. 203 tests that prove the contract holds.
 
@@ -156,7 +156,7 @@ List<Document> findAll(Pageable pageable);
 
 Thread pool exhaustion under burst traffic causes callers to receive `RejectedExecutionException` or block indefinitely. The request is gone. No record, no retry, no alert. Process restarts silently drop everything in-flight. Again: no record, no retry, no alert. Both failures are undetectable from the outside.
 
-Kafka shifts the durability boundary. The event is on broker disk before the HTTP response leaves the server. Consumer lag is a metric. Retry policy is a configuration, not a catch block. Messages that exhaust three attempts with 1s + 2s exponential backoff route to `document.generation.requested.dlq` for inspection and replay. The HTTP caller always receives `202 Accepted` immediately, regardless of consumer state.
+Kafka shifts the durability boundary. `generate` answers `202` only after the broker has acknowledged the event with `acks=all`, so the event is on broker disk before the HTTP response leaves the server. A broker that does not confirm within seconds gets the caller a `503` instead: nothing was queued, the document stays `PENDING`, and asking again is safe. Consumer lag is a metric. Retry policy is a configuration, not a catch block. Messages that exhaust three attempts with 1s + 2s exponential backoff route to `document.generation.requested.dlq` for inspection and replay. The caller's `202` waits on the broker, never on the consumer: rendering happens after the answer, whatever the consumer's state.
 
 Tenant context crosses the thread boundary via `TenantContextDecorator`, which sets schema name and MDC entries from the deserialized event before any JDBC connection is checked out, then clears both in a `finally` block. This isolates the restore-and-clear pattern as a single responsibility in `shared/multitenancy`, so any number of consumers propagate tenant context without duplicating the try/finally logic.
 

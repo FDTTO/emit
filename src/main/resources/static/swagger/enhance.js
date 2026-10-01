@@ -607,7 +607,8 @@
     return LIFECYCLE.outcomes.some(function (step) { return step.state === state; });
   }
 
-  /* Starts at PENDING without a read: `generate` answers 409 in any other state.
+  /* Starts at PENDING without a read: `generate` answers 409 in any other state,
+     and 503 when the broker did not take the request.
      The id comes from the request URL, since a 202 has no body. */
   function startFollow(source, response) {
     var start = followOperation('start');

@@ -163,7 +163,17 @@ class ErrorContractTest extends ContainerizedTest {
                     return send(operation.method(), withId(operation, id), apiKey(tenantKey), null);
                 }),
                 Map.entry("pdf-not-ready", operation -> send(operation.method(), withId(operation, createDocument()),
-                        apiKey(tenantKey), null)));
+                        apiKey(tenantKey), null)),
+                Map.entry("not-queued", operation -> {
+                    String id = createDocument();
+                    String container = KAFKA.getContainerId();
+                    KAFKA.getDockerClient().pauseContainerCmd(container).exec();
+                    try {
+                        return send(operation.method(), withId(operation, id), apiKey(tenantKey), null);
+                    } finally {
+                        KAFKA.getDockerClient().unpauseContainerCmd(container).exec();
+                    }
+                }));
     }
 
     /*

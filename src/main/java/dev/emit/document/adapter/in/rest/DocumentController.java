@@ -81,14 +81,19 @@ public class DocumentController {
     @Operation(
             operationId = "requestDocumentGeneration",
             summary = "Request PDF generation",
-            description = "Publishes the generation event to Kafka and answers `202` at once. "
+            description = "Publishes the generation event to Kafka and answers `202` once the broker has "
+                    + "acknowledged it, so an accepted request is durable. "
                     + "The document then runs PENDING, PROCESSING, DONE, or FAILED after three attempts "
-                    + "1s and 2s apart, with the event routed to the dead-letter queue.")
-    @ApiResponse(responseCode = "202", description = "PDF generation accepted")
+                    + "1s and 2s apart, with the event routed to the dead-letter queue. "
+                    + "If the broker does not confirm within seconds the answer is `503`, the document "
+                    + "stays PENDING, and asking again is safe.")
+    @ApiResponse(responseCode = "202", description = "PDF generation accepted and durable")
     @ErrorCase(status = 404, name = "unknown-id", summary = "Document not found",
             message = "Document not found: " + ErrorCase.EXAMPLE_ID)
     @ErrorCase(status = 409, name = "not-pending", summary = "Document is not in PENDING status",
             message = "Document must be PENDING but is DONE: " + ErrorCase.EXAMPLE_ID)
+    @ErrorCase(status = 503, name = "not-queued", summary = "The broker did not confirm the request in time",
+            message = "The generation request could not be queued. Try again in a few seconds.")
     public ResponseEntity<Void> generate(@PathVariable UUID id) {
         documentService.requestGeneration(id);
         return ResponseEntity.accepted().build();

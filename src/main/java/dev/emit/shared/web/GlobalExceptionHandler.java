@@ -21,6 +21,7 @@ import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import dev.emit.document.application.GenerationNotQueuedException;
 import dev.emit.document.domain.DocumentNotFoundException;
 import dev.emit.document.domain.DocumentPdfNotReadyException;
 import dev.emit.document.domain.DocumentStatusException;
@@ -78,6 +79,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlePdfNotReady(DocumentPdfNotReadyException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse(409, exception.getMessage(), OffsetDateTime.now(ZoneOffset.UTC)));
+    }
+
+    @ExceptionHandler(GenerationNotQueuedException.class)
+    public ResponseEntity<ErrorResponse> handleNotQueued(GenerationNotQueuedException exception) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new ErrorResponse(503, exception.getMessage(), OffsetDateTime.now(ZoneOffset.UTC)));
     }
 
     @ExceptionHandler(DocumentStatusException.class)

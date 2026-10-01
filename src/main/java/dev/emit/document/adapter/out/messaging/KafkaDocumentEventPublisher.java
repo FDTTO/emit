@@ -1,14 +1,22 @@
 package dev.emit.document.adapter.out.messaging;
 
+import java.time.Duration;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import dev.emit.document.application.DocumentEventPublisher;
+import dev.emit.document.application.GenerationNotQueuedException;
 import dev.emit.document.domain.DocumentGenerationRequestedEvent;
 
 @Component
@@ -17,30 +25,41 @@ class KafkaDocumentEventPublisher implements DocumentEventPublisher {
     private static final Logger log = LoggerFactory.getLogger(KafkaDocumentEventPublisher.class);
 
     private final String topic;
+    private final Duration ackTimeout;
     private final KafkaTemplate<String, DocumentGenerationRequestedEvent> kafkaTemplate;
 
     KafkaDocumentEventPublisher(
             @Value("${emit.kafka.topic.document-generation}") String topic,
+            @Value("${emit.kafka.ack-timeout}") Duration ackTimeout,
             KafkaTemplate<String, DocumentGenerationRequestedEvent> kafkaTemplate) {
         this.topic = topic;
+        this.ackTimeout = ackTimeout;
         this.kafkaTemplate = kafkaTemplate;
     }
 
+    // Returns only once the broker has acknowledged the event (acks=all), so the
+    // 202 that follows means the request is durable. The producer's own delivery
+    // timeout fails the send first; this wait is the backstop.
     @Override
     public void publishGenerationRequested(DocumentGenerationRequestedEvent event) {
-        kafkaTemplate.send(MessageBuilder
-                .withPayload(event)
-                .setHeader(KafkaHeaders.TOPIC, topic)
-                .setHeader(KafkaHeaders.KEY, event.documentId().toString())
-                .setHeader("tenantSchema", event.tenantSchema())
-                .build())
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to publish generation event documentId={}", event.documentId(), ex);
-                    } else {
-                        log.debug("Published generation event documentId={} offset={}",
-                                event.documentId(), result.getRecordMetadata().offset());
-                    }
-                });
+        SendResult<String, DocumentGenerationRequestedEvent> result;
+        try {
+            result = kafkaTemplate.send(MessageBuilder
+                    .withPayload(event)
+                    .setHeader(KafkaHeaders.TOPIC, topic)
+                    .setHeader(KafkaHeaders.KEY, event.documentId().toString())
+                    .setHeader("tenantSchema", event.tenantSchema())
+                    .build())
+                    .get(ackTimeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            throw new GenerationNotQueuedException(interrupted);
+        } catch (ExecutionException | TimeoutException | KafkaException
+                 | org.apache.kafka.common.KafkaException failure) {
+            log.error("Generation event not acknowledged documentId={}", event.documentId(), failure);
+            throw new GenerationNotQueuedException(failure);
+        }
+        log.debug("Published generation event documentId={} offset={}",
+                event.documentId(), result.getRecordMetadata().offset());
     }
 }
