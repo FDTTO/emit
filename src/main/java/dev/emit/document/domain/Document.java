@@ -42,6 +42,15 @@ public class Document {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @Column(name = "queued_at")
+    private OffsetDateTime queuedAt;
+
+    @Column(name = "started_at")
+    private OffsetDateTime startedAt;
+
+    @Column(name = "finished_at")
+    private OffsetDateTime finishedAt;
+
     @Column(name = "pdf_content")
     @Getter(AccessLevel.NONE)
     private byte[] pdfContent;
@@ -65,12 +74,14 @@ public class Document {
         return pdfContent != null ? pdfContent.clone() : null;
     }
 
-    public void markAsProcessing() {
+    public void markAsProcessing(OffsetDateTime queuedAt) {
         if (this.status != DocumentStatus.PENDING) {
             throw new IllegalStateException("Document must be PENDING to start processing, current: " + this.status);
         }
         this.status = DocumentStatus.PROCESSING;
-        this.updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
+        this.queuedAt = queuedAt;
+        this.startedAt = OffsetDateTime.now(ZoneOffset.UTC);
+        this.updatedAt = this.startedAt;
     }
 
     public void markAsDone(byte[] pdfBytes) {
@@ -82,7 +93,8 @@ public class Document {
         }
         this.pdfContent = pdfBytes.clone();
         this.status = DocumentStatus.DONE;
-        this.updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
+        this.finishedAt = OffsetDateTime.now(ZoneOffset.UTC);
+        this.updatedAt = this.finishedAt;
     }
 
     public void markAsFailed() {
@@ -90,6 +102,7 @@ public class Document {
             throw new IllegalStateException("Cannot mark document as FAILED from state " + this.status);
         }
         this.status = DocumentStatus.FAILED;
-        this.updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
+        this.finishedAt = OffsetDateTime.now(ZoneOffset.UTC);
+        this.updatedAt = this.finishedAt;
     }
 }

@@ -105,14 +105,14 @@ class DocumentIntegrationTest extends ContainerizedTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
     }
 
-    private void awaitStatusDone(String apiKey, UUID documentId) {
+    private DocumentResponse awaitStatusDone(String apiKey, UUID documentId) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-API-Key", apiKey);
 
-        Awaitility.await()
+        return Awaitility.await()
                 .atMost(Duration.ofSeconds(30))
                 .pollInterval(Duration.ofMillis(500))
-                .untilAsserted(() -> {
+                .until(() -> {
                     ResponseEntity<DocumentResponse> response = restTemplate.exchange(
                             "/v1/documents/" + documentId,
                             HttpMethod.GET,
@@ -125,8 +125,8 @@ class DocumentIntegrationTest extends ContainerizedTest {
                      * ordinals that says nothing about what went wrong.
                      */
                     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-                    assertThat(response.getBody().status()).isEqualTo(DocumentStatus.DONE);
-                });
+                    return response.getBody();
+                }, document -> document.status() == DocumentStatus.DONE);
     }
 
     private void downloadPdf(String apiKey, UUID documentId) {
@@ -150,8 +150,12 @@ class DocumentIntegrationTest extends ContainerizedTest {
         String apiKey = createTenant(token, "test_company");
         UUID documentId = createDocument(apiKey);
         requestGeneration(apiKey, documentId);
-        awaitStatusDone(apiKey, documentId);
+        DocumentResponse done = awaitStatusDone(apiKey, documentId);
         downloadPdf(apiKey, documentId);
+
+        assertThat(done.queuedAt()).isAfterOrEqualTo(done.createdAt());
+        assertThat(done.startedAt()).isAfterOrEqualTo(done.queuedAt());
+        assertThat(done.finishedAt()).isAfterOrEqualTo(done.startedAt()).isEqualTo(done.updatedAt());
     }
 
     /*

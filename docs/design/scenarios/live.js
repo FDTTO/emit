@@ -12,7 +12,9 @@ window.fetch = function (url) {
   if (String(url) !== '/v1/documents/' + ID) return realFetch.apply(this, arguments);
   reads++;
   var state = reads < 2 ? 'PROCESSING' : 'DONE';
-  return Promise.resolve(new Response(JSON.stringify({ id: ID, status: state, updatedAt: '2026-09-19T12:00:07.600Z' }),
+  var stamps = { queuedAt: '2026-09-19T12:00:00.000Z', startedAt: '2026-09-19T12:00:00.011Z' };
+  if (state === 'DONE') stamps.finishedAt = '2026-09-19T12:00:00.045Z';
+  return Promise.resolve(new Response(JSON.stringify(Object.assign({ id: ID, status: state }, stamps)),
     { status: 200, headers: { 'Content-Type': 'application/json', 'RateLimit-Remaining': '15' } }));
 };
 var q = function (selector) { return document.querySelector(selector); };
@@ -45,13 +47,16 @@ V.until(function () { return !!q('.emit-journey__count') && !!V.definition('apiK
 function generate() {
   var chip = q('#operations-Documents-getDocument .emit-carried');
   check('the carried id names its source in the field', seen(chip) && chip.textContent === 'from Create document', chip && chip.textContent);
-  V.fakeResponse('/v1/documents/{id}/generate', 'post', 202, null, 'http://localhost:8080/v1/documents/' + ID + '/generate',
-                 { date: ['Sat', '19 Sep 2026 12:00:00 GMT'] });
+  V.fakeResponse('/v1/documents/{id}/generate', 'post', 202, null, 'http://localhost:8080/v1/documents/' + ID + '/generate', {});
   V.until(function () { return seen(q('#emit-live')); }, function () {
     check('a run shows the live card', seen(q('#emit-live')) && /31f7dfab/.test(V.text('#emit-live') || ''));
     V.until(function () { return !!q('#emit-live .emit-live__action'); }, function () {
       check('it follows the run to DONE', !!q('#emit-live .emit-live__stage.is-good'));
       check('and offers the PDF', /Download PDF/.test(V.text('#emit-live .emit-live__action') || ''));
+      var spans = Array.prototype.map.call(document.querySelectorAll('#emit-live .emit-live__span'), function (s) { return s.textContent; });
+      check('the card times each crossing, over the line between its stages', spans.join('|') === '11 ms|34 ms', spans);
+      check('and, ended, says how long the run took on the server, not how long it was watched',
+            V.text('#emit-live .emit-live__elapsed') === '45 ms', V.text('#emit-live .emit-live__elapsed'));
       check('the journey counts the run', count() === '4 / 5', count());
       check('the budget outlives an answer that does not carry it', /RateLimit 17 \/ 20/.test(V.text('#emit-status-budget') || ''), V.text('#emit-status-budget'));
       check('and points at the download', /Download the PDF/.test(V.text('.emit-journey__step') || ''), V.text('.emit-journey__step'));

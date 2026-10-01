@@ -17,7 +17,16 @@ public record DocumentResponse(
         DocumentStatus status,
         @Schema(example = "2026-01-15T10:30:00Z")
         OffsetDateTime createdAt,
-        @Schema(example = "2026-01-15T10:30:00Z")
+        @Schema(description = "When the generation request was accepted and queued in Kafka. Null until a worker picks it up.",
+                example = "2026-01-15T10:31:00.120Z", nullable = true)
+        OffsetDateTime queuedAt,
+        @Schema(description = "When a worker picked the request up. Time queued is startedAt minus queuedAt.",
+                example = "2026-01-15T10:31:00.410Z", nullable = true)
+        OffsetDateTime startedAt,
+        @Schema(description = "When the document reached DONE or FAILED. Time rendering is finishedAt minus startedAt.",
+                example = "2026-01-15T10:31:01.380Z", nullable = true)
+        OffsetDateTime finishedAt,
+        @Schema(example = "2026-01-15T10:31:01.380Z")
         OffsetDateTime updatedAt) {
 
     public static DocumentResponse from(Document document) {
@@ -27,6 +36,9 @@ public record DocumentResponse(
                 document.getContent(),
                 document.getStatus(),
                 document.getCreatedAt(),
+                document.getQueuedAt(),
+                document.getStartedAt(),
+                document.getFinishedAt(),
                 document.getUpdatedAt());
     }
 }

@@ -3,8 +3,11 @@
 // Following a document through its lifecycle, with the reads stubbed so
 // every outcome is reachable on demand. Each step waits for the note, not a
 // clock; the only real waits are the follow's own backoff and Retry-After.
+// The stamps of a real run: 11 ms queued in Kafka, 34 ms rendering.
+var stamps = { queuedAt: '2026-09-19T12:00:00.000Z', startedAt: '2026-09-19T12:00:00.011Z', finishedAt: '2026-09-19T12:00:00.045Z' };
 var plan = {
-  done: [{ status: 200, state: 'PROCESSING' }, { status: 200, state: 'DONE', updatedAt: '2026-09-19T12:00:07.600Z' }],
+  done: [{ status: 200, state: 'PROCESSING', stamps: { queuedAt: stamps.queuedAt, startedAt: stamps.startedAt } },
+         { status: 200, state: 'DONE', stamps: stamps }],
   limited: [{ status: 429, headers: { 'Retry-After': '2', 'RateLimit-Remaining': '0' } }, { status: 200, state: 'DONE' }],
   saving: [{ status: 200, state: 'PROCESSING', headers: { 'RateLimit-Remaining': '1' } }]
 };
@@ -18,14 +21,15 @@ window.fetch = function (url, options) {
   reads[id] = (reads[id] || 0) + 1;
   headersSent[id] = options && options.headers;
   var step = plan[id][Math.min(reads[id], plan[id].length) - 1];
-  return Promise.resolve(new Response(step.state ? JSON.stringify({ id: id, status: step.state, updatedAt: step.updatedAt }) : '',
+  var body = step.state ? JSON.stringify(Object.assign({ id: id, status: step.state }, step.stamps || {})) : '';
+  return Promise.resolve(new Response(body,
     { status: step.status, headers: Object.assign({ 'Content-Type': 'application/json' }, step.headers || {}) }));
 };
-// The 202 carries the server's Date, split on its comma the way Swagger
-// stores real headers; the run is timed from it to updatedAt at DONE.
 var accepted = function (id) {
-  V.fakeResponse('/v1/documents/{id}/generate', 'post', 202, null, 'http://localhost:8080/v1/documents/' + id + '/generate',
-                 { date: ['Sat', '19 Sep 2026 12:00:00 GMT'] });
+  V.fakeResponse('/v1/documents/{id}/generate', 'post', 202, null, 'http://localhost:8080/v1/documents/' + id + '/generate', {});
+};
+var edges = function () {
+  return Array.prototype.map.call(document.querySelectorAll('#emit-lifecycle .emit-flow-link'), function (link) { return link.textContent; });
 };
 var note = function () { return V.text('#operations-Documents-requestDocumentGeneration .emit-note--follow') || ''; };
 // The action button (Check again), not any button: the document id is a link button too.
@@ -42,14 +46,20 @@ V.until(function () { return !!V.definition('apiKeyAuth'); }, function () {
     accepted('done');
     V.until(noteSays(/PENDING/), function () {
       check('follows from PENDING', /PENDING/.test(note()) && /checking/.test(note()), note());
-      V.until(noteSays(/Download PDF/), reachedDone);
+      check('no crossing timed before the worker picks it up', edges().join('|') === 'kafka|render', edges());
+      V.until(noteSays(/PROCESSING/), function () {
+        check('picked up, the kafka edge says how long it queued, the render edge not yet',
+              edges().join('|') === 'kafka11 ms|render', edges());
+        V.until(noteSays(/Download PDF/), reachedDone);
+      });
     });
   });
 }, 15000);
 
 function reachedDone() {
   check('reaches DONE and offers the PDF', /DONE/.test(note()) && /Download PDF/.test(note()), note());
-  check('says how long the run took, on the server clock', /PDF ready about 7s after generate/.test(note()), note());
+  check('says how long the run took, from the document\'s own stamps', /PDF ready 45 ms after generate/.test(note()), note());
+  check('each edge says how long its crossing took', edges().join('|') === 'kafka11 ms|render34 ms', edges());
   check('the figure lights DONE', lit() === 'DONE', lit());
   check('reads send the held key', (headersSent.done || {})['X-API-Key'] === 'key', headersSent.done);
   check('two reads were enough', reads.done === 2, reads.done);

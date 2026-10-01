@@ -249,6 +249,7 @@ kbd { padding: 3px 6px; border-radius: var(--r1); font: 500 var(--f-micro)/1 var
 .stage.current i { box-shadow: inset 0 0 0 1.5px var(--run), 0 0 0 4px rgba(134,184,255,.12); animation: ring .7s var(--ease); }
 .stage.current b { color: var(--run); }
 .stage.good i { background: var(--ok); box-shadow: 0 0 0 4px rgba(142,224,164,.12); animation: ring .7s var(--ease); } .stage.good b { color: var(--ok); }
+.track .span { position: absolute; top: -14px; transform: translateX(-50%); font: 400 var(--f-tiny)/1 var(--mono); color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .live-foot { display: flex; align-items: center; font-size: var(--f-meta); color: var(--dim); }
 .live-foot a { margin-left: auto; color: var(--ui); text-decoration: none; font-weight: 500; }
 
@@ -274,6 +275,7 @@ kbd { padding: 3px 6px; border-radius: var(--r1); font: 500 var(--f-micro)/1 var
 .edge { flex: 1; max-width: 150px; position: relative; display: grid; justify-items: center; gap: 5px; color: var(--faint); font: 400 var(--f-micro)/1 var(--mono); }
 .edge::before { content: ""; width: 100%; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.13)); }
 .edge.active { color: var(--run); }
+.edge .took:not(:empty) { margin-left: var(--s2); color: var(--dim); font-variant-numeric: tabular-nums; }
 .edge.active::before { background: linear-gradient(90deg, rgba(134,184,255,0.15), rgba(134,184,255,0.5)); }
 .edge.active::after { content: ""; position: absolute; top: -3px; left: 0; width: 7px; height: 7px; border-radius: 50%; background: #d6e6ff; box-shadow: 0 0 10px 2px var(--run); animation: travel 1.3s cubic-bezier(.5,0,.5,1) infinite; }
 .outcomes { display: grid; gap: var(--s5); padding-left: var(--s4); box-shadow: inset 1px 0 0 rgba(255,255,255,0.12); margin-left: var(--s2); }

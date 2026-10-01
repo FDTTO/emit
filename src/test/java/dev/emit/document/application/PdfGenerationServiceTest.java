@@ -10,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,6 +29,8 @@ import dev.emit.document.domain.DocumentStatus;
 
 @ExtendWith(MockitoExtension.class)
 class PdfGenerationServiceTest {
+
+    private static final OffsetDateTime QUEUED_AT = OffsetDateTime.parse("2026-01-15T10:30:00Z");
 
     @Mock
     private DocumentRepository documentRepository;
@@ -62,7 +65,7 @@ class PdfGenerationServiceTest {
         UUID id = UUID.randomUUID();
         when(documentRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> pdfGenerationService.generateSync(id))
+        assertThatThrownBy(() -> pdfGenerationService.generateSync(id, QUEUED_AT))
                 .isInstanceOf(DocumentNotFoundException.class);
 
         verify(documentRepository, never()).save(any());
@@ -78,7 +81,7 @@ class PdfGenerationServiceTest {
         when(templateRenderer.render(any())).thenReturn("<html></html>");
         when(pdfRenderer.render(anyString())).thenThrow(new RuntimeException("render failed"));
 
-        assertThatThrownBy(() -> pdfGenerationService.generateSync(id))
+        assertThatThrownBy(() -> pdfGenerationService.generateSync(id, QUEUED_AT))
                 .isInstanceOf(PdfGenerationException.class);
 
         // markAsFailed is now in its own transaction - actually persisted, not rolled back
@@ -96,9 +99,11 @@ class PdfGenerationServiceTest {
         when(templateRenderer.render(any())).thenReturn("<html></html>");
         when(pdfRenderer.render(anyString())).thenReturn(new byte[] { 1, 2, 3 });
 
-        pdfGenerationService.generateSync(id);
+        pdfGenerationService.generateSync(id, QUEUED_AT);
 
         assertThat(document.getStatus()).isEqualTo(DocumentStatus.DONE);
+        assertThat(document.getQueuedAt()).isEqualTo(QUEUED_AT);
+        assertThat(document.getFinishedAt()).isAfterOrEqualTo(document.getStartedAt());
         verify(documentRepository, times(2)).save(document);
     }
 
@@ -110,7 +115,7 @@ class PdfGenerationServiceTest {
         when(documentRepository.save(any())).thenReturn(document);
         when(templateRenderer.render(any())).thenThrow(new RuntimeException("template failed"));
 
-        assertThatThrownBy(() -> pdfGenerationService.generateSync(id))
+        assertThatThrownBy(() -> pdfGenerationService.generateSync(id, QUEUED_AT))
                 .isInstanceOf(RuntimeException.class)
                 .isNotInstanceOf(PdfGenerationException.class);
 
@@ -121,16 +126,19 @@ class PdfGenerationServiceTest {
     void generateSyncShouldSucceedOnRetryWhenDocumentAlreadyInProcessingState() {
         UUID id = UUID.randomUUID();
         Document document = buildDocument();
-        document.markAsProcessing();
+        document.markAsProcessing(QUEUED_AT);
+        OffsetDateTime firstStart = document.getStartedAt();
 
         when(documentRepository.findById(id)).thenReturn(Optional.of(document));
         when(documentRepository.save(any())).thenReturn(document);
         when(templateRenderer.render(any())).thenReturn("<html></html>");
         when(pdfRenderer.render(anyString())).thenReturn(new byte[] { 1, 2, 3 });
 
-        pdfGenerationService.generateSync(id);
+        pdfGenerationService.generateSync(id, QUEUED_AT.plusSeconds(3));
 
         assertThat(document.getStatus()).isEqualTo(DocumentStatus.DONE);
+        assertThat(document.getQueuedAt()).isEqualTo(QUEUED_AT);
+        assertThat(document.getStartedAt()).isEqualTo(firstStart);
         verify(documentRepository, times(1)).save(document);
     }
 
@@ -138,11 +146,11 @@ class PdfGenerationServiceTest {
     void generateSyncShouldThrowWhenDocumentIsInTerminalState() {
         UUID id = UUID.randomUUID();
         Document document = buildDocument();
-        document.markAsProcessing();
+        document.markAsProcessing(QUEUED_AT);
         document.markAsFailed();
         when(documentRepository.findById(id)).thenReturn(Optional.of(document));
 
-        assertThatThrownBy(() -> pdfGenerationService.generateSync(id))
+        assertThatThrownBy(() -> pdfGenerationService.generateSync(id, QUEUED_AT))
                 .isInstanceOf(IllegalStateException.class);
 
         verify(documentRepository, never()).save(any());
@@ -165,7 +173,7 @@ class PdfGenerationServiceTest {
     void abandonGenerationShouldSkipWhenDocumentAlreadyInTerminalState() {
         UUID id = UUID.randomUUID();
         Document document = buildDocument();
-        document.markAsProcessing();
+        document.markAsProcessing(QUEUED_AT);
         document.markAsFailed();
         when(documentRepository.findById(id)).thenReturn(Optional.of(document));
 

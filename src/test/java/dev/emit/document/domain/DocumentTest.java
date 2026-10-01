@@ -11,6 +11,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 class DocumentTest {
 
+    private static final OffsetDateTime QUEUED_AT = OffsetDateTime.parse("2026-01-15T10:30:00Z");
+
     @Test
     void createShouldSetPendingStatusAndTimestamps() {
         Document doc = Document.create("Contract", "Content");
@@ -20,6 +22,40 @@ class DocumentTest {
         assertThat(doc.getStatus()).isEqualTo(DocumentStatus.PENDING);
         assertThat(doc.getCreatedAt()).isNotNull();
         assertThat(doc.getUpdatedAt()).isNotNull();
+        assertThat(doc.getQueuedAt()).isNull();
+        assertThat(doc.getStartedAt()).isNull();
+        assertThat(doc.getFinishedAt()).isNull();
+    }
+
+    @Test
+    void markAsProcessingShouldRecordWhenTheRequestWasQueuedAndWhenWorkStarted() {
+        Document doc = Document.create("Contract", "Content");
+
+        doc.markAsProcessing(QUEUED_AT);
+
+        assertThat(doc.getQueuedAt()).isEqualTo(QUEUED_AT);
+        assertThat(doc.getStartedAt()).isEqualTo(doc.getUpdatedAt()).isAfter(QUEUED_AT);
+        assertThat(doc.getFinishedAt()).isNull();
+    }
+
+    @Test
+    void markAsDoneShouldRecordWhenWorkFinished() {
+        Document doc = Document.create("Contract", "Content");
+        doc.markAsProcessing(QUEUED_AT);
+
+        doc.markAsDone(new byte[] { 1 });
+
+        assertThat(doc.getFinishedAt()).isEqualTo(doc.getUpdatedAt()).isAfterOrEqualTo(doc.getStartedAt());
+    }
+
+    @Test
+    void markAsFailedShouldRecordWhenWorkFinished() {
+        Document doc = Document.create("Contract", "Content");
+
+        doc.markAsFailed();
+
+        assertThat(doc.getFinishedAt()).isEqualTo(doc.getUpdatedAt());
+        assertThat(doc.getStartedAt()).isNull();
     }
 
     @ParameterizedTest
@@ -34,7 +70,7 @@ class DocumentTest {
         Document doc = Document.create("Contract", "Content");
         OffsetDateTime before = doc.getUpdatedAt();
 
-        doc.markAsProcessing();
+        doc.markAsProcessing(QUEUED_AT);
 
         assertThat(doc.getStatus()).isEqualTo(DocumentStatus.PROCESSING);
         assertThat(doc.getUpdatedAt()).isAfterOrEqualTo(before);
@@ -43,7 +79,7 @@ class DocumentTest {
     @Test
     void markAsDoneShouldUpdateStatusAndStorePdf() {
         Document doc = Document.create("Contract", "Content");
-        doc.markAsProcessing();
+        doc.markAsProcessing(QUEUED_AT);
         byte[] pdfBytes = new byte[] { 1, 2, 3 };
 
         doc.markAsDone(pdfBytes);
@@ -55,7 +91,7 @@ class DocumentTest {
     @Test
     void markAsFailedShouldUpdateStatus() {
         Document doc = Document.create("Contract", "Content");
-        doc.markAsProcessing();
+        doc.markAsProcessing(QUEUED_AT);
 
         doc.markAsFailed();
 
@@ -74,9 +110,9 @@ class DocumentTest {
     @Test
     void markAsProcessingShouldThrowWhenNotPending() {
         Document doc = Document.create("Contract", "Content");
-        doc.markAsProcessing();
+        doc.markAsProcessing(QUEUED_AT);
 
-        assertThatThrownBy(doc::markAsProcessing)
+        assertThatThrownBy(() -> doc.markAsProcessing(QUEUED_AT))
                 .isInstanceOf(IllegalStateException.class);
     }
 
@@ -91,7 +127,7 @@ class DocumentTest {
     @Test
     void markAsDoneShouldThrowWhenPdfIsNull() {
         Document doc = Document.create("Contract", "Content");
-        doc.markAsProcessing();
+        doc.markAsProcessing(QUEUED_AT);
 
         assertThatThrownBy(() -> doc.markAsDone(null))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -100,7 +136,7 @@ class DocumentTest {
     @Test
     void markAsFailedShouldThrowWhenDone() {
         Document doc = Document.create("Contract", "Content");
-        doc.markAsProcessing();
+        doc.markAsProcessing(QUEUED_AT);
         doc.markAsDone(new byte[] { 1 });
 
         assertThatThrownBy(doc::markAsFailed)

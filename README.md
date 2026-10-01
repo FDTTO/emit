@@ -441,7 +441,9 @@ GET  /v1/documents/{id}             # poll until status: DONE
 GET  /v1/documents/{id}/pdf         # download the generated PDF
 ```
 
-In the console the created id is filled into these operations, and after `generate` the page follows the document to `DONE`, says how long it took, and offers the PDF.
+The document records each stage on the server's clock: `queuedAt` when `generate` was accepted, `startedAt` when a worker picked it up, `finishedAt` when it reached `DONE` or `FAILED`. On a local machine, once the app is warm, a document waits about 10 to 30 ms in Kafka and renders in about 30 ms.
+
+In the console the created id is filled into these operations, and after `generate` the page follows the document to `DONE`, shows the time queued and the time rendering on the lifecycle, and offers the PDF.
 
 <img src="docs/images/console-operation.webp" alt="An open operation in the console: the request body coloured as it is typed, the credential the call sends, Execute, the created id carried onward, and the answer as a folding tree" width="880">
 

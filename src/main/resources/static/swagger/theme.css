@@ -338,6 +338,8 @@ body {
 .emit-live__stage.is-good b { color: var(--s2-c); }
 .emit-live__stage.is-bad i { background: var(--s4-c); box-shadow: 0 0 0 4px rgba(255,143,132,.12); }
 .emit-live__stage.is-bad b { color: var(--s4-c); }
+/* How long the crossing took, over the line between two stages. */
+.emit-live__span { position: absolute; top: -14px; transform: translateX(-50%); font: 400 9px/1 var(--f-mono); color: var(--e-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .emit-live__foot { display: flex; align-items: center; font-size: var(--t-sm); color: var(--e-dim); }
 .emit-live__action { margin-left: auto; padding: 0; border: 0; background: none; color: var(--ui-c); font: 500 var(--t-sm)/1 var(--f-body); cursor: pointer; }
 .emit-live__action:hover { text-decoration: underline; }
@@ -3033,6 +3035,7 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
 }
 #emit-swagger .swagger-ui .emit-flow-link::before { content: ""; width: 100%; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.13)); }
 #emit-swagger .swagger-ui .emit-flow-link.is-active { color: var(--run-c); }
+#emit-swagger .swagger-ui .emit-flow-time { margin-left: var(--sp-2); color: var(--e-dim); font-variant-numeric: tabular-nums; }
 #emit-swagger .swagger-ui .emit-flow-link.is-active::before { background: linear-gradient(90deg, rgba(134,184,255,0.15), rgba(134,184,255,0.5)); }
 #emit-swagger .swagger-ui .emit-flow-link.is-active::after {
   content: "";

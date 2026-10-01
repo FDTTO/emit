@@ -104,6 +104,8 @@
   var LIFECYCLE = {
     schema: 'DocumentResponse',
     field: 'status',
+    /* When the request was queued, picked up and finished, on the server's clock. */
+    stamps: { queued: 'queuedAt', started: 'startedAt', finished: 'finishedAt' },
     run: [
       { state: 'PENDING', kind: 'pending', caption: 'persisted on create' },
       { via: 'kafka' },
@@ -611,10 +613,10 @@
     if (!start || source.method !== start.method || source.path !== start.path) return null;
     var id = idFromUrl(start.path, response.get('url'));
     if (!id) return null;
-    /* startedAt and endedAt are the browser's clock, for a timer that ticks;
-       acceptedAt and finishedAt are the server's, for the duration reported. */
+    /* startedAt and endedAt are the browser's clock, for the timer that ticks
+       while the run is followed; the spans reported come from the document. */
     var follow = { id: id, state: LIFECYCLE.run[0].state, phase: 'following', reads: 0, run: 0,
-                   acceptedAt: serverTime(response), startedAt: Date.now(), endedAt: null };
+                   startedAt: Date.now(), endedAt: null, stamps: null };
     restartFollow(follow);
     return follow;
   }
@@ -630,20 +632,28 @@
     return typeof value === 'string' && value ? value : null;
   }
 
-  /* The server's clock when it answered, from the Date header: the run is
-     timed on the server's clock at both ends, never against the reads'
-     backoff. Whole seconds only. */
-  function serverTime(response) {
-    var date = responseHeader(response, 'date');
-    var time = date ? Date.parse(date) : NaN;
-    return isNaN(time) ? null : time;
+  function readStamps(body) {
+    var stamps = {};
+    Object.keys(LIFECYCLE.stamps).forEach(function (name) {
+      var time = Date.parse(body[LIFECYCLE.stamps[name]]);
+      stamps[name] = isNaN(time) ? null : time;
+    });
+    return stamps;
   }
 
-  /* The Date header truncates to the second, so the run took between
-     (end - start - 1s) and (end - start); the midpoint is what is shown. */
-  function runSeconds(follow) {
-    if (follow.acceptedAt === null || !follow.finishedAt) return null;
-    return Math.max(1, Math.round((follow.finishedAt - follow.acceptedAt) / 1000 - 0.5));
+  /* Time queued in Kafka and time rendering, from the document's stamps:
+     exact to the millisecond whatever the pace of the reads. Null until
+     both ends of a span are known. */
+  function stageSpans(follow) {
+    var at = follow.stamps || {};
+    var span = function (from, to) {
+      return typeof at[from] === 'number' && typeof at[to] === 'number' ? at[to] - at[from] : null;
+    };
+    return { queued: span('queued', 'started'), rendering: span('started', 'finished'), total: span('queued', 'finished') };
+  }
+
+  function formatSpan(ms) {
+    return ms < 1000 ? Math.round(ms) + ' ms' : (ms / 1000).toFixed(1) + 's';
   }
 
   /* One document at a time: reads still pending for an older run are ignored. */
@@ -708,11 +718,10 @@
         } else {
           var state = result.body && result.body[LIFECYCLE.field];
           if (typeof state === 'string' && lifecycleStep(state)) follow.state = state;
+          follow.stamps = readStamps(result.body);
           if (isTerminal(follow.state)) {
             follow.phase = 'ended';
             follow.endedAt = Date.now();
-            var finished = Date.parse(result.body.updatedAt);
-            follow.finishedAt = isNaN(finished) ? null : finished;
           } else if (result.budget.remaining !== null && result.budget.remaining <= FOLLOW_RESERVE) {
             follow.phase = 'saving-budget';
             follow.remaining = result.budget.remaining;
@@ -797,14 +806,14 @@
     if (follow.phase === 'following') {
       said = 'checking';
     } else if (follow.phase === 'ended' && follow.state === 'DONE' && followOperation('result')) {
-      var took = runSeconds(follow);
-      said = took ? 'PDF ready about ' + took + 's after generate.' : 'PDF ready.';
+      var took = stageSpans(follow).total;
+      said = took !== null ? 'PDF ready ' + formatSpan(took) + ' after generate.' : 'PDF ready.';
       action = el('button', 'emit-note__action', 'Download PDF');
       action.addEventListener('click', function () { openFollowed('result', follow.id); });
     } else if (follow.phase === 'ended') {
-      var failedAfter = runSeconds(follow);
+      var failedAfter = stageSpans(follow).total;
       said = follow.state !== 'FAILED' ? null
-        : failedAfter ? 'Generation failed after about ' + failedAfter + 's.' : 'Generation failed.';
+        : failedAfter !== null ? 'Generation failed ' + formatSpan(failedAfter) + ' after generate.' : 'Generation failed.';
     } else if (follow.phase === 'paused') {
       said = 'Still ' + follow.state + ' after ' + follow.reads + ' checks.';
     } else if (follow.phase === 'rate-limited') {
@@ -877,8 +886,16 @@
        PENDING along the first, out of PROCESSING along the second. */
     var crossing = current && current.phase === 'following'
       ? LIFECYCLE.run.filter(function (s) { return s.state; }).map(function (s) { return s.state; }).indexOf(current.state) : -1;
+    /* Once crossed, an edge says how long the crossing took. */
+    var spans = current ? stageSpans(current) : {};
+    var took = [spans.queued, spans.rendering];
     document.querySelectorAll('#emit-lifecycle .emit-flow-link').forEach(function (link, index) {
       link.classList.toggle('is-active', index === crossing);
+      var time = link.querySelector('.emit-flow-time');
+      var text = typeof took[index] === 'number' ? formatSpan(took[index]) : null;
+      if (text && !time) time = link.querySelector('.emit-flow-via').appendChild(el('span', 'emit-flow-time'));
+      if (time && !text) time.remove();
+      if (time && text) time.textContent = text;
     });
   }
 
@@ -1588,7 +1605,7 @@
 
   /* The run as a pill over the page: its id, the stages as dots, the state
      it is in and how long it has run. */
-  function paintLivePill(follow, stages, at, seconds) {
+  function paintLivePill(follow, stages, at, elapsed) {
     var win = document.getElementById('emit-window');
     var pill = document.getElementById('emit-live-pill');
     if (!follow) {
@@ -1614,7 +1631,7 @@
       pill.appendChild(el('em', 'emit-live-pill__state is-' + follow.state.toLowerCase(), follow.state));
       pill.appendChild(el('span', 'emit-live-pill__elapsed'));
     }
-    pill.querySelector('.emit-live-pill__elapsed').textContent = seconds.toFixed(1) + 's';
+    pill.querySelector('.emit-live-pill__elapsed').textContent = elapsed;
   }
 
   /* ---------------------------------------------------------------- legend
@@ -2800,7 +2817,12 @@
 
     var flow = el('div', 'emit-flow');
     LIFECYCLE.run.forEach(function (step) {
-      flow.appendChild(step.via ? el('div', 'emit-flow-link', step.via) : lifecycleNode(step, true));
+      if (!step.via) {
+        flow.appendChild(lifecycleNode(step, true));
+        return;
+      }
+      /* One grid item, so a time added beside the name stays on its line. */
+      flow.appendChild(el('div', 'emit-flow-link')).appendChild(el('span', 'emit-flow-via', step.via));
     });
 
     var outcomes = el('div', 'emit-flow-outcomes');
@@ -3565,7 +3587,12 @@
     }
 
     var ended = follow.phase === 'ended';
-    var seconds = ((follow.endedAt || Date.now()) - follow.startedAt) / 1000;
+    var spans = stageSpans(follow);
+    /* While it runs, how long the console has been watching; once it ends,
+       how long the run took on the server, which the reads' pace never
+       stretches. */
+    var elapsed = ended && spans.total !== null ? formatSpan(spans.total)
+      : (((follow.endedAt || Date.now()) - follow.startedAt) / 1000).toFixed(1) + 's';
     var stages = [LIFECYCLE.run[0].state, LIFECYCLE.run[2].state, isTerminal(follow.state) ? follow.state : LIFECYCLE.outcomes[0].state];
     var at = stages.indexOf(follow.state);
 
@@ -3587,6 +3614,11 @@
         stage.appendChild(el('i'));
         stage.appendChild(el('b', null, state));
         track.appendChild(stage);
+      });
+      [spans.queued, spans.rendering].forEach(function (span, index) {
+        if (span === null) return;
+        var time = track.appendChild(el('small', 'emit-live__span', formatSpan(span)));
+        time.style.left = (index + 1) * 100 / 3 + '%';
       });
       live.appendChild(track);
 
@@ -3613,8 +3645,8 @@
         run.appendChild(document.createTextNode('Document ' + follow.id.slice(0, 8) + ' · ' + follow.state));
       }
     }
-    live.querySelector('.emit-live__elapsed').textContent = seconds.toFixed(1) + 's';
-    paintLivePill(follow, stages, at, seconds);
+    live.querySelector('.emit-live__elapsed').textContent = elapsed;
+    paintLivePill(follow, stages, at, elapsed);
 
     if (!ended && !liveTicker) liveTicker = setInterval(schedule, 200);
     if (ended && liveTicker) {

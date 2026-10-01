@@ -34,7 +34,7 @@ class DocumentGenerationConsumer {
                 Map.of("tenantSchema", event.tenantSchema(), "documentId", event.documentId().toString()),
                 () -> {
                     log.info("Starting PDF generation documentId={} tenant={}", event.documentId(), event.tenantSchema());
-                    pdfGenerationService.generateSync(event.documentId());
+                    pdfGenerationService.generateSync(event.documentId(), event.requestedAt());
                 });
     }
 

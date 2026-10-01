@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -55,9 +56,12 @@ class DocumentServiceTest {
         Document document = Document.create("Title", "Content");
         when(documentRepository.findById(id)).thenReturn(Optional.of(document));
 
+        OffsetDateTime before = OffsetDateTime.now();
+
         documentService.requestGeneration(id);
 
-        verify(eventPublisher).publishGenerationRequested(argThat(event -> id.equals(event.documentId())));
+        verify(eventPublisher).publishGenerationRequested(argThat(event -> id.equals(event.documentId())
+                && !event.requestedAt().isBefore(before) && !event.requestedAt().isAfter(OffsetDateTime.now())));
     }
 
     @Test
@@ -73,7 +77,7 @@ class DocumentServiceTest {
     void requestGenerationShouldThrowWhenDocumentIsNotPending() {
         UUID id = UUID.randomUUID();
         Document document = Document.create("Title", "Content");
-        document.markAsProcessing();
+        document.markAsProcessing(OffsetDateTime.now());
         when(documentRepository.findById(id)).thenReturn(Optional.of(document));
 
         assertThatThrownBy(() -> documentService.requestGeneration(id))
@@ -87,7 +91,7 @@ class DocumentServiceTest {
         UUID id = UUID.randomUUID();
         byte[] pdfBytes = new byte[] { 1, 2, 3 };
         Document document = Document.create("Test", "Content");
-        document.markAsProcessing();
+        document.markAsProcessing(OffsetDateTime.now());
         document.markAsDone(pdfBytes);
         when(documentRepository.findById(id)).thenReturn(Optional.of(document));
 

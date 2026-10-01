@@ -48,7 +48,7 @@
       <nav class="map" id="map"></nav>
       <section class="live">
         <div class="live-head"><span class="dot"></span>Document 31f7dfab<small id="elapsed">0.0s</small></div>
-        <div class="track" id="track"><div class="stage"><i></i><b>PENDING</b></div><div class="stage"><i></i><b>PROCESSING</b></div><div class="stage"><i></i><b>DONE</b></div></div>
+        <div class="track" id="track"><div class="stage"><i></i><b>PENDING</b></div><div class="stage"><i></i><b>PROCESSING</b></div><div class="stage"><i></i><b>DONE</b></div><small class="span" data-took="11 ms" style="left:33.333%"></small><small class="span" data-took="34 ms" style="left:66.667%"></small></div>
         <div class="live-foot"><span id="live-text">Queued in Kafka</span><a href="#op-pdf" id="live-link" hidden>Download PDF</a></div>
       </section>
     </aside>
@@ -63,9 +63,9 @@
           <div class="label rule">Document lifecycle</div>
           <div class="flow well" id="flow">
             <div class="node pending" data-stage="0"><em>31f7dfab</em><i></i><b>PENDING</b><small>persisted on create</small></div>
-            <div class="edge">kafka</div>
+            <div class="edge"><span>kafka<span class="took" data-took="11 ms"></span></span></div>
             <div class="node processing" data-stage="1"><em>31f7dfab</em><i></i><b>PROCESSING</b><small>worker picked up</small></div>
-            <div class="edge">render</div>
+            <div class="edge"><span>render<span class="took" data-took="34 ms"></span></span></div>
             <div class="outcomes">
               <div class="node done" data-stage="2"><em>31f7dfab</em><i></i><b>DONE</b><small>pdf ready</small></div>
               <div class="node failed"><i></i><b>FAILED</b><small>retries exhausted</small></div>
@@ -288,14 +288,20 @@
   var t = 0, timer = null, shown = -1;
   function paintRun() {
     var at = t < 1.2 ? 0 : t < 7.6 ? 1 : 2;
-    if (at === shown) { document.getElementById('elapsed').textContent = Math.min(t, 7.6).toFixed(1) + 's'; return; }
+    /* While it runs, how long the console has watched; ended, the run's own
+       time on the server. Each crossing is timed once it is crossed. */
+    var watched = function () { return at === 2 ? '45 ms' : Math.min(t, 7.6).toFixed(1) + 's'; };
+    if (at === shown) { document.getElementById('elapsed').textContent = watched(); return; }
     shown = at;
+    document.querySelectorAll('#flow .took, #track .span').forEach(function (s, i) {
+      s.textContent = (i % 2) < at ? s.dataset.took : '';
+    });
     document.querySelectorAll('#track .stage').forEach(function (s, i) { s.className = 'stage' + (i < at ? ' past' : i === at ? (at === 2 ? ' good' : ' current') : ''); });
     document.querySelectorAll('#flow .node[data-stage]').forEach(function (n) { n.classList.toggle('lit', Number(n.dataset.stage) === at); });
     document.querySelectorAll('#flow .edge').forEach(function (e, i) { e.classList.toggle('active', win.dataset.run === 'on' && i === at); });
-    document.getElementById('elapsed').textContent = Math.min(t, 7.6).toFixed(1) + 's';
+    document.getElementById('elapsed').textContent = watched();
     document.getElementById('status-stage').textContent = ['PENDING', 'PROCESSING', 'DONE'][at];
-    document.getElementById('live-text').textContent = ['Queued in Kafka', 'Rendering the PDF', 'PDF ready in 7.6s'][at];
+    document.getElementById('live-text').textContent = ['Queued in Kafka', 'Rendering the PDF', 'PDF ready'][at];
     document.getElementById('live-link').hidden = at !== 2;
     var done = at === 2;
     win.dataset.done = done ? 'true' : '';

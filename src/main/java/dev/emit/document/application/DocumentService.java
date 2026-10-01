@@ -1,5 +1,7 @@
 package dev.emit.document.application;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -54,7 +56,7 @@ public class DocumentService {
         }
         log.info("Requesting PDF generation documentId={} tenant={}", id, TenantContext.getTenant());
         eventPublisher.publishGenerationRequested(
-                new DocumentGenerationRequestedEvent(id, TenantContext.getTenant()));
+                new DocumentGenerationRequestedEvent(id, TenantContext.getTenant(), OffsetDateTime.now(ZoneOffset.UTC)));
     }
 
     @Transactional(readOnly = true)

@@ -1,5 +1,6 @@
 package dev.emit.document.application;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -44,12 +45,12 @@ public class PdfGenerationService {
     // The PROCESSING branch makes this idempotent for @RetryableTopic retries:
     // if a prior attempt failed after markAsProcessing() was committed, the next
     // attempt skips the state transition and proceeds directly to rendering.
-    public void generateSync(UUID id) {
+    public void generateSync(UUID id, OffsetDateTime requestedAt) {
         Document document = transactionTemplate.execute(tx -> {
             Document fetched = documentRepository.findById(id)
                     .orElseThrow(() -> new DocumentNotFoundException(id));
             if (fetched.getStatus() == DocumentStatus.PENDING) {
-                fetched.markAsProcessing();
+                fetched.markAsProcessing(requestedAt);
                 return documentRepository.save(fetched);
             } else if (fetched.getStatus() == DocumentStatus.PROCESSING) {
                 return fetched;

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -23,6 +24,8 @@ import dev.emit.shared.multitenancy.TenantContextDecorator;
 @ExtendWith(MockitoExtension.class)
 class DocumentGenerationConsumerTest {
 
+    private static final OffsetDateTime REQUESTED_AT = OffsetDateTime.parse("2026-01-15T10:30:00Z");
+
     @Mock
     private PdfGenerationService pdfGenerationService;
 
@@ -39,7 +42,7 @@ class DocumentGenerationConsumerTest {
     }
 
     private ConsumerRecord<String, DocumentGenerationRequestedEvent> buildRecord(UUID documentId, String tenantSchema) {
-        DocumentGenerationRequestedEvent event = new DocumentGenerationRequestedEvent(documentId, tenantSchema);
+        DocumentGenerationRequestedEvent event = new DocumentGenerationRequestedEvent(documentId, tenantSchema, REQUESTED_AT);
         return new ConsumerRecord<>("document-generation", 0, 0L, documentId.toString(), event);
     }
 
@@ -49,7 +52,7 @@ class DocumentGenerationConsumerTest {
 
         consumer.consume(buildRecord(documentId, "tenant_abc"));
 
-        verify(pdfGenerationService).generateSync(documentId);
+        verify(pdfGenerationService).generateSync(documentId, REQUESTED_AT);
     }
 
     @Test
@@ -64,7 +67,7 @@ class DocumentGenerationConsumerTest {
     @Test
     void shouldClearTenantContextEvenWhenGenerateSyncThrows() {
         UUID documentId = UUID.randomUUID();
-        doThrow(new RuntimeException("pdf failure")).when(pdfGenerationService).generateSync(documentId);
+        doThrow(new RuntimeException("pdf failure")).when(pdfGenerationService).generateSync(documentId, REQUESTED_AT);
 
         assertThatThrownBy(() -> consumer.consume(buildRecord(documentId, "tenant_abc")))
                 .isInstanceOf(RuntimeException.class);

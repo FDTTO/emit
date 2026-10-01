@@ -51,6 +51,14 @@ and work, and that the two outcomes are exclusive. While a run is followed it
 is also the andon: the document's id rides on the stage it is in, and light
 travels the edge it is crossing.
 
+**A time is measured where it happened.** How long a document queued and
+rendered comes from the stamps the server wrote, never from when the console
+happened to look: with reads paced at one, three and seven seconds, a 45 ms
+run would read as seconds. A crossing's time sits on its edge, in the
+figure and in the rail's card, and only once it is crossed; while a run is
+followed the card's clock counts the watching, and at the end it gives the
+run's own time.
+
 **Density is solved by hierarchy, not by cutting.** Everything the console
 knows stays on the page; what is not needed now waits one step away. A
 response is a row until chosen, a refusal every route shares is one row with
