@@ -311,6 +311,30 @@ body {
 .emit-journey__next[hidden] { display: none; }
 .emit-journey__words small { display: block; margin-bottom: 5px; font: 600 var(--t-xs)/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--ui-c); }
 .emit-journey__next svg { margin-left: auto; width: 14px; height: 14px; color: var(--ui-c); }
+/* Run all steps or Stop, and while it runs, the camera: quiet tools under
+   the next step, where the rail keeps them in view. */
+.emit-journey__tools { display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-3) calc(-1 * var(--sp-2)) 0; }
+.emit-journey__tools[hidden],
+.emit-journey__tool[hidden] { display: none; }
+.emit-journey__tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 var(--sp-2);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--ui-c);
+  font: 500 var(--t-sm)/1 var(--f-body);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.emit-journey__tool:hover { background: var(--ui-bg); }
+.emit-journey__run svg { width: 10px; height: 10px; fill: currentColor; stroke: none; }
+.emit-journey__camera { margin-left: auto; color: var(--e-dim); }
+.emit-journey__camera svg { width: 13px; height: 13px; }
+.emit-journey__camera[aria-pressed="true"] { color: var(--ui-c); background: var(--ui-bg); box-shadow: inset 0 0 0 1px var(--ui-b); }
 
 /* Live: the followed document, pinned at the rail's foot while it runs. */
 .emit-live {
@@ -877,29 +901,21 @@ body {
 #emit-swagger .swagger-ui .info h2::after,
 #emit-swagger .swagger-ui .info h3::after,
 #emit-swagger .swagger-ui .info h4::after { content: ""; flex: 1; height: 1px; background: var(--e-hair); }
-/* Run all steps: after the heading's rule, a quiet tool like a section's
-   Open all, its line kept at the label's height. */
+/* Run all steps: the overview's one action, in the primary's glass, after
+   the heading's rule; its negative margin keeps the line at the label's
+   height. */
 #emit-swagger .swagger-ui .info .emit-journey-run {
   order: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 24px;
-  margin: -7px 0;
-  padding: 0 var(--sp-2);
-  border: 0;
-  border-radius: var(--r-sm);
-  background: none;
-  font: 500 var(--t-sm)/1 var(--f-body);
+  gap: var(--sp-2);
+  height: 32px;
+  margin: -11px 0;
+  padding: 0 var(--sp-4);
+  font: 600 var(--t-md)/1 var(--f-body);
   letter-spacing: 0;
   text-transform: none;
-  color: var(--ui-c);
-  cursor: pointer;
-  transition: background .15s;
 }
-#emit-swagger .swagger-ui .info .emit-journey-run:hover { background: var(--ui-bg); }
 #emit-swagger .swagger-ui .info .emit-journey-run[hidden] { display: none; }
-#emit-swagger .swagger-ui .info .emit-journey-run svg { width: 10px; height: 10px; fill: currentColor; stroke: none; }
+#emit-swagger .swagger-ui .info .emit-journey-run svg { width: 10px; height: 10px; fill: var(--ui-c); stroke: none; }
 
 #emit-swagger .swagger-ui .info code,
 #emit-swagger .swagger-ui .info .markdown code,

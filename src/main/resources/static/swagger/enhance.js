@@ -2567,7 +2567,8 @@
 
   /* A collapsed tag has no operations in the DOM, so open the tag first and
      retry until React renders the target. */
-  function openOperation(target) {
+  function openOperation(target, options) {
+    var scroll = !options || options.scroll !== false;
     var section = document.querySelector('h3.opblock-tag[data-tag="' + target.tag + '"]');
     if (section && section.getAttribute('data-is-open') === 'false') section.click();
 
@@ -2582,29 +2583,37 @@
         var control = block.querySelector('.opblock-summary-control');
         if (control) control.click();
       }
-      bringIntoView(block);
+      if (scroll) bringIntoView(block);
     })();
   }
 
   /* A smooth scroll aims at where the block is when it starts. Content that
      lands above it meanwhile (the lifecycle figure is drawn once the spec
      arrives) leaves it short, so where the scroll ends is checked and
-     corrected. Only for a moment: after that the reader is scrolling. */
+     corrected. Only for a moment, and never once the reader scrolls: from
+     then on where the page sits is theirs. */
   function bringIntoView(block) {
     block.scrollIntoView({ behavior: 'smooth', block: 'start' });
     var pane = contentPane();
     if (!pane || !('onscrollend' in window)) return;
     var started = Date.now();
     var corrections = 0;
-    pane.addEventListener('scrollend', function settle() {
+    var inputs = ['wheel', 'touchmove', 'keydown'];
+    var stop = function () {
+      pane.removeEventListener('scrollend', settle);
+      inputs.forEach(function (type) { document.removeEventListener(type, stop, true); });
+    };
+    var settle = function () {
       var margin = parseFloat(getComputedStyle(block).scrollMarginTop) || 0;
       var off = block.getBoundingClientRect().top - pane.getBoundingClientRect().top - margin;
       if (Date.now() - started < 4000 && Math.abs(off) > 4 && corrections++ < 2) {
         block.scrollIntoView({ block: 'start' });
         return;
       }
-      pane.removeEventListener('scrollend', settle);
-    });
+      stop();
+    };
+    pane.addEventListener('scrollend', settle);
+    inputs.forEach(function (type) { document.addEventListener(type, stop, { capture: true, passive: true }); });
   }
 
   function paintSteps() {
@@ -3439,9 +3448,43 @@
 
   function runJourney() {
     if (!spec || journeyState().next < 0) return;
-    autopilot = { step: -1, run: {} };
+    autopilot = { step: -1, run: {}, camera: 'follow' };
     schedule();
     nextJourneyStep(autopilot);
+  }
+
+  /* The camera follows the run until the reader scrolls: taking the scroll
+     takes the camera, and the run goes on without moving the page under
+     them. Follow hands it back, at the step being run. */
+  function releaseCamera(event) {
+    if (!autopilot || autopilot.camera !== 'follow') return;
+    var pane = contentPane();
+    if (event && event.type !== 'keydown' && pane && !pane.contains(event.target)) return;
+    autopilot.camera = 'free';
+    schedule();
+  }
+
+  function toggleCamera() {
+    if (!autopilot) return;
+    if (autopilot.camera === 'follow') {
+      autopilot.camera = 'free';
+    } else {
+      autopilot.camera = 'follow';
+      var step = JOURNEY[autopilot.step];
+      var target = step && operationIndex()[step.method.toUpperCase() + ' ' + step.path];
+      var block = target && document.getElementById('operations-' + target.tag + '-' + target.id);
+      if (block) bringIntoView(block);
+    }
+    schedule();
+  }
+
+  function bindCamera() {
+    ['wheel', 'touchmove'].forEach(function (type) {
+      document.addEventListener(type, releaseCamera, { passive: true });
+    });
+    document.addEventListener('keydown', function (event) {
+      if (/^(PageUp|PageDown|Home|End|ArrowUp|ArrowDown| )$/.test(event.key) && !typing(event.target)) releaseCamera(event);
+    });
   }
 
   function stopJourney() {
@@ -3472,7 +3515,7 @@
     var key = step.method.toUpperCase() + ' ' + step.path;
     var target = operationIndex()[key];
     if (!target) return stopJourney();
-    openOperation(target);
+    openOperation(target, { scroll: run.camera === 'follow' });
     var before = lastAnswers[key];
     whileRunning(run, function () {
       var block = document.getElementById('operations-' + target.tag + '-' + target.id);
@@ -3509,7 +3552,7 @@
     if (!heading || !/^H[2-4]$/.test(heading.tagName)) return;
     var button = heading.querySelector('.emit-journey-run');
     if (!button) {
-      button = el('button', 'emit-journey-run');
+      button = el('button', 'emit-journey-run emit-primary');
       button.type = 'button';
       button.addEventListener('click', toggleJourneyRun);
       heading.appendChild(button);
@@ -3577,12 +3620,20 @@
         if (target) openOperation(target);
       });
       journey.appendChild(next);
+      var tools = el('div', 'emit-journey__tools');
+      var run = tools.appendChild(el('button', 'emit-journey__tool emit-journey__run'));
+      run.type = 'button';
+      run.addEventListener('click', toggleJourneyRun);
+      var camera = tools.appendChild(el('button', 'emit-journey__tool emit-journey__camera'));
+      camera.type = 'button';
+      camera.addEventListener('click', toggleCamera);
+      journey.appendChild(tools);
       journey.hidden = false;
     }
     var state = journeyState();
     paintStrip(state);
     var count = state.done.filter(Boolean).length;
-    var key = state.done.join() + state.next + !!autopilot;
+    var key = state.done.join() + state.next + !!autopilot + (autopilot ? autopilot.camera : '');
     if (journey.dataset.key === key) return;
     journey.dataset.key = key;
     journey.querySelector('.emit-journey__count').textContent = count + ' / ' + JOURNEY.length;
@@ -3594,6 +3645,22 @@
     if (state.next >= 0) journey.querySelector('.emit-journey__step').textContent = JOURNEY[state.next].label;
     journey.querySelector('.emit-journey__kind').textContent = autopilot ? 'Running' : 'Next';
     journey.classList.toggle('is-running', !!autopilot);
+
+    var runButton = journey.querySelector('.emit-journey__run');
+    runButton.hidden = state.next < 0 && !autopilot;
+    runButton.textContent = '';
+    runButton.appendChild(icon(autopilot ? 'stop' : 'play'));
+    runButton.appendChild(document.createTextNode(autopilot ? 'Stop' : 'Run all steps'));
+    var following = !!autopilot && autopilot.camera === 'follow';
+    var cameraButton = journey.querySelector('.emit-journey__camera');
+    cameraButton.hidden = !autopilot;
+    cameraButton.setAttribute('aria-pressed', String(following));
+    cameraButton.title = following ? 'The page follows the run. Scroll to look around on your own.'
+      : 'Bring the page back to the step being run, and follow it';
+    cameraButton.textContent = '';
+    cameraButton.appendChild(icon('eye'));
+    cameraButton.appendChild(document.createTextNode(following ? 'Following' : 'Follow'));
+    journey.querySelector('.emit-journey__tools').hidden = runButton.hidden;
   }
 
   /* The followed document, where the reader is: its stage, how long it has
@@ -4045,6 +4112,7 @@
     placeStatusbar();
     PHONE.addEventListener('change', placeStatusbar);
     bindShortcuts();
+    bindCamera();
     document.addEventListener('click', function (event) {
       if (!event.target.closest('.emit-history__panel, .emit-history')) closeHistory();
     });
