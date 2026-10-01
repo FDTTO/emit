@@ -5,7 +5,12 @@
 var pane = function () { return document.querySelector('#emit-window .swagger-container > .swagger-ui'); };
 var crumb = function () { return document.getElementById('emit-crumb').textContent; };
 
-V.until(function () { return !!document.querySelector('h3.opblock-tag[data-tag="Documents"]') && !!document.querySelector('.opblock'); }, function () {
+/* Measured once the window has arrived: the overview's figure and faces land
+   late and move everything under them. */
+V.until(function () {
+  return !!document.querySelector('h3.opblock-tag[data-tag="Documents"]') && !!document.querySelector('.opblock')
+    && !document.getElementById('emit-window').hasAttribute('data-loading');
+}, function () {
   var heading = document.querySelector('h3.opblock-tag[data-tag="Documents"]');
   /* The place is read on a line 64px under the pane's top: the heading just
      past it, its first operation still below. */

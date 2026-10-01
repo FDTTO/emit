@@ -12,6 +12,7 @@
 
   var log = window.__log = { errors: [], checks: [] };
   window.L = function (key, value) { log[key] = value; };
+  var opening = {};
 
   /* What makes a scenario a test rather than a probe: a named expectation
      that passes or fails, with what was actually seen when it fails. The
@@ -94,6 +95,7 @@
     },
     /* Opens a tag section and one operation, nothing more. */
     open: function (tag, operationId, at) {
+      opening[tag + ' ' + operationId] = true;
       setTimeout(function () {
         var section = document.querySelector('h3.opblock-tag[data-tag="' + tag + '"]');
         if (section && section.getAttribute('data-is-open') === 'false') section.click();
@@ -106,7 +108,20 @@
     /* A response as if Execute had run, without touching the backend: the
        request is set too, both plain and mutated, because Swagger's live
        response block reads the mutated one and crashes without it. */
+    /* An operation with a request body is resolved when first opened, and
+       resolving mounts the body's content-type control, whose mount clears
+       the response (onChangeMediaType). A fake set on an operation opening
+       is wiped as soon as it resolves, so it fails here instead, out loud:
+       wait for the operation's .responses-wrapper first. A fake on a closed
+       operation stays only while nobody opens it. */
     fakeResponse: function (path, method, status, body, url, headers, duration) {
+      var at = ['paths', path, method.toLowerCase()];
+      var spec = ui().specSelectors.specJson();
+      var tag = spec.getIn(at.concat(['tags', 0])), operationId = spec.getIn(at.concat('operationId'));
+      var shown = opening[tag + ' ' + operationId] || ui().layoutSelectors.isShown(['operations', tag, operationId]);
+      if (shown && spec.getIn(at.concat('requestBody')) && !ui().specSelectors.specResolvedSubtree(at)) {
+        log.errors.push('fakeResponse(' + method + ' ' + path + ') before the operation resolved: Swagger clears it on resolving');
+      }
       var request = { url: url, method: method.toUpperCase(), headers: {} };
       ui().specActions.setRequest(path, method, request);
       ui().specActions.setMutatedRequest(path, method, request);

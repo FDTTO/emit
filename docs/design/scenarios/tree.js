@@ -19,7 +19,9 @@ V.open('Documents', 'listDocuments', 0);
    one, but no responses yet to draw an answer into. */
 V.until(function () { return !!q('.responses-wrapper'); }, function () {
   V.fakeResponse('/v1/documents', 'get', 200, answer, location.origin + '/v1/documents', {}, 42);
-  V.until(function () { return nodes().length === 9; }, function () {
+  /* The sheet can repaint as the answer settles: wait for a whole tree,
+     its nodes and their folds, not for the first of them. */
+  V.until(function () { return nodes().length === 9 && folded().length > 0; }, function () {
     var meta = folded();
     check('levels from the third start folded, saying what they hold',
           meta.length === 4 && /2 keys \}/.test(meta[0].querySelector('.emit-json__summary').textContent), meta.length);
