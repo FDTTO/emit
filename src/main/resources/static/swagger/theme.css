@@ -364,9 +364,27 @@ body {
 .emit-live__stage.is-bad b { color: var(--s4-c); }
 /* How long the crossing took, over the line between two stages. */
 .emit-live__span { position: absolute; top: -14px; transform: translateX(-50%); font: 400 9px/1 var(--f-mono); color: var(--e-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.emit-live__foot { display: flex; align-items: center; font-size: var(--t-sm); color: var(--e-dim); }
-.emit-live__action { margin-left: auto; padding: 0; border: 0; background: none; color: var(--ui-c); font: 500 var(--t-sm)/1 var(--f-body); cursor: pointer; }
-.emit-live__action:hover { text-decoration: underline; }
+.emit-live__foot { display: grid; gap: var(--sp-3); font-size: var(--t-sm); color: var(--e-dim); }
+/* The PDF is what the run was for: a real button, in the rail's glass. */
+.emit-live__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  width: 100%;
+  height: 34px;
+  padding: 0 var(--sp-4);
+  border: 0;
+  border-radius: var(--r-code);
+  background: var(--ui-bg);
+  box-shadow: inset 0 0 0 1px var(--ui-b);
+  color: var(--e-text);
+  font: 500 var(--t-lg)/1 var(--f-body);
+  cursor: pointer;
+  transition: background .15s;
+}
+.emit-live__action:hover { background: var(--ui-bg-hover); }
+.emit-live__action svg { width: 14px; height: 14px; color: var(--ui-c); }
 
 /* The last answer an operation gave, on its row and as a dot in the map. */
 #emit-swagger .swagger-ui .opblock-summary .emit-last {
@@ -2802,6 +2820,7 @@ body {
 .emit-auth__state.is-empty::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--e-faint); }
 .emit-auth__state.is-expired::before { background: var(--s4-c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s4-c) 14%, transparent); }
 .emit-auth__state small { font-size: var(--t-sm); color: var(--e-faint); }
+.emit-auth__state small::before { content: "· "; }
 .emit-auth__source { margin-left: auto; padding: 0; border: 0; background: none; color: var(--ui-c); font: 500 var(--t-md)/1.55 var(--f-body); white-space: pre; cursor: pointer; }
 .emit-auth__source svg { width: 14px; height: 14px; }
 .emit-auth__row { display: flex; gap: var(--sp-2); }
@@ -3348,6 +3367,10 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
     background: none; box-shadow: inset 0 1px 0 var(--e-hair);
   }
   #emit-rail > #emit-statusbar > * { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); height: auto; padding: 0; background: none; }
+  /* The telemetry reads a line each; the two tools sit side by side under it, buttons in their own right. */
+  #emit-rail > #emit-statusbar { grid-template-columns: 1fr 1fr; }
+  #emit-rail > #emit-statusbar > :not(#emit-density, #emit-legend-btn) { grid-column: 1 / -1; }
+  #emit-rail > #emit-statusbar > :is(#emit-density, #emit-legend-btn) { justify-content: center; gap: 6px; height: 34px; padding: 0 var(--sp-3); border-radius: var(--r-sm); box-shadow: inset 0 0 0 1px var(--e-hair); }
   #emit-rail > #emit-statusbar > [hidden],
   #emit-rail > #emit-statusbar > .emit-status__server,
   #emit-rail > #emit-statusbar > .emit-status__run,
@@ -3380,6 +3403,16 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   .emit-live-pill__state { font-style: normal; color: var(--run-c); }
   .emit-live-pill__state.is-done { color: var(--s2-c); }
   .emit-live-pill__state.is-failed { color: var(--s4-c); }
+  .emit-live-pill__action { display: inline-flex; align-items: center; gap: 5px; height: 26px; margin: -4px -6px -4px 2px; padding: 0 10px; border: 0; border-radius: var(--r-pill); background: var(--ui-bg); box-shadow: inset 0 0 0 1px var(--ui-b); color: var(--e-text); font: 600 var(--t-sm)/1 var(--f-body); cursor: pointer; }
+  .emit-live-pill__action svg { width: 12px; height: 12px; color: var(--ui-c); }
+
+  /* The authentication table, a block per scope: the scope beside what it
+     grants, the header it is sent in on a line of its own. */
+  #emit-swagger .swagger-ui .info table.emit-matrix thead { display: none; }
+  #emit-swagger .swagger-ui .info table.emit-matrix tbody tr { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--sp-3); padding: var(--sp-4) 0; box-shadow: inset 0 -1px 0 var(--e-hair); }
+  #emit-swagger .swagger-ui .info table.emit-matrix tbody td { padding: 0; border: 0; background: none; }
+  #emit-swagger .swagger-ui .info table.emit-matrix tbody td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+  #emit-swagger .swagger-ui .info table.emit-matrix tbody td:nth-child(3) { color: var(--e-body); }
 }
 
 /* --------------------------------------------------------------------------
@@ -3589,6 +3622,17 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   .emit-auth__kind { flex: 1 0 100%; }
   .emit-auth__state { flex-wrap: wrap; }
   .emit-auth__source { margin-left: 0; flex: 1 0 100%; text-align: left; }
+  /* Each credential a card of its own, its way to a credential a button a
+     thumb can take, the field and Authorize at touch height. */
+  .emit-auth__cred { margin: 0 var(--sp-4) var(--sp-3); padding: var(--sp-4); border-radius: var(--r-code); background: rgba(255,255,255,0.025); box-shadow: inset 0 0 0 1px var(--e-hair); }
+  .emit-auth__cred + .emit-auth__cred { box-shadow: inset 0 0 0 1px var(--e-hair); }
+  .emit-auth__head { box-shadow: none; padding-bottom: var(--sp-4); }
+  .emit-auth__source { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 var(--sp-3); border-radius: var(--r-sm); background: var(--ui-bg); box-shadow: inset 0 0 0 1px var(--ui-b); line-height: 1; }
+  .emit-auth__state small { flex: 1 0 100%; padding-left: 14px; }
+  .emit-auth__state small::before { content: none; }
+  .emit-auth__row > * { height: 44px; }
+  .emit-auth__close { display: grid; place-items: center; width: 36px; height: 36px; margin: -8px -8px -8px auto; border-radius: var(--r-sm); }
+  .emit-auth__foot { margin-top: var(--sp-2); }
 }
 @keyframes emit-sheet { from { transform: translateY(24px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .emit-auth__box { animation: none; } }

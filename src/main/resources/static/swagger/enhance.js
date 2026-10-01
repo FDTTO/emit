@@ -1651,6 +1651,15 @@
       });
       pill.appendChild(el('em', 'emit-live-pill__state is-' + follow.state.toLowerCase(), follow.state));
       pill.appendChild(el('span', 'emit-live-pill__elapsed'));
+      /* Done, the pill hands over what the run was for. */
+      if (follow.phase === 'ended' && follow.state === 'DONE' && followOperation('result')) {
+        var download = pill.appendChild(el('button', 'emit-live-pill__action'));
+        download.type = 'button';
+        download.setAttribute('aria-label', 'Download the PDF');
+        download.appendChild(icon('download'));
+        download.appendChild(document.createTextNode('PDF'));
+        download.addEventListener('click', function () { openFollowed('result', follow.id); });
+      }
     }
     pill.querySelector('.emit-live-pill__elapsed').textContent = elapsed;
   }
@@ -1778,7 +1787,7 @@
       : expiresAt === null ? null
       : expired ? 'Execute would be refused'
       : 'expires in ' + Math.max(1, Math.round((expiresAt - Date.now()) / 60000)) + ' min';
-    if (detail) state.appendChild(el('small', null, ' · ' + detail));
+    if (detail) state.appendChild(el('small', null, detail));
     var source = credentialSourceFor(scheme);
     if ((!value || expired) && source) {
       var link = el('button', 'emit-auth__source', (expired ? source.action + ' again' : source.action) + ' ');
@@ -3725,8 +3734,10 @@
                    'no-credential': 'No key to read it back with' }[follow.phase] || '';
       foot.appendChild(el('span', null, said));
       if (ended && follow.state === 'DONE' && followOperation('result')) {
-        var download = el('button', 'emit-live__action', 'Download PDF');
+        var download = el('button', 'emit-live__action');
         download.type = 'button';
+        download.appendChild(icon('download'));
+        download.appendChild(document.createTextNode('Download PDF'));
         download.addEventListener('click', function () { openFollowed('result', follow.id); });
         foot.appendChild(download);
       }
