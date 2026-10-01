@@ -3493,6 +3493,14 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
    draw, in the place of the stale one. All under the same light as the
    page's placeholders. */
 #emit-swagger .swagger-ui .opblock-body > .opblock-loading-animation { display: none; }
+/* Swagger draws the action bar before the operation is resolved: it stays,
+   so nothing moves when it resolves, but as a ghost of itself, with no
+   Execute to press before there is anything to send. */
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) { display: flex; flex-direction: column; }
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group) { order: 1; }
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group) > * { visibility: hidden; }
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::before,
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::after,
 #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation)::before,
 #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation)::after {
   content: "";
@@ -3509,6 +3517,15 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   animation: emit-sweep 2.2s linear infinite;
 }
 #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation)::after { width: calc(88% - 2 * var(--gutter)); margin: 0 var(--gutter) var(--sp-6); }
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::before,
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::after {
+  position: absolute;
+  top: 50%;
+  margin: 0;
+  transform: translateY(-50%);
+}
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::before { left: var(--gutter); width: 22%; height: 10px; }
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::after { right: var(--gutter); width: 112px; height: 38px; border-radius: var(--r-code); }
 #emit-swagger .swagger-ui .opblock-body:has(> .loading-container) > :is(.emit-notes, .emit-result) { display: none; }
 #emit-swagger .swagger-ui .opblock-body .loading-container { display: block; min-height: 0; margin: 0; padding: 0 var(--gutter) var(--sp-6); }
 #emit-swagger .swagger-ui .opblock-body .loading-container .loading { position: relative; height: 52px; }
@@ -3551,7 +3568,9 @@ button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparen
   #emit-swagger .swagger-ui .opblock-body .loading-container .loading::before,
   #emit-swagger .swagger-ui .opblock-body .loading-container .loading::after,
   #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation)::before,
-  #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation)::after { animation: none; }
+  #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation)::after,
+  #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::before,
+  #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::after { animation: none; }
   .emit-skel { transition: none; }
   #emit-window[data-revealing] :is(#emit-rail > :not(.emit-skel), .swagger-container > .swagger-ui, .topbar-wrapper > *, #emit-statusbar > *, .information-container, .opblock-tag-section, .emit-schemas),
   #emit-window[data-revealing]::before { animation: none; }
