@@ -37,9 +37,14 @@ on the page through `V`:
 - `V.execute(tag, operationId, body, atMs)`: open, Try it out, fill, Execute,
   as a reader would. `V.open(tag, operationId, atMs)` only opens.
 - `V.fakeResponse(path, method, status, body, url)`: a response in Swagger's
-  store as if Execute had run, without touching the backend.
+  store as if Execute had run, without touching the backend. On an
+  operation with a request body that is opening, fake only once its
+  `.responses-wrapper` exists: resolving mounts the body's content-type
+  control, which clears the response. The call reports an error otherwise.
 - `V.press(key)`: a real, trusted key press (`Tab`, `Shift+Tab`, `Enter`,
   `Escape`, `Space`, arrows), delivered by the runner. Realtime only.
+- `V.hover(selector)`: a real pointer moved onto the element's centre, the
+  same way. Wait for `element.matches(':hover')` before reading what changes.
 - `V.jwt(secondsFromNow)`: a token with an exact `exp`.
 - `allowErrors(regex)`: console errors a scenario provokes on purpose; any
   other error still fails the run.
