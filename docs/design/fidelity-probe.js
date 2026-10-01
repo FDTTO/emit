@@ -31,7 +31,9 @@ window.__fidelity = function (side, roles) {
     var selector = role[column];
     if (!selector) return;
     var element = find(selector);
-    result[role[0]] = element ? measure(element) : null;
+    /* Present means drawn: an element under display:none has no boxes, and
+       for the reader it is not there. */
+    result[role[0]] = element && element.getClientRects().length ? measure(element) : null;
   });
   return result;
 };

@@ -36,12 +36,13 @@ STATES = {
         V.authorize('bearerAuth', V.jwt(3600));
         V.authorize('apiKeyAuth', 'emit_fidelity');
         replay();
-        done();
+        openGenerate(done);
     """),
     'run': ('run', """
         V.authorize('bearerAuth', V.jwt(3600));
         V.authorize('apiKeyAuth', 'emit_fidelity');
         replay();
+        openGenerate(function () {});
         running('PROCESSING');
         setTimeout(done, 1200);
     """),
@@ -114,6 +115,16 @@ var replay = function () {
   V.fakeResponse('/v1/documents/{id}', 'get', 404, { status: 404, message: 'Document not found: ' + id }, '/v1/documents/' + id, {}, 12);
   V.fakeResponse('/v1/documents', 'post', 201, { id: id, title: 'Q3 Invoice', status: 'PENDING' }, '/v1/documents',
     { 'ratelimit-limit': '20', 'ratelimit-remaining': '17', 'x-request-id': '8c1f3e2a-6b7d-4f10-9c55-2e8a1b4d07a2' }, 36);
+};
+// The mockup's idle and run states show Request PDF generation open, the
+// created id carried into it. Operations open closed by default, so it is
+// opened, and measured once resolved and filled.
+var openGenerate = function (then) {
+  V.open('Documents', 'requestDocumentGeneration', 0);
+  V.until(function () {
+    return !!document.querySelector('#operations-Documents-requestDocumentGeneration .responses-wrapper')
+      && !!document.querySelector('#operations-Documents-requestDocumentGeneration .emit-carried');
+  }, then, 10000);
 };
 // Scrolls the content pane so an operation's top meets the pane's, as the
 // mockups show an open one.
