@@ -1,0 +1,109 @@
+/* --------------------------------------------------------------------------
+   1. TOKENS
+   rem values resolve against the 14px root set below.
+   -------------------------------------------------------------------------- */
+:root {
+  /* Surfaces. The page is a scene of monochrome light; the window is a first
+     sheet of glass over it and panels are a second, lighter sheet. Edges are
+     light caught by the glass (--e-spec), not borders. */
+  --e-bg:        #07090d;
+  --e-window:    linear-gradient(160deg, rgba(34,40,52,0.48), rgba(13,16,22,0.62));
+  --e-surface:   rgba(255,255,255,0.03);
+  --e-shine:     linear-gradient(150deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02) 60%, rgba(255,255,255,0.032));
+  --e-glass:     var(--e-shine);
+  --e-raised:    rgba(255,255,255,0.03);
+  --e-hover:     rgba(255,255,255,0.055);
+  --e-bar:       rgba(0,0,0,0.26);
+  --e-well:      rgba(3,5,9,0.44);
+  --e-well-edge: inset 0 1px 2px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.04);
+  --e-spec:      inset 0 1px 0 rgba(255,255,255,0.13), inset 0 0 0 1px rgba(255,255,255,0.045);
+
+  /* Text: five solid steps. One hue at falling opacity reads as haze. */
+  --e-text:      #f1f5fb;
+  --e-body:      #aab6c6;
+  --e-label:     #8391a5;
+  --e-dim:       #6c788b;
+  --e-faint:     #4f5a6b;
+
+  /* lines */
+  --e-hair:      rgba(255,255,255,0.055);
+  --e-line:      rgba(255,255,255,0.075);
+  --e-edge:      rgba(255,255,255,0.12);
+  --e-rim:       rgba(255,255,255,0.2);
+
+  /* elevation */
+  --e-lift:      0 18px 48px rgba(0,0,0,0.40), var(--e-spec);
+  --e-lift-sm:   0 6px 20px rgba(0,0,0,0.28), var(--e-spec);
+
+  /* Methods: one desaturated steel family, told apart by luminance.
+     Green, amber and red are reserved for outcomes. DELETE stays warm. */
+  --get-c:  #9fb4d2; --get-bg:  rgba(159,180,210,0.10); --get-b:  rgba(159,180,210,0.28);
+  --post-c: #c0d0ea; --post-bg: rgba(192,208,234,0.10); --post-b: rgba(192,208,234,0.28);
+  --put-c:  #afc3e0; --put-bg:  rgba(175,195,224,0.10); --put-b:  rgba(175,195,224,0.28);
+  --del-c:  #e0a39c; --del-bg:  rgba(224,163,156,0.10); --del-b:  rgba(224,163,156,0.28);
+
+  /* Interaction: focus, active tab, links. The only saturated colour at rest. */
+  --ui-c:  #8fdcff; --ui-bg: rgba(143,220,255,0.10); --ui-b: rgba(143,220,255,0.34);
+  --ui-bg-hover: rgba(143,220,255,0.16); --ui-b-hover: rgba(143,220,255,0.60);
+  --ui-glow: 0 0 0 1px rgba(143,220,255,0.35), 0 6px 22px rgba(80,180,255,0.20);
+
+  /* Dimmed interaction colour: keyboard focus ring, quiet labels. */
+  --ui-c-dim: rgba(143,220,255,0.55);
+
+  /* Pills. The type blue must stay distinct from the interaction cyan. */
+  --pt-c: #9ccaf2;  --pt-bg: rgba(156,202,242,0.10);  --pt-b: rgba(156,202,242,0.26);
+  --pf-c: #dcb57e;  --pf-bg: rgba(220,181,126,0.10);  --pf-b: rgba(220,181,126,0.26);
+  --pc-c: #8391a5;  --pc-bg: rgba(131,145,165,0.08);  --pc-b: rgba(131,145,165,0.18);
+  --pr-c: #ff8f84;  --pr-bg: rgba(255,143,132,0.08);  --pr-b: rgba(255,143,132,0.22);
+  --pe-c: #b8a0ee;  --pe-bg: rgba(184,160,238,0.08);  --pe-b: rgba(184,160,238,0.22);
+
+  /* Status: outcomes only, lifted in luminance so they read as light. */
+  --s2-c: #8ee0a4;  --s2-bg: rgba(142,224,164,0.10);  --s2-b: rgba(142,224,164,0.28);
+  --s4-c: #ff8f84;  --s4-bg: rgba(255,143,132,0.10);  --s4-b: rgba(255,143,132,0.28);
+  --s5-c: #f3c56e;  --s5-bg: rgba(243,197,110,0.10);  --s5-b: rgba(243,197,110,0.28);
+  --run-c: #86b8ff;
+
+  /* type: two faces */
+  --f-display: 'JetBrains Mono', ui-monospace, monospace;
+  --f-body:    'Inter', system-ui, -apple-system, sans-serif;
+  --f-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* Type scale in whole pixels: rem against the 14px root rendered 11.06px
+     and 10.08px, sizes no one chose. The two smallest steps are one size. */
+  --t-3xs: 9px;    /* captions inside figures */
+  --t-2xs: 9px;
+  --t-xs:  10px;   /* uppercase labels, chips */
+  --t-sm:  11px;   /* metadata */
+  --t-md:  12px;   /* code, values */
+  --t-lg:  13px;   /* reading text, paths */
+  --t-xl:  15px;   /* the overview's lead paragraph */
+  --t-2xl: 18px;   /* subheads */
+  --t-3xl: 22px;   /* the title on a phone */
+  --t-4xl: 36px;   /* the title */
+
+  /* radii: chip, control, panel, window */
+  --r-pill: 999px; --r-panel: 16px; --r-code: 10px; --r-sm: 6px; --r-xs: 6px; --r-window: 18px;
+
+  /* Rhythm: one 4px grid, used everywhere. */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-7: 32px; --sp-8: 40px;
+
+  /* Page column and gutter, shared by the topbar, info panel and operation list. */
+  --page-column: 960px;
+  --page-gutter: var(--sp-7);
+
+  /* horizontal padding shared by every row inside an expanded operation,
+     so section headers, tables and code blocks all align on one gutter */
+  --gutter: 28px;
+
+  /* Cockpit shell: the rail beside the page and the bars around it. */
+  --rail: 256px;
+  --titlebar-h: 48px;
+  --statusbar-h: 28px;
+  --ease: cubic-bezier(.2,.8,.2,1);
+}
+
+/* Swagger's own rules are px-based and unaffected. The page's colour is on
+   <html>: a background on <body> would paint over the scene behind it. */
+html { font-size: 14px; background-color: var(--e-bg); }
+

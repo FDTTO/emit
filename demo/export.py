@@ -8,6 +8,8 @@ the page. Nothing in the site is written by hand.
 Usage: python demo/export.py BASE_URL OUT_DIR
 """
 import json
+import posixpath
+import re
 import shutil
 import statistics
 import sys
@@ -86,21 +88,46 @@ def run_document(key, body):
     sys.exit('document %s did not reach DONE within a minute' % created['id'])
 
 
+MODULE_IMPORT = re.compile(r"""^import [^'"]*from '(\.[^']+)';$""", re.M)
+STYLE_IMPORT = re.compile(r"""^@import url\('([^'/][^']*)'\)""", re.M)
+ROOTED_URL = re.compile(r"""url\('/""")
+
+
+def export_graph(entry, imports):
+    """A file and everything it imports by relative path, as served.
+
+    The site is published under a project path, so a stylesheet's url('/...')
+    is made relative to where the stylesheet sits."""
+    seen, queue = set(), [entry]
+    while queue:
+        path = queue.pop()
+        if path in seen:
+            continue
+        seen.add(path)
+        source = fetched('/' + path).decode('utf-8')
+        if path.endswith('.css'):
+            source = ROOTED_URL.sub("url('" + '../' * path.count('/'), source)
+        write(path, source)
+        folder = posixpath.dirname(path)
+        queue.extend(posixpath.normpath(posixpath.join(folder, spec)) for spec in imports.findall(source))
+    if len(seen) < 2:
+        sys.exit('%s imports nothing: the console did not come with it' % entry)
+
+
 def export_page():
     page = fetched('/swagger-ui/index.html').decode('utf-8')
-    page = replace_once(page, 'href="/swagger/theme.css"', 'href="../swagger/theme.css"', 'index.html')
-    page = replace_once(page, 'src="/swagger/enhance.js"', 'src="../swagger/enhance.js"', 'index.html')
+    for needed in ('href="/swagger/theme.css"', 'src="/swagger/emit.js"'):
+        if needed not in page:
+            sys.exit('index.html: expected %s' % needed)
+    page = page.replace('="/swagger/', '="../swagger/')
     page = replace_once(page, '<script src="./swagger-ui-bundle.js"',
                         '<script src="../demo/api.js" charset="UTF-8"></script>\n    <script src="./swagger-ui-bundle.js"',
                         'index.html')
     write('swagger-ui/index.html', page)
     for asset in SWAGGER_ASSETS:
         write('swagger-ui/' + asset, fetched('/swagger-ui/' + asset))
-    theme = fetched('/swagger/theme.css').decode('utf-8')
-    theme = replace_once(theme, "url('/swagger-ui/swagger-ui.css')", "url('../swagger-ui/swagger-ui.css')", 'theme.css')
-    theme = replace_once(theme, "url('/swagger-ui/index.css')", "url('../swagger-ui/index.css')", 'theme.css')
-    write('swagger/theme.css', theme)
-    write('swagger/enhance.js', fetched('/swagger/enhance.js'))
+    export_graph('swagger/theme.css', STYLE_IMPORT)
+    export_graph('swagger/emit.js', MODULE_IMPORT)
     write('v3/api-docs.json', fetched('/v3/api-docs'))
     write('v3/swagger-config.json', fetched('/v3/api-docs/swagger-config'))
     write('index.html', '<!DOCTYPE html><meta charset="utf-8"><title>EMIT API</title>'

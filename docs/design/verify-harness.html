@@ -5,7 +5,7 @@
     it is never compiled, never served, and never referenced by the app.
 
     Swagger UI renders nothing for a collapsed region, so this page boots the
-    real bundles, theme.css and enhance.js against the real /v3/api-docs with
+    real bundles, theme.css and the console against the real /v3/api-docs with
     the operations listed and the schemas open. verify.py publishes it next to
     the app's static files for a run and removes it afterwards.
   -->
@@ -25,7 +25,7 @@
   <body id="emit-swagger">
     <div id="swagger-ui"></div>
     <script>
-      /* Virtual time starves requestAnimationFrame, and enhance.js repaints
+      /* Virtual time starves requestAnimationFrame, and the console repaints
          through it, so checks would pass or fail at random. rAF runs on a
          timer here; the page itself is unchanged. */
       window.requestAnimationFrame = function (callback) {
@@ -59,6 +59,6 @@
         });
       };
     </script>
-    <script src="/swagger/enhance.js" charset="UTF-8"></script>
+    <script type="module" src="/swagger/emit.js"></script>
   </body>
 </html>

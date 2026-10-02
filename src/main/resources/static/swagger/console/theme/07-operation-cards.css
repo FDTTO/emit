@@ -1,0 +1,173 @@
+/* --------------------------------------------------------------------------
+   7. OPERATION CARDS
+   Counter: .opblock{border:1px solid #000;box-shadow:0 0 3px;margin:0 0 15px}
+   -------------------------------------------------------------------------- */
+/* A closed operation is a row with no frame, told apart by space and a faint
+   fill; an open one is a sheet of glass lifted off the page. No overflow
+   clipping here: it would stop the open header from sticking. */
+#emit-swagger .swagger-ui .opblock {
+  color: var(--e-body);
+  background: var(--e-raised);
+  border: 0;
+  border-radius: var(--r-panel);
+  margin: 0 0 6px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.035);
+  transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease), margin 0.3s var(--ease);
+}
+#emit-swagger .swagger-ui .opblock:not(.is-open):hover { background: var(--e-hover); }
+#emit-swagger .swagger-ui .opblock.is-open {
+  background: var(--e-shine);
+  border: 0;
+  box-shadow: var(--e-lift);
+  margin: var(--sp-5) 0 var(--sp-6);
+}
+/* The next section heading carries the space after a section's last row:
+   Swagger's wrappers keep the two margins from collapsing. */
+#emit-swagger .swagger-ui .operation-tag-content > span:last-child > .opblock { margin-bottom: 0; }
+/* The body unfolds under its header as the sheet rises. */
+#emit-swagger .swagger-ui .opblock.is-open .opblock-body { animation: emit-unfold .32s var(--ease); }
+@keyframes emit-unfold { from { opacity: 0; transform: translateY(-6px); } }
+
+/* Summary row. Counter: .opblock-summary{padding:5px} */
+#emit-swagger .swagger-ui .opblock .opblock-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-panel);
+  padding: 12px var(--sp-5);
+  /* Stock text colour #3b4151 disappears on the dark ground. */
+  color: var(--e-body);
+}
+/* A closed row says, under the pointer, that the whole of it opens. */
+#emit-swagger .swagger-ui .opblock:not(.is-open) .opblock-summary:hover { background: rgba(255,255,255,0.025); }
+/* The open header stays in view while its operation scrolls under it. */
+#emit-swagger .swagger-ui .opblock.is-open .opblock-summary {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  border-radius: var(--r-panel) var(--r-panel) 0 0;
+  background: rgba(28,33,44,0.80);
+  backdrop-filter: blur(24px) saturate(150%);
+  box-shadow: inset 0 -1px 0 var(--e-hair), inset 0 1px 0 rgba(255,255,255,0.08);
+  transition: border-radius .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+}
+/* Stuck, it docks under the titlebar: square top, and the legend's frosted
+   glass so what scrolls beneath reads as blur, not as text. */
+#emit-swagger .swagger-ui .opblock.is-open[data-emit-stuck] .opblock-summary {
+  border-radius: 0;
+  background: linear-gradient(150deg, rgba(38,44,56,0.96), rgba(20,23,30,0.98));
+  backdrop-filter: blur(30px) saturate(150%);
+  box-shadow: inset 0 -1px 0 var(--e-hair), 0 12px 28px rgba(0,0,0,0.35);
+}
+/* These outrank the reduced-motion reset of section 2. */
+/* The whole row opens the operation, not only Swagger's button inside it:
+   the button's hit area is stretched over the row, and the row's own
+   controls sit above it. Half the row answered nothing before. */
+#emit-swagger .swagger-ui .opblock .opblock-summary { position: relative; cursor: pointer; }
+#emit-swagger .swagger-ui .opblock.is-open .opblock-summary { position: sticky; }
+#emit-swagger .swagger-ui .opblock-summary-control::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+#emit-swagger .swagger-ui .opblock-summary > :is(a, button:not(.opblock-summary-control), .copy-to-clipboard) { position: relative; z-index: 1; }
+/* Stock gives this button `all: inherit`, so it would also inherit the open
+   header's glass, shadow and stickiness and draw a second panel inside it. */
+#emit-swagger .swagger-ui .opblock-summary-control {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: 1 1 auto;
+  position: static;
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+}
+/* Counter: .opblock-summary-path-description-wrapper{padding:0 10px;gap:0 10px} */
+#emit-swagger .swagger-ui .opblock-summary-path-description-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 0;
+  flex: 1 1 auto;
+}
+
+/* Method badge. Counter: {background:#000;color:#fff;min-width:80px;text-shadow} */
+#emit-swagger .swagger-ui .opblock .opblock-summary-method {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  --c: var(--e-label);
+  width: 52px;
+  min-width: 0;   /* counter: min-width:80px */
+  height: 22px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--r-sm);
+  font: 600 var(--t-xs)/1 var(--f-mono);
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-shadow: none;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent);
+}
+#emit-swagger .swagger-ui .opblock-get    .opblock-summary-method { --c: var(--get-c); }
+#emit-swagger .swagger-ui .opblock-post   .opblock-summary-method { --c: var(--post-c); }
+#emit-swagger .swagger-ui .opblock-delete .opblock-summary-method { --c: var(--del-c); }
+#emit-swagger .swagger-ui .opblock-put    .opblock-summary-method,
+#emit-swagger .swagger-ui .opblock-patch  .opblock-summary-method { --c: var(--put-c); }
+
+#emit-swagger .swagger-ui .opblock .opblock-summary-path,
+#emit-swagger .swagger-ui .opblock .opblock-summary-path__deprecated {
+  flex: 0 0 auto;
+  font: 500 var(--t-lg)/1 var(--f-mono);
+  color: var(--e-body);
+  word-break: normal;
+}
+#emit-swagger .swagger-ui .opblock.is-open .opblock-summary-path { color: var(--e-text); }
+#emit-swagger .swagger-ui .opblock .opblock-summary-description {
+  flex: 1 1 auto;
+  font-family: var(--f-body);
+  font-size: var(--t-md);
+  color: var(--e-dim);
+  word-break: normal;
+}
+#emit-swagger .swagger-ui .opblock .opblock-summary-operation-id { display: none; }
+/* Stock sizes the chevron svgs 20x20 by attribute, which makes the tag row taller. */
+#emit-swagger .swagger-ui .expand-operation svg,
+#emit-swagger .swagger-ui .opblock .arrow { fill: var(--e-faint); }
+/* Laid out as a block: an inline box adds the font's descender to the row. */
+#emit-swagger .swagger-ui .opblock-tag .expand-operation {
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+#emit-swagger .swagger-ui .opblock-tag .expand-operation svg { width: 16px; height: 16px; }
+/* The section folds from its whole heading; the arrow shows only when the
+   heading is pointed at or reached by keyboard. */
+#emit-swagger .swagger-ui .opblock-tag .expand-operation { opacity: 0; transition: opacity .15s; }
+#emit-swagger .swagger-ui .opblock-tag:hover .expand-operation,
+#emit-swagger .swagger-ui .opblock-tag .expand-operation:focus-visible { opacity: 1; }
+#emit-swagger .swagger-ui .opblock .opblock-control-arrow {
+  position: relative;
+  flex: 0 0 auto;
+  width: 8px; height: 8px;
+  margin: 0 4px 0 var(--sp-3);
+  padding: 0;
+}
+#emit-swagger .swagger-ui .opblock .opblock-control-arrow .arrow { display: none; }
+#emit-swagger .swagger-ui .opblock .opblock-control-arrow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: solid var(--e-faint);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform .3s var(--ease);
+}
+#emit-swagger .swagger-ui .opblock.is-open .opblock-control-arrow::before { transform: rotate(-135deg) translateY(-2px); }
+#emit-swagger .swagger-ui .view-line-link { display: none; }
+

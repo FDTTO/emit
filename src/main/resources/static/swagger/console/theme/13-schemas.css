@@ -1,0 +1,65 @@
+/* --------------------------------------------------------------------------
+   13. SCHEMAS (drawn by the console from the spec)
+   Models read like operations: a row each, fields as rows once open, and
+   the operations that use the model. Swagger's own section is not drawn.
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui section.models { display: none; }
+.emit-schemas { max-width: var(--page-column); margin: 0 auto; padding: 0 var(--page-gutter); }
+.emit-schemas__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin: var(--sp-8) 0 var(--sp-3);
+  padding: 0 var(--sp-2);
+  font: 600 var(--t-sm)/1 var(--f-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--e-label);
+}
+.emit-schemas__head small { font: 500 var(--t-sm)/1 var(--f-mono); letter-spacing: 0; text-transform: none; color: var(--e-faint); }
+.emit-schemas__head::after { content: ""; flex: 1; height: 1px; background: var(--e-hair); }
+.emit-model {
+  margin-bottom: 6px;
+  border-radius: var(--r-panel);
+  background: var(--e-raised);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.035);
+  transition: background .3s var(--ease), box-shadow .3s var(--ease), margin .3s var(--ease);
+}
+.emit-model:not(.is-open):hover { background: var(--e-hover); }
+.emit-model.is-open { margin: var(--sp-4) 0 var(--sp-5); background: var(--e-shine); box-shadow: var(--e-lift); }
+.emit-model__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: 12px var(--sp-5);
+  border: 0;
+  border-radius: var(--r-panel);
+  background: none;
+  color: var(--e-body);
+  font: 400 var(--t-lg)/1.55 var(--f-body);
+  text-align: left;
+  cursor: pointer;
+}
+.emit-model.is-open .emit-model__head { border-radius: var(--r-panel) var(--r-panel) 0 0; box-shadow: inset 0 -1px 0 var(--e-hair); }
+.emit-model__braces { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--r-sm); background: var(--e-raised); box-shadow: inset 0 0 0 1px var(--e-hair); font: 600 var(--t-md)/1 var(--f-mono); color: var(--e-dim); }
+.emit-model__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 var(--t-lg)/1 var(--f-mono); color: var(--e-body); }
+.emit-model__braces, .emit-model__count, .emit-model__head .emit-chip, .emit-model__chevron { flex: 0 0 auto; }
+.emit-field__type .emit-constraint { overflow-wrap: anywhere; }
+.emit-model.is-open .emit-model__name { color: var(--e-text); }
+.emit-model__count { margin-left: auto; font: 500 var(--t-sm)/1 var(--f-mono); color: var(--e-faint); }
+.emit-model__chevron { width: 8px; height: 8px; margin: 0 4px 0 var(--sp-3); border: solid var(--e-faint); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg) translateY(-2px); transition: transform .3s var(--ease); }
+.emit-model.is-open .emit-model__chevron { transform: rotate(-135deg) translateY(-2px); }
+.emit-model__body { display: none; }
+.emit-model.is-open .emit-model__body { display: block; animation: emit-unfold .32s var(--ease); }
+.emit-model__body > .emit-fields { padding: var(--sp-2) var(--gutter) var(--sp-4); }
+.emit-model__used { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: var(--sp-3) var(--gutter) var(--sp-5); box-shadow: inset 0 1px 0 var(--e-hair); font-size: var(--t-sm); color: var(--e-faint); }
+/* The ids outrank the page's `button { font-family: inherit }`. */
+#emit-swagger .swagger-ui .emit-model__user { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 0; border-radius: var(--r-sm); background: var(--e-raised); color: var(--e-body); font: 500 var(--t-sm)/1 var(--f-mono); cursor: pointer; }
+.emit-model__user:hover { background: var(--e-hover); color: var(--e-text); }
+.emit-model__user svg { width: 14px; height: 14px; }
+/* A field of another model's type is a way to that model. */
+#emit-swagger .swagger-ui button.emit-chip { border: 0; font-family: var(--f-mono); cursor: pointer; }
+button.emit-chip:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
+.emit-map__count { margin-left: auto; font: 500 var(--t-xs)/1 var(--f-mono); color: var(--e-faint); }
+

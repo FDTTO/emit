@@ -21,8 +21,9 @@ no dependencies beyond two webfonts.
   uses its tokens and nothing else: five text steps, four radii, one type
   scale in whole pixels, a 4px spacing grid, two faces.
 
-These pages are the specification. `src/main/resources/static/swagger/theme.css`
-and `enhance.js` reproduce them on top of the markup Swagger UI renders, so
+These pages are the specification. The console in
+`src/main/resources/static/swagger/` (its theme and its modules, see
+[0006](../decisions/0006-console-as-modules.md)) reproduces them on top of the markup Swagger UI renders, so
 when the two disagree, the reference is right and the implementation is
 wrong. A change to the console starts here.
 

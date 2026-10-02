@@ -1,18 +1,19 @@
-"""Break enhance.js one function at a time and see whether the suite notices.
+"""Break the console one function at a time and see whether the suite notices.
 
     python docs/design/verify.py --suite --coverage      # once, to map coverage
     python docs/design/mutate.py [--only name,name] [--sample N] [--seed S]
 
-Each mutant knocks one named function out, with a `return;` as its first
-statement, publishes it in place of the served enhance.js and runs only the
-scenarios whose coverage shows that function running: a scenario that never
-calls it cannot catch it. A failing run means the mutant was killed: some
-check depends on that function. A green run means it survived: the function
-could stop working and the suite would stay green.
+Each mutant knocks one named function of the console's modules out, with a
+`return;` as its first statement, publishes the module in place of the served
+one and runs only the scenarios whose coverage shows that function running: a
+scenario that never calls it cannot catch it. A failing run means the mutant
+was killed: some check depends on that function. A green run means it
+survived: the function could stop working and the suite would stay green.
 
-The served script is restored after every mutant, and on any exit.
+The served module is restored after every mutant, and on any exit.
 """
 import argparse
+import glob
 import json
 import os
 import random
@@ -24,22 +25,27 @@ import coverage_report
 from verify import OUT, STATIC
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SCRIPT = os.path.join(STATIC, "enhance.js")
-NAMED = re.compile(r"^  function (\w+)\(", re.M)
+NAMED = re.compile(r"^(?:export )?(function (\w+)\()", re.M)
 
 
-def functions(source):
-    """Named functions with the offset V8 reports for them."""
-    return [(match.group(1), match.start() + 2) for match in NAMED.finditer(source)]
+def modules():
+    """The page's entry and the console's modules, as paths relative to STATIC."""
+    paths = sorted(glob.glob(os.path.join(STATIC, "console", "*.js"))) + [os.path.join(STATIC, "emit.js")]
+    return [os.path.relpath(path, STATIC).replace(os.sep, "/") for path in paths]
 
 
-def scenarios_running(coverage_files, offset):
-    """Scenario stems where the function at this offset ran at least once."""
+def functions(file, source):
+    """Named top-level functions with the offset V8 reports for them."""
+    return [(file, match.group(2), match.start(1)) for match in NAMED.finditer(source)]
+
+
+def scenarios_running(coverage_files, file, offset):
+    """Scenario stems where the function at this offset of this file ran at least once."""
     stems = set()
     for path in coverage_files:
         with open(path, encoding="utf-8") as source:
             data = json.load(source)
-        if any(start == offset and count > 0 for _, start, _, count in data["functions"]):
+        if any(f == file and start == offset and count > 0 for f, _, start, _, count in data["functions"]):
             stems.add(os.path.basename(path).rsplit("-", 1)[0])
     return sorted(stems)
 
@@ -67,31 +73,38 @@ def main():
     coverage_files = coverage_report.coverage_files(OUT)
     if not coverage_files:
         sys.exit("No coverage yet: run verify.py --suite --coverage first.")
-    with open(SCRIPT, encoding="utf-8", newline="") as source:
-        original = source.read()
+    originals = {}
+    for file in modules():
+        with open(os.path.join(STATIC, file), encoding="utf-8", newline="") as source:
+            originals[file] = source.read()
 
-    targets = functions(original)
+    targets = [t for file, text in originals.items() for t in functions(file, text)]
     if args.only:
         wanted = set(args.only.split(","))
-        targets = [t for t in targets if t[0] in wanted]
-    covered = [(name, offset, scenarios_running(coverage_files, offset)) for name, offset in targets]
-    uncovered = [name for name, _, stems in covered if not stems]
-    covered = [entry for entry in covered if entry[2]]
+        targets = [t for t in targets if t[1] in wanted]
+    covered = [(file, name, offset, scenarios_running(coverage_files, file, offset)) for file, name, offset in targets]
+    uncovered = [file + ":" + name for file, name, _, stems in covered if not stems]
+    covered = [entry for entry in covered if entry[3]]
     if args.sample and args.sample < len(covered):
         covered = random.Random(args.seed).sample(covered, args.sample)
 
     results = []
     try:
-        for name, offset, stems in covered:
-            with open(SCRIPT, "w", encoding="utf-8", newline="") as target:
-                target.write(knock_out(original, offset))
-            killed, failed = run_suite(stems)
+        for file, name, offset, stems in covered:
+            with open(os.path.join(STATIC, file), "w", encoding="utf-8", newline="") as target:
+                target.write(knock_out(originals[file], offset))
+            try:
+                killed, failed = run_suite(stems)
+            finally:
+                with open(os.path.join(STATIC, file), "w", encoding="utf-8", newline="") as target:
+                    target.write(originals[file])
             results.append((name, killed, stems, failed))
-            print(f"{'KILLED  ' if killed else 'SURVIVED'} {name:<28} by {', '.join(stems)}"
+            print(f"{'KILLED  ' if killed else 'SURVIVED'} {file + ':' + name:<40} by {', '.join(stems)}"
                   + (f"  ({failed[0].split()[1]} failed)" if failed else ""), flush=True)
     finally:
-        with open(SCRIPT, "w", encoding="utf-8", newline="") as target:
-            target.write(original)
+        for file, text in originals.items():
+            with open(os.path.join(STATIC, file), "w", encoding="utf-8", newline="") as target:
+                target.write(text)
 
     killed = sum(1 for _, was_killed, _, _ in results if was_killed)
     if results:

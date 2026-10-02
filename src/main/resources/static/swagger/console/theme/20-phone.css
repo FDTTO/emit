@@ -1,0 +1,151 @@
+/* --------------------------------------------------------------------------
+   20. PHONE (below 900px)
+   The cockpit folded for a thumb: the page scrolls under a bar and a strip
+   holding the next step, a run floats as a pill, and the menu opens the rail
+   as a drawer with the statusbar's telemetry at its foot.
+   -------------------------------------------------------------------------- */
+.emit-menu, #emit-strip, #emit-live-pill, .emit-drawer-scrim { display: none; }
+@media (max-width: 900px) {
+  :root { --page-gutter: var(--sp-4); }
+  #emit-window { min-height: 100vh; background: var(--e-window); }
+  #emit-swagger .swagger-ui .opblock { scroll-margin-top: 124px; }
+
+  #emit-swagger .swagger-ui .topbar { position: sticky; top: 0; z-index: 100; height: 56px; background: rgba(12,15,21,0.88); backdrop-filter: blur(16px); box-shadow: inset 0 -1px 0 var(--e-hair); }
+  #emit-swagger .swagger-ui .topbar .topbar-wrapper { gap: var(--sp-3); padding: 0 var(--sp-5); justify-content: flex-start; }
+  #emit-swagger .swagger-ui .topbar .topbar-wrapper > a.link { margin-right: auto; }
+  #emit-swagger .swagger-ui .topbar a .emit-brand { font-size: 18px; }
+  .emit-menu {
+    display: grid; place-items: center; flex: 0 0 auto;
+    width: 32px; height: 32px; padding: 0;
+    border: 0; border-radius: var(--r-code);
+    background: var(--e-raised); box-shadow: inset 0 0 0 1px var(--e-hair);
+    color: var(--e-body); cursor: pointer;
+  }
+  .emit-menu svg { width: 14px; height: 14px; }
+  /* Held credentials keep their glyph and colour without their word. */
+  .emit-auth-seg { width: 30px; padding: 0; justify-content: center; background: color-mix(in srgb, var(--c) 10%, transparent); }
+  .emit-auth-seg__label, .emit-auth-seg__flag { display: none; }
+  .emit-auth-seg svg { width: 12px; height: 12px; }
+
+  #emit-strip {
+    position: sticky; top: 56px; z-index: 99;
+    display: flex; align-items: center; gap: var(--sp-3);
+    padding: 10px var(--sp-5);
+    background: rgba(9,11,15,0.9); backdrop-filter: blur(16px);
+    box-shadow: inset 0 -1px 0 var(--e-hair);
+  }
+  .emit-strip__bar { flex: 0 0 64px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+  .emit-strip__bar i { height: 3px; border-radius: 3px; background: rgba(255,255,255,0.08); }
+  .emit-strip__bar i.is-done { background: var(--e-label); }
+  .emit-strip__bar i.is-next { background: var(--ui-c); }
+  .emit-strip__next {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center; gap: var(--sp-2);
+    padding: 7px 10px;
+    border: 0; border-radius: var(--r-code);
+    background: var(--ui-bg); box-shadow: inset 0 0 0 1px var(--ui-b);
+    color: var(--e-text); font: 400 var(--t-md)/1.55 var(--f-body); text-align: left; cursor: pointer;
+  }
+  .emit-strip__next[hidden] { display: none; }
+  .emit-strip__next small { font: 600 var(--t-xs)/1 var(--f-body); letter-spacing: .14em; color: var(--ui-c); }
+  .emit-strip__step { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .emit-strip__next svg { margin-left: auto; width: 12px; height: 12px; flex: 0 0 auto; color: var(--ui-c); }
+
+  /* A row at a thumb's width: the method says what the icon said, and the
+     scope keeps its glyph and colour without its word. */
+  #emit-swagger .swagger-ui .opblock .opblock-summary { padding: 11px var(--sp-3); gap: 10px; }
+  #emit-swagger .swagger-ui .opblock .opblock-summary-control { gap: 10px; min-width: 0; }
+  #emit-swagger .swagger-ui .emit-op-icon,
+  #emit-swagger .swagger-ui .opblock .opblock-summary-description,
+  #emit-swagger .swagger-ui .opblock-summary .emit-scope--public { display: none; }
+  /* The path gives way to what follows it and ends in an ellipsis; stock lays
+     it out as a flex row, which wraps its parts instead. */
+  #emit-swagger .swagger-ui .opblock .opblock-summary-path { display: block; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--t-md); }
+  #emit-swagger .swagger-ui .opblock-summary-path-description-wrapper { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; }
+  #emit-swagger .swagger-ui .opblock .opblock-summary-control { flex: 1 1 auto; }
+  /* Swagger marks a break after each segment, which Chrome takes even with
+     nowrap. */
+  #emit-swagger .swagger-ui .opblock-summary-path wbr { display: none; }
+  #emit-swagger .swagger-ui .opblock-summary .emit-scope { width: 26px; padding: 0; gap: 0; justify-content: center; font-size: 0; }
+  #emit-swagger .swagger-ui .opblock-summary .emit-scope__label { display: none; }
+  /* Section headings are plain labels over their rows. */
+  #emit-swagger .swagger-ui .opblock-tag { margin: var(--sp-5) 4px var(--sp-2); padding: 0; font-size: var(--t-xs); color: var(--e-dim); }
+  #emit-swagger .swagger-ui .opblock-tag::after,
+  #emit-swagger .swagger-ui .opblock-tag .emit-count { display: none; }
+  /* Without the rule to push it, Open all is sent to the end of the line. */
+  #emit-swagger .swagger-ui .opblock-tag > .emit-tag-all { margin-left: auto; }
+
+  /* The rail as a drawer. */
+  #emit-window > #emit-rail {
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 200;
+    width: min(300px, 86vw);
+    padding-top: 18px;
+    background: linear-gradient(160deg, rgba(34,40,52,0.92), rgba(13,16,22,0.96));
+    backdrop-filter: blur(30px);
+    box-shadow: 20px 0 60px rgba(0,0,0,0.5), inset -1px 0 0 rgba(255,255,255,0.08);
+    transform: translateX(-105%);
+    visibility: hidden;
+    /* Hidden only once it has slid away; shown at once when it opens, so
+       focus can move into it in the same moment. */
+    transition: transform .3s var(--ease), visibility 0s linear .3s;
+  }
+  #emit-window[data-drawer="open"] > #emit-rail { transform: none; visibility: visible; transition: transform .3s var(--ease), visibility 0s; }
+  #emit-window[data-drawer="open"] > .emit-drawer-scrim { display: block; position: fixed; inset: 0; z-index: 190; background: rgba(4,6,9,0.5); backdrop-filter: blur(3px); }
+  #emit-rail #emit-live { display: none; }
+  #emit-rail .emit-map { padding-top: var(--sp-2); }
+  /* The statusbar's telemetry, one line each, at the drawer's foot. */
+  #emit-rail > #emit-statusbar {
+    flex: 0 0 auto;
+    display: grid; gap: var(--sp-2);
+    padding: var(--sp-4) var(--sp-5);
+    background: none; box-shadow: inset 0 1px 0 var(--e-hair);
+  }
+  #emit-rail > #emit-statusbar > * { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); height: auto; padding: 0; background: none; }
+  /* The telemetry reads a line each; the two tools sit side by side under it, buttons in their own right. */
+  #emit-rail > #emit-statusbar { grid-template-columns: 1fr 1fr; }
+  #emit-rail > #emit-statusbar > :not(#emit-density, #emit-legend-btn) { grid-column: 1 / -1; }
+  #emit-rail > #emit-statusbar > :is(#emit-density, #emit-legend-btn) { justify-content: center; gap: 6px; height: 34px; padding: 0 var(--sp-3); border-radius: var(--r-sm); box-shadow: inset 0 0 0 1px var(--e-hair); }
+  #emit-rail > #emit-statusbar > [hidden],
+  #emit-rail > #emit-statusbar > .emit-status__server,
+  #emit-rail > #emit-statusbar > .emit-status__run,
+  #emit-rail > #emit-statusbar > .emit-status__grow,
+  #emit-rail > #emit-statusbar .emit-status__meter { display: none; }
+  .emit-legend { position: fixed; left: var(--sp-3); right: var(--sp-3); bottom: var(--sp-3); width: auto; max-height: calc(100vh - 2 * var(--sp-3)); z-index: 210; }
+
+  /* The run over the page. */
+  /* A docked action bar owns the bottom edge; the pill floats above it. */
+  body:has(.opblock-body > [data-emit-docked]) #emit-live-pill { bottom: 86px; }
+  #emit-live-pill {
+    position: fixed; left: 50%; bottom: 22px; z-index: 150;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px 9px 12px;
+    border-radius: var(--r-pill);
+    background: linear-gradient(150deg, rgba(40,46,58,0.94), rgba(20,23,30,0.96));
+    backdrop-filter: blur(20px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5), var(--e-spec);
+    font: 500 var(--t-sm)/1 var(--f-mono); color: var(--e-text); white-space: nowrap;
+  }
+  #emit-live-pill[hidden] { display: none; }
+  #emit-live-pill .emit-live__dot { width: 7px; height: 7px; }
+  .emit-live-pill__stages { display: flex; gap: 4px; }
+  .emit-live-pill__stages i { width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1.3px var(--e-faint); }
+  .emit-live-pill__stages i.is-past { background: var(--e-label); box-shadow: none; }
+  .emit-live-pill__stages i.is-current { box-shadow: inset 0 0 0 1.3px var(--run-c); }
+  .emit-live-pill__stages i.is-good { background: var(--s2-c); box-shadow: none; }
+  .emit-live-pill__stages i.is-bad { background: var(--s4-c); box-shadow: none; }
+  .emit-live-pill__state { font-style: normal; color: var(--run-c); }
+  .emit-live-pill__state.is-done { color: var(--s2-c); }
+  .emit-live-pill__state.is-failed { color: var(--s4-c); }
+  .emit-live-pill__action { display: inline-flex; align-items: center; gap: 5px; height: 26px; margin: -4px -6px -4px 2px; padding: 0 10px; border: 0; border-radius: var(--r-pill); background: var(--ui-bg); box-shadow: inset 0 0 0 1px var(--ui-b); color: var(--e-text); font: 600 var(--t-sm)/1 var(--f-body); cursor: pointer; }
+  .emit-live-pill__action svg { width: 12px; height: 12px; color: var(--ui-c); }
+
+  /* The authentication table, a block per scope: the scope beside what it
+     grants, the header it is sent in on a line of its own. */
+  #emit-swagger .swagger-ui .info table.emit-matrix thead { display: none; }
+  #emit-swagger .swagger-ui .info table.emit-matrix tbody tr { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--sp-3); padding: var(--sp-4) 0; box-shadow: inset 0 -1px 0 var(--e-hair); }
+  #emit-swagger .swagger-ui .info table.emit-matrix tbody td { padding: 0; border: 0; background: none; }
+  #emit-swagger .swagger-ui .info table.emit-matrix tbody td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+  #emit-swagger .swagger-ui .info table.emit-matrix tbody td:nth-child(3) { color: var(--e-body); }
+}
+

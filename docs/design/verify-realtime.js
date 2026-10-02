@@ -231,14 +231,19 @@ function killProfileProcesses() {
     const log = await evaluate('JSON.stringify(window.__log || null)');
     fs.writeFileSync(`${outPrefix}.json`, log || 'null');
     if (coverage) {
-      const theme = [...stylesheets].find(([, sourceUrl]) => /\/swagger\/theme\.css/.test(sourceUrl));
+      // The theme and the console's parts, each rule with its file. An
+      // @import'ed sheet is a sheet of its own, under its own URL.
+      const sheets = new Map([...stylesheets].map(([sheetId, sourceUrl]) =>
+        [sheetId, (/\/swagger\/((?:console\/(?:theme\/)?)?[\w-]+\.css)$/.exec(sourceUrl) || [])[1]]));
       const rules = (await send('CSS.stopRuleUsageTracking')).result.ruleUsage
-        .filter((rule) => theme && rule.styleSheetId === theme[0])
-        .map((rule) => [rule.startOffset, rule.endOffset, rule.used]);
+        .filter((rule) => sheets.get(rule.styleSheetId))
+        .map((rule) => [sheets.get(rule.styleSheetId), rule.startOffset, rule.endOffset, rule.used]);
+      // The console's modules and the page's entry, each function with its file.
       const scripts = (await send('Profiler.takePreciseCoverage')).result.result
-        .filter((script) => /\/swagger\/enhance\.js/.test(script.url));
-      const functions = scripts.flatMap((script) => script.functions.map((fn) =>
-        [fn.functionName, fn.ranges[0].startOffset, fn.ranges[0].endOffset, fn.ranges[0].count]));
+        .map((script) => ({ script, file: (/\/swagger\/((?:console\/)?[\w-]+\.js)$/.exec(script.url) || [])[1] }))
+        .filter((entry) => entry.file);
+      const functions = scripts.flatMap(({ script, file }) => script.functions.map((fn) =>
+        [file, fn.functionName, fn.ranges[0].startOffset, fn.ranges[0].endOffset, fn.ranges[0].count]));
       fs.writeFileSync(`${outPrefix}.coverage.json`, JSON.stringify({ rules, functions }));
     }
     for (let i = 0; i < clips.length; i++) {

@@ -1,0 +1,362 @@
+/* --------------------------------------------------------------------------
+   11. FORM CONTROLS
+   -------------------------------------------------------------------------- */
+#emit-swagger .swagger-ui input[type=text],
+#emit-swagger .swagger-ui input[type=password],
+#emit-swagger .swagger-ui input[type=search],
+#emit-swagger .swagger-ui input[type=email],
+#emit-swagger .swagger-ui input[type=file],
+#emit-swagger .swagger-ui textarea {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--r-sm);
+  color: var(--e-text);
+  font-family: var(--f-mono);
+  font-size: var(--t-md);
+  padding: 6px 10px;
+  box-shadow: none;
+}
+/* A disabled textarea shows an example, so it is drawn as code. Height comes
+   from the rows set by paintExampleBoxes(), not stock's min-height:280px. */
+#emit-swagger .swagger-ui .opblock textarea[disabled] {
+  background: var(--e-well);
+  border: 1px solid var(--e-line);
+  border-radius: var(--r-code);
+  color: var(--e-body);
+  font-family: var(--f-mono);
+  font-size: var(--t-sm);
+  line-height: 1.85;
+  padding: var(--sp-3) var(--sp-4);
+  min-height: 0;
+  height: auto;
+  resize: none;
+  overflow: hidden;
+  opacity: 1;
+  cursor: default;
+}
+#emit-swagger .swagger-ui input::placeholder,
+#emit-swagger .swagger-ui textarea::placeholder { color: rgba(168,186,222,0.25); }
+#emit-swagger .swagger-ui input:focus,
+#emit-swagger .swagger-ui textarea:focus,
+#emit-swagger .swagger-ui select:focus {
+  border-color: var(--ui-b);
+  box-shadow: 0 0 0 2px var(--ui-bg);
+  outline: none;
+}
+#emit-swagger .swagger-ui select {
+  background: var(--e-well);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--r-sm);
+  color: var(--e-body);
+  font-family: var(--f-body);
+  font-size: var(--t-sm);
+  padding: 5px 9px;
+  box-shadow: none;
+}
+#emit-swagger .swagger-ui .body-param__text,
+#emit-swagger .swagger-ui textarea.body-param__text {
+  background: var(--e-well);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--r-code);
+  color: var(--e-text);
+  font-family: var(--f-mono);
+  font-size: var(--t-sm);
+  line-height: 1.75;
+  min-height: 120px;
+  padding: var(--sp-3) var(--sp-4);
+}
+#emit-swagger .swagger-ui .btn {
+  border-radius: var(--r-sm);
+  border-width: 1px;
+  font-family: var(--f-body);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  padding: 6px 18px;
+  box-shadow: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+#emit-swagger .swagger-ui .btn:hover { box-shadow: none; }
+/* The one lit button, and its quiet sibling. */
+/* The primary action is cyan ink on glass, the material of the rail's
+   NEXT: a faint gradient lit from above, the brand edge, a soft light
+   under it, and on hover the glint that runs the window's rim as the page
+   arrives. While Execute's call is out (Swagger disables it) a pulse runs
+   along its bottom edge, as a run travels the lifecycle figure. */
+#emit-swagger .swagger-ui .btn.execute,
+#emit-swagger .emit-primary {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  height: 38px;
+  padding: 0 var(--sp-5);
+  border: 0;
+  border-radius: var(--r-code);
+  color: var(--e-text);
+  font: 600 var(--t-lg)/1 var(--f-body);
+  background:
+    linear-gradient(90deg, transparent, var(--ui-c), transparent) -40% 100% / 34% 1.5px no-repeat,
+    linear-gradient(180deg, rgba(143,220,255,0.17), rgba(143,220,255,0.08));
+  box-shadow: inset 0 0 0 1px var(--ui-b), inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 14px -6px rgba(143,220,255,0.28);
+  cursor: pointer;
+  transition: box-shadow .2s var(--ease), background-color .2s var(--ease), transform .12s var(--ease);
+}
+#emit-swagger .swagger-ui .btn.execute::after,
+#emit-swagger .emit-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.7) 50%, transparent 62%) -200% 0 / 300% 100% no-repeat;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+#emit-swagger .swagger-ui .btn.execute:hover,
+#emit-swagger .emit-primary:hover {
+  background-color: rgba(143,220,255,0.06);
+  box-shadow: inset 0 0 0 1px var(--ui-b-hover), inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 18px -6px rgba(143,220,255,0.38);
+}
+#emit-swagger .swagger-ui .btn.execute:hover::after,
+#emit-swagger .emit-primary:hover::after { animation: emit-rim-glint .7s var(--ease); }
+#emit-swagger .swagger-ui .btn.execute:active,
+#emit-swagger .emit-primary:active { transform: translateY(1px); }
+/* Counter: .btn[disabled]{opacity:.3}. A call that is out is alive, not off. */
+#emit-swagger .swagger-ui .btn.execute:disabled { opacity: 1; cursor: progress; color: var(--e-body); animation: emit-edge-run 1.2s linear infinite; }
+@keyframes emit-rim-glint { from { background-position: -200% 0; } to { background-position: 150% 0; } }
+@keyframes emit-edge-run { from { background-position: -40% 100%, 0 0; } to { background-position: 140% 100%, 0 0; } }
+/* After the rules it quiets: at equal weight, the later rule wins. */
+@media (prefers-reduced-motion: reduce) {
+  #emit-swagger .swagger-ui .opblock.is-open .opblock-summary,
+  #emit-swagger .swagger-ui .topbar .topbar-wrapper > a.link,
+  #emit-swagger .swagger-ui .opblock-tag > .emit-tag-all,
+  #emit-swagger .swagger-ui .btn.execute,
+  #emit-swagger .emit-primary { transition: none; }
+  #emit-swagger .swagger-ui .btn.execute:disabled,
+  #emit-swagger .swagger-ui .btn.execute:hover::after,
+  #emit-swagger .emit-primary:hover::after,
+  .emit-sends[data-state="running"]::before { animation: none; }
+}
+#emit-swagger .emit-quiet {
+  height: 38px;
+  padding: 0 var(--sp-4);
+  border: 0;
+  border-radius: var(--r-code);
+  background: var(--e-raised);
+  box-shadow: inset 0 0 0 1px var(--e-hair);
+  color: var(--e-body);
+  font: 500 var(--t-md)/1 var(--f-body);
+  cursor: pointer;
+}
+#emit-swagger .emit-quiet:hover { background: var(--e-hover); }
+/* With tryItOutEnabled every operation opens ready to execute, and Cancel
+   would only lock its inputs again. Reset, which restores the example, stays. */
+#emit-swagger .swagger-ui .btn.try-out__btn.cancel { display: none; }
+/* Undo actions: Cancel, Reset, Clear. */
+#emit-swagger .swagger-ui .btn.cancel,
+#emit-swagger .swagger-ui .btn.try-out__btn.cancel,
+#emit-swagger .swagger-ui .btn.try-out__btn.reset {
+  background: transparent;
+  border-color: var(--e-line);
+  color: var(--e-dim);
+}
+#emit-swagger .swagger-ui .btn.cancel:hover,
+#emit-swagger .swagger-ui .btn.try-out__btn.cancel:hover,
+#emit-swagger .swagger-ui .btn.try-out__btn.reset:hover {
+  background: transparent;
+  border-color: var(--e-edge);
+  color: var(--e-body);
+}
+#emit-swagger .swagger-ui .btn.btn-clear {
+  background: transparent;
+  border-color: rgba(255,255,255,0.08);
+  color: var(--e-dim);
+}
+/* Swagger ships this button unstyled. */
+#emit-swagger .swagger-ui .download-contents {
+  background: transparent;
+  border: 1px solid var(--e-line);
+  border-radius: var(--r-sm);
+  color: var(--e-dim);
+  font-family: var(--f-body);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  padding: 4px 12px;
+  box-shadow: none;
+  transition: border-color 0.14s, color 0.14s;
+}
+#emit-swagger .swagger-ui .download-contents:hover {
+  border-color: var(--e-edge);
+  color: var(--e-body);
+}
+/* The action bar closes the request: what the call sends, the key that
+   sends it, and Execute. In its place it is a plain row of the operation.
+   While the request runs past the bottom of the view it docks there as
+   the operation's bottom edge, in the frosted glass the header takes when
+   it docks at the top. Swagger draws it as .execute-wrapper, or as
+   .btn-group once a response is in. */
+#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--gutter);
+  transition: background-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group)[data-emit-dockable] { position: sticky; bottom: 0; }
+/* Docked, it sits above the docked header too, so its History list is
+   never covered; in its place it passes under the header like the rest. */
+#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group)[data-emit-docked] {
+  z-index: 6;
+  padding-block: 12px;
+  background: linear-gradient(150deg, rgba(38,44,56,0.96), rgba(20,23,30,0.98));
+  backdrop-filter: blur(30px) saturate(150%);
+  box-shadow: inset 0 1px 0 var(--e-hair), 0 -14px 30px rgba(0,0,0,0.30);
+}
+#emit-swagger .swagger-ui .btn-group .btn { flex: 0 0 auto; }
+.emit-sends { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; margin-right: auto; overflow: hidden; font: 500 var(--t-sm)/1 var(--f-mono); color: var(--e-dim); white-space: nowrap; }
+.emit-sends::before { content: ""; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--e-faint); }
+.emit-sends b { font-weight: 500; color: var(--e-body); }
+.emit-sends[data-state="held"]::before { background: var(--s2-c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s2-c) 14%, transparent); }
+.emit-sends[data-state="expired"]::before { background: var(--s4-c); box-shadow: none; }
+.emit-sends[data-state="running"] { color: var(--run-c); }
+.emit-sends[data-state="running"]::before { background: var(--run-c); box-shadow: none; animation: emit-blink 1s ease-in-out infinite; }
+.emit-sends button { padding: 0; border: 0; background: none; color: var(--ui-c); font: inherit; cursor: pointer; }
+.emit-sends button:hover { text-decoration: underline; }
+/* History: a quiet tool on the bar, and the recent calls in a small sheet
+   above it, in the legend's glass. */
+.emit-history { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border: 0; border-radius: var(--r-sm); background: none; color: var(--e-dim); font: 500 var(--t-sm)/1 var(--f-body); cursor: pointer; }
+.emit-history:hover { color: var(--e-body); background: var(--e-raised); }
+.emit-history[hidden] { display: none; }
+.emit-history svg { width: 12px; height: 12px; }
+.emit-history small { font: 500 var(--t-xs)/1 var(--f-mono); color: var(--e-faint); }
+.emit-history__panel {
+  position: absolute; right: var(--gutter); bottom: calc(100% - 4px); z-index: 6;
+  width: min(520px, calc(100% - 2 * var(--gutter)));
+  display: grid; gap: 2px; padding: var(--sp-3);
+  border-radius: var(--r-code);
+  background: linear-gradient(150deg, rgba(40,46,58,0.96), rgba(20,23,30,0.98));
+  backdrop-filter: blur(30px);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.5), var(--e-spec);
+  animation: emit-rise .2s var(--ease);
+}
+.emit-history__title { padding: var(--sp-1) var(--sp-2) var(--sp-2); font: 600 var(--t-xs)/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--e-faint); }
+.emit-history__row { display: grid; grid-template-columns: auto auto auto minmax(0, 1fr) auto; align-items: center; gap: 4px var(--sp-3); padding: var(--sp-2); border-radius: var(--r-sm); font: 500 var(--t-sm)/1.3 var(--f-mono); color: var(--e-dim); }
+.emit-history__row:hover { background: var(--e-raised); }
+.emit-history__status.is-ok { color: var(--s2-c); } .emit-history__status.is-bad { color: var(--s4-c); } .emit-history__status.is-wait { color: var(--s5-c); }
+.emit-history__took { color: var(--e-faint); }
+.emit-history__url { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--e-body); }
+.emit-history__load { padding: 3px 8px; border: 0; border-radius: var(--r-sm); background: var(--ui-bg); color: var(--ui-c); font: 500 var(--t-sm)/1 var(--f-body); cursor: pointer; }
+.emit-history__load:hover { background: var(--ui-bg-hover); }
+.emit-history__body { grid-column: 1 / -1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 var(--t-xs)/1.4 var(--f-mono); color: var(--e-faint); }
+.emit-execute-key { flex: 0 0 auto; padding: 3px 6px; border-radius: var(--r-sm); background: var(--e-raised); box-shadow: inset 0 0 0 1px var(--e-hair); font: 500 var(--t-xs)/1 var(--f-mono); color: var(--e-dim); }
+@keyframes emit-blink { 50% { opacity: .35; } }
+@media (max-width: 900px) {
+  .emit-execute-key { display: none; }
+  /* Narrow, the sentence runs as text and wraps as one. */
+  .emit-sends { display: block; flex: 1 1 auto; text-align: left; white-space: normal; line-height: 1.5; }
+  .emit-sends::before { display: inline-block; margin-right: var(--sp-2); vertical-align: 1px; }
+  #emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) { padding: 10px var(--sp-4); }
+}
+/* Wide: one row per parameter, the name over its chips, then the value. */
+@media (min-width: 721px) {
+  #emit-swagger .swagger-ui .opblock-body > .opblock-section:has(.parameters) { padding-bottom: var(--sp-6); }
+  #emit-swagger .swagger-ui .opblock table.parameters > tbody > tr > td { padding: 0; border: 0; vertical-align: middle; }
+  #emit-swagger .swagger-ui .opblock table.parameters > tbody > tr + tr > td { padding-top: var(--sp-4); }
+  #emit-swagger .swagger-ui .opblock table.parameters > tbody > tr > td.parameters-col_name { width: calc(140px + var(--gutter)); padding-left: var(--gutter); }
+  #emit-swagger .swagger-ui .opblock table.parameters > tbody > tr > td.parameters-col_description { padding: 0 var(--sp-4); }
+  #emit-swagger .swagger-ui .opblock table.parameters > tbody > tr + tr > td.parameters-col_description { padding-top: var(--sp-4); }
+  #emit-swagger .swagger-ui .parameters tbody .parameters-col_name { gap: var(--sp-2) 5px; }
+  #emit-swagger .swagger-ui .parameters tbody .parameters-col_name .parameter__name { margin: 0; }
+  /* Each documented answer is a row of the design's grid: the dot and the
+     code in their own columns, the words, and the detail under them while
+     open. A table would size the code column from its content. */
+  #emit-swagger .swagger-ui table.responses-table:not(.live-responses-table),
+  #emit-swagger .swagger-ui table.responses-table:not(.live-responses-table) > tbody { display: block; }
+  #emit-swagger .swagger-ui table.responses-table:not(.live-responses-table) > tbody { display: grid; gap: 2px; }
+  #emit-swagger .swagger-ui table.responses-table:not(.live-responses-table) > tbody > tr.response { display: grid; grid-template-columns: 80px minmax(0, 1fr); }
+  /* Counter: .response-col_description{width:99%}, a percentage of the grid cell. */
+  #emit-swagger .swagger-ui table.responses-table:not(.live-responses-table) > tbody > tr.response > td { width: auto; }
+  #emit-swagger .swagger-ui table.responses-table:not(.live-responses-table) > tbody > tr.response.emit-shared-member { display: none; }
+  #emit-swagger .swagger-ui .emit-carried { right: calc(var(--sp-4) + var(--sp-3)); }
+}
+/* Empty until Try it out; the padding alone showed as a band. */
+#emit-swagger .swagger-ui .execute-wrapper:empty,
+#emit-swagger .swagger-ui .btn-group:empty,
+#emit-swagger .swagger-ui .responses-header:empty { display: none; }
+
+/* Inputs are inert before Try it out, so they read as outlines. */
+#emit-swagger .swagger-ui input:disabled,
+#emit-swagger .swagger-ui textarea:disabled,
+#emit-swagger .swagger-ui select:disabled {
+  background: rgba(255,255,255,0.015);
+  border-color: rgba(255,255,255,0.05);
+  color: var(--e-faint);
+  cursor: default;
+}
+/* A parameter's value is machine-written, so it sits in a well. */
+#emit-swagger .swagger-ui .parameters-col_description input {
+  width: 100%;
+  max-width: none;
+  height: 38px;
+  padding: 0 var(--sp-3) 0 var(--sp-4);
+  background: var(--e-well);
+  border: 0;
+  border-radius: var(--r-code);
+  box-shadow: var(--e-well-edge);
+  font: 400 var(--t-md)/1 var(--f-mono);
+  color: var(--e-text);
+  margin: 0;
+}
+#emit-swagger .swagger-ui .parameters-col_description input:focus { box-shadow: var(--e-well-edge), 0 0 0 1px var(--ui-b); }
+/* An array parameter: each item is a field with its remove control inside
+   the right edge, and adding one is a quiet tool of the body editor's kind.
+   Swagger writes the controls as " - " and "Add string item" buttons. */
+#emit-swagger .swagger-ui .json-schema-array { display: grid; justify-items: start; gap: var(--sp-2); }
+#emit-swagger .swagger-ui .json-schema-form-item { position: relative; display: block; width: 100%; }
+#emit-swagger .swagger-ui .json-schema-form-item input { padding-right: 44px; }
+#emit-swagger .swagger-ui .btn.json-schema-form-item-remove {
+  position: absolute; top: 7px; right: 7px;
+  display: grid; place-items: center;
+  width: 24px; height: 24px; padding: 0;
+  border: 0; border-radius: var(--r-sm);
+  background: none;
+  color: transparent; font-size: 0;
+  cursor: pointer;
+}
+#emit-swagger .swagger-ui .btn.json-schema-form-item-remove::before { content: "\00d7"; font: 400 16px/1 var(--f-body); color: var(--e-faint); }
+#emit-swagger .swagger-ui .btn.json-schema-form-item-remove:hover { background: rgba(255,255,255,0.06); }
+#emit-swagger .swagger-ui .btn.json-schema-form-item-remove:hover::before { color: var(--e-body); }
+#emit-swagger .swagger-ui .btn.json-schema-form-item-add {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 26px; margin: 0; padding: 0 10px;
+  border: 0; border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.05); box-shadow: inset 0 0 0 1px var(--e-hair);
+  color: var(--e-dim); font: 500 var(--t-sm)/1 var(--f-body);
+  cursor: pointer;
+}
+#emit-swagger .swagger-ui .btn.json-schema-form-item-add::before { content: "+"; font: 500 var(--t-md)/1 var(--f-mono); }
+#emit-swagger .swagger-ui .btn.json-schema-form-item-add:hover { color: var(--e-body); background: rgba(255,255,255,0.08); }
+/* A carried id names where it came from, inside its own field. */
+#emit-swagger .swagger-ui .parameters tbody .parameters-col_description { position: relative; }
+.emit-carried {
+  position: absolute;
+  top: calc(50% - 10px);
+  right: calc(var(--gutter) + var(--sp-3));
+  padding: 5px 9px;
+  border-radius: var(--r-pill);
+  background: var(--ui-bg);
+  color: var(--ui-c);
+  font: 500 var(--t-xs)/1 var(--f-body);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: emit-rise .35s var(--ease);
+}
+.emit-carried[hidden] { display: none; }
+#emit-swagger .swagger-ui .parameters-col_description:has(.emit-carried:not([hidden])) input { padding-right: 190px; }
+

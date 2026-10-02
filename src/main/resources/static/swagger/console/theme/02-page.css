@@ -1,0 +1,21 @@
+/* --------------------------------------------------------------------------
+   2. PAGE
+   -------------------------------------------------------------------------- */
+body {
+  background: none;
+  min-height: 100vh;
+  color: var(--e-text);
+  font-family: var(--f-body);
+}
+
+/* The light behind the glass: monochrome glows and the diagonal streaks of
+   the brand's imagery, fixed behind everything. */
+.emit-scene { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.emit-scene__glow { position: absolute; border-radius: 50%; filter: blur(90px); }
+.emit-scene__glow--a { width: 900px; height: 640px; right: -160px; top: -220px; background: radial-gradient(circle, rgba(150,175,220,0.42), transparent 65%); }
+.emit-scene__glow--b { width: 760px; height: 700px; left: -240px; bottom: -300px; background: radial-gradient(circle, rgba(110,130,170,0.32), transparent 65%); }
+.emit-scene__streak { position: absolute; top: -35%; right: 18%; width: 200px; height: 170%; transform: rotate(28deg); filter: blur(26px);
+  background: linear-gradient(90deg, transparent, rgba(210,222,245,0.12), transparent); }
+.emit-scene__streak--thin { right: 6%; width: 90px; opacity: .6; }
+.emit-scene__grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .035; mix-blend-mode: overlay; }
+

@@ -76,14 +76,15 @@ log as JSON and removes what it published.
 `docs/design/scenarios/`, once per width it declares, three at a time, and
 prints one line per run. A scenario declares its settings in its header:
 `// @widths 320,1280`, `// @wait 20000`, `// @virtual 40000`,
-`// @spec-url /missing`, and `// @alone` for a scenario that sends real key
-presses: those run after the parallel batch, one at a time, because a
-machine busy with other browsers can drop a trusted key and the check then
-fails for a reason that is not the page's. `--only topbar` narrows it, `--verbose` prints every
-check. It exits 1 if a check fails, a console error is logged, or a run
-produces no checks. Each scenario records a behaviour that was verified when
-it shipped, so the suite is the
-characterization net under any later change: run it before and after.
+`// @spec-url /missing`, and `// @alone` for a scenario that sends real
+input, keys or the pointer: those run after the parallel batch, one at a
+time, because a machine busy with other browsers can drop a trusted event
+and the check then fails for a reason that is not the page's. `--only
+topbar` narrows it, `--verbose` prints every check. It exits 1 if a check
+fails, a console error is logged, or a run produces no checks. Each
+scenario records a behaviour that was verified when it shipped, so the
+suite is the characterization net under any later change: run it before
+and after.
 
 `verify-realtime.js` is the runner underneath: Node 22, the DevTools
 protocol over the native WebSocket, a throwaway profile and a free port per
@@ -92,16 +93,17 @@ drives any Chromium: `BROWSER` names the executable, otherwise the first one
 installed is used (Edge or Chrome on Windows, Chrome or Chromium on Linux).
 
 `--coverage` adds the Chromium coverage the DevTools Coverage panel uses:
-every run records which theme rules were applied and which functions of
-`enhance.js` ran, and the suite ends with what no scenario reached. A rule
-never applied is either dead or a state no scenario visits; a probe of the
-real DOM tells the two apart. The browser reports only the rules it
-applied, so the total comes from parsing the stylesheet. Coverage slows the
+every run records which rules of the theme's parts were applied and which
+functions of the console's modules ran, and the suite ends with what no
+scenario reached, by file and line. A rule never applied is either dead or
+a state no scenario visits; a probe of the real DOM tells the two apart.
+The browser reports only the rules it applied, so the total comes from
+parsing the stylesheets on disk, and a part no run loaded counts whole. Coverage slows the
 page: a scenario that fails only under it is waiting on a clock somewhere.
 
-`mutate.py` goes one step further: it knocks one named function of
-`enhance.js` out at a time (a `return;` as its first statement), serves the
-mutant, and runs only the scenarios whose coverage shows that function
+`mutate.py` goes one step further: it knocks one named function of the
+console's modules out at a time (a `return;` as its first statement), serves
+the mutated module, and runs only the scenarios whose coverage shows that function
 running. A failing run kills the mutant; a green run means the function could
 stop working unnoticed. Calibrate it before trusting a score: a function a
 scenario is known to check must be killed, and one nothing checks must
@@ -207,7 +209,7 @@ takes eight.
 - **Virtual time freezes transitions.** A transitioned property reads as its
   pre-change value. The harness runs with reduced motion; measure end states,
   not mid-transition ones.
-- **Virtual time starves `requestAnimationFrame`.** `enhance.js` repaints
+- **Virtual time starves `requestAnimationFrame`.** The console repaints
   through rAF, so under virtual time the paint loop ran or did not at random.
   `verify-harness.html` schedules rAF on a timer.
 - **Virtual time skips idle time.** See above; use realtime.

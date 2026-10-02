@@ -77,7 +77,22 @@ def build(scenario, spec_url):
     # stringifies whatever it is given.
     injected = ('<script src="/swagger/verify-lib.js"></script>\n<script>\n(function () {\n%s\n})();\n</script>\n</body>'
                 % body)
+    # The console's modules arrive as the served page asks for them: its
+    # preloads, read from it rather than copied, so the load the suite times
+    # is the load a reader gets.
+    preloads = re.findall(r'<link rel="modulepreload"[^>]*>', served_page())
+    page = page.replace('</head>', '\n'.join(preloads) + '\n</head>', 1)
     return page.replace('</body>', injected, 1)
+
+
+_SERVED = []
+
+
+def served_page():
+    if not _SERVED:
+        import urllib.request
+        _SERVED.append(urllib.request.urlopen(BASE.replace('/swagger/', '/swagger-ui/index.html')).read().decode('utf-8'))
+    return _SERVED[0]
 
 
 def styling(page):
@@ -92,8 +107,7 @@ def ensure_same_styling():
     """The harness must style the page exactly as the served document does:
     a stylesheet only the harness loads changes the cascade every check runs
     against, and the suite then measures a page nobody is served."""
-    import urllib.request
-    served = urllib.request.urlopen(BASE.replace('/swagger/', '/swagger-ui/index.html')).read().decode('utf-8')
+    served = served_page()
     with open(os.path.join(HERE, 'verify-harness.html'), encoding='utf-8') as f:
         harness = f.read()
     if styling(served) != styling(harness):
@@ -223,8 +237,7 @@ def suite(directory, only, jobs, verbose):
         if not checks and not errors:
             print('       (no checks recorded)')
     if COVERAGE:
-        coverage_report.report(coverage_report.coverage_files(OUT),
-                               os.path.join(STATIC, 'theme.css'), os.path.join(STATIC, 'enhance.js'))
+        coverage_report.report(coverage_report.coverage_files(OUT), STATIC)
     return 1 if failed else 0
 
 
