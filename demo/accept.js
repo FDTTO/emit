@@ -89,9 +89,29 @@ function journey() {
   });
 }
 
+// The theme is a tree of @imports the export copies file by file: a sheet
+// it missed loads as an empty one, and the page still runs, unstyled.
+function stylesheets() {
+  var loaded = 0, missing = [];
+  var walk = function (sheet) {
+    Array.prototype.forEach.call(sheet.cssRules, function (rule) {
+      if (!(rule instanceof CSSImportRule)) return;
+      if (!rule.styleSheet || !rule.styleSheet.cssRules.length) return missing.push(rule.href);
+      loaded++;
+      walk(rule.styleSheet);
+    });
+  };
+  Array.prototype.forEach.call(document.styleSheets, function (sheet) {
+    // A sheet from another origin, the webfonts, keeps its rules unreadable.
+    if (!sheet.href || new URL(sheet.href).origin === location.origin) walk(sheet);
+  });
+  check('every stylesheet the theme imports loaded', loaded > 0 && !missing.length, { loaded: loaded, missing: missing });
+}
+
 V.until(function () {
   return !!document.querySelector('.emit-journey-run') && !document.getElementById('emit-window').hasAttribute('data-loading');
 }, function () {
+  stylesheets();
   answers().then(journey).then(done, function (failure) {
     check('the run finished', false, String(failure && failure.stack || failure));
     done();

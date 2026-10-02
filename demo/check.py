@@ -58,6 +58,9 @@ def main(site):
                                '' if c['pass'] else '  -> ' + json.dumps(c.get('detail'), ensure_ascii=False)))
         for error in log['errors']:
             print('error: ' + error.splitlines()[0][:200])
+        # A wait that ran out names the cause the failed checks after it only show.
+        for waited in log.get('timeouts') or []:
+            print('timed out waiting for: ' + waited)
         if not log.get('done'):
             print('the run did not finish within %d s' % (WAIT_MS // 1000))
         return 1 if failed or log['errors'] or not log.get('done') else 0
