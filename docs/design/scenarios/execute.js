@@ -42,7 +42,13 @@ function docking() {
         !early.hasAttribute('data-emit-dockable') && early.getBoundingClientRect().top >= above - 1,
         { bar: early.getBoundingClientRect().top, above: above });
   pane().scrollTop += block.getBoundingClientRect().top - pane().getBoundingClientRect().top;
-  V.until(function () { return bar('Documents-createDocument').hasAttribute('data-emit-docked'); }, function () {
+  /* The docked mark can still be the last paint's; what counts is the bar
+     on the edge after this scroll. */
+  var onEdge = function () {
+    var docked = bar('Documents-createDocument');
+    return docked.hasAttribute('data-emit-docked') && Math.abs(docked.getBoundingClientRect().bottom - pane().getBoundingClientRect().bottom) < 1;
+  };
+  V.until(onEdge, function () {
     var box = bar('Documents-createDocument').getBoundingClientRect();
     check('a request running past the view docks its bar on the bottom edge',
           Math.abs(box.bottom - pane().getBoundingClientRect().bottom) < 1, { bar: box.bottom, pane: pane().getBoundingClientRect().bottom });

@@ -14,10 +14,15 @@ var q = function (selector) { return document.querySelector('#operations-Documen
 var nodes = function () { return document.querySelectorAll('#operations-Documents-listDocuments .emit-json__node'); };
 var folded = function () { return document.querySelectorAll('#operations-Documents-listDocuments .emit-json__node.is-folded'); };
 
-V.open('Documents', 'listDocuments', 0);
-/* A body alone is not enough: an operation Swagger is still resolving has
-   one, but no responses yet to draw an answer into. */
-V.until(function () { return !!q('.responses-wrapper'); }, function () {
+/* Opened once the window has arrived, as a reader can. A body alone is not
+   enough: an operation Swagger is still resolving has one, but no responses
+   yet to draw an answer into. */
+V.until(function () { return !document.getElementById('emit-window').hasAttribute('data-loading'); }, function () {
+  V.open('Documents', 'listDocuments', 0);
+  V.until(function () { return !!q('.responses-wrapper'); }, answered, 15000);
+}, 20000);
+
+function answered() {
   V.fakeResponse('/v1/documents', 'get', 200, answer, location.origin + '/v1/documents', {}, 42);
   /* The sheet can repaint as the answer settles: wait for a whole tree,
      its nodes and their folds, not for the first of them. */
@@ -39,4 +44,4 @@ V.until(function () { return !!q('.responses-wrapper'); }, function () {
     check('open, the tree is still the JSON of the answer, word for word', same && folded().length === 0, text.slice(0, 80));
     done();
   }, 8000);
-}, 20000);
+}

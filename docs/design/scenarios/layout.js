@@ -23,7 +23,16 @@ function clipped(op) {
   return found;
 }
 
-setTimeout(function () {
+// Measured once what is measured is there: the login's result drawn and
+// the two other operations open and ready.
+V.until(function () {
+  var login = document.getElementById('operations-Authentication-login');
+  return ['.emit-sent', '.emit-note', '.emit-result'].every(function (s) { return !!login.querySelector(s); })
+    && ['Documents-getDocument', 'Tenants-createTenant'].every(function (id) {
+      var op = document.getElementById('operations-' + id);
+      return op.classList.contains('is-open') && !!op.querySelector('.responses-wrapper');
+    });
+}, function () {
   var root = document.documentElement, width = root.clientWidth;
   check('no sideways scroll', root.scrollWidth <= width, { scrollWidth: root.scrollWidth, width: width });
 
@@ -83,4 +92,4 @@ setTimeout(function () {
       done();
     }, 3000);
   }, 3000);
-}, 10500);
+}, 25000);

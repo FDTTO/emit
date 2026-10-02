@@ -6,6 +6,8 @@
 var noteOf = function (block) { return document.querySelector('#operations-' + block + ' .emit-note[data-state]'); };
 var textOf = function (block) { var n = noteOf(block); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; };
 var isOpen = function (block) { var b = document.getElementById('operations-' + block); return !!b && b.classList.contains('is-open'); };
+// A refusal is faked once the operation can show one: open and resolved.
+var ready = function (block) { return isOpen(block) && !!document.querySelector('#operations-' + block + ' .responses-wrapper'); };
 var REQUEST_ID = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
 var refuse = function (path, method, status, message) {
   V.fakeResponse(path, method, status, { status: status, message: message }, 'http://localhost:8080' + path,
@@ -16,7 +18,7 @@ var DOCS = 'Documents-listDocuments';
 var TENANTS = 'Tenants-listTenants';
 
 V.open('Documents', 'listDocuments', 3500);
-V.until(function () { return isOpen(DOCS); }, function () {
+V.until(function () { return ready(DOCS); }, function () {
   refuse('/v1/documents', 'get', 401, 'Authentication required.');
   V.until(says(DOCS, /needs TENANT/), missing);
 }, 15000);
@@ -42,7 +44,7 @@ function resolved() {
   check('resolved once Authorize holds it', /TENANT is authorized now. Execute again/.test(textOf(DOCS)), textOf(DOCS));
   V.authorize('bearerAuth', V.jwt(-60));
   V.open('Tenants', 'listTenants', 0);
-  V.until(function () { return isOpen(TENANTS); }, function () {
+  V.until(function () { return ready(TENANTS); }, function () {
     refuse('/v1/tenants', 'get', 401, 'Invalid or expired token.');
     V.until(says(TENANTS, /has expired/), expired);
   });

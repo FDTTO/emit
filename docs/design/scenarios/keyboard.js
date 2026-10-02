@@ -75,9 +75,11 @@ function finish() {
   done();
 }
 
-setTimeout(function () {
+// The walk starts once the login's result is drawn: its controls are part
+// of what the keyboard reaches.
+V.until(function () { return !!document.querySelector('#operations-Authentication-login .emit-result'); }, function () {
   document.querySelectorAll('a[href],button,input,select,textarea,[tabindex]').forEach(function (e) { resting.set(e, snap(e)); });
   if (document.activeElement) document.activeElement.blur();
   last = document.activeElement;
   step();
-}, 10500);
+}, 20000);

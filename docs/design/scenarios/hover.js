@@ -1,8 +1,11 @@
 // @widths 1280
+// @alone
 // What answers a pointer, under a real one: Execute's light grows, a map
 // entry and the rail's next step take the interaction tint, and an
 // operation's row says it can be opened. Each value is read before and
 // under the pointer, so a hover rule that no longer applies fails here.
+// Trusted input runs alone, like the keyboard scenarios: in parallel,
+// three browsers contend for the one pointer.
 var steps = [
   { name: 'Execute brightens under the pointer', selector: '#operations-Documents-createDocument .btn.execute', property: 'box-shadow' },
   { name: 'a map entry takes the interaction tint', selector: '.emit-map__item[data-target="operations-Tenants-listTenants"]', property: 'background-color' },

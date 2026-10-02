@@ -66,44 +66,45 @@
 
     /* Opens a tag section and an operation, presses Try it out, writes the
        body through React's own value setter (assigning .value directly does
-       not notify React) and presses Execute, as a reader would. */
+       not notify React) and presses Execute, as a reader would. Each step
+       waits for what it presses, so a slow page delays the call instead of
+       losing it. */
     execute: function (tag, operationId, body, at) {
-      var id = 'operations-' + tag + '-' + operationId;
+      var self = this;
+      var find = function (selector) { return document.querySelector('#operations-' + tag + '-' + operationId + ' ' + selector); };
+      self.open(tag, operationId, at);
       setTimeout(function () {
-        var section = document.querySelector('h3.opblock-tag[data-tag="' + tag + '"]');
-        if (section && section.getAttribute('data-is-open') === 'false') section.click();
+        self.until(function () { return !!find('.try-out__btn'); }, function () {
+          var tryOut = find('.try-out__btn');
+          if (tryOut && !tryOut.classList.contains('cancel')) tryOut.click();
+          self.until(function () { return !!find('button.execute') && (!body || !!find('textarea.body-param__text')); }, function () {
+            var area = find('textarea.body-param__text');
+            if (area && body) {
+              Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(area, body);
+              area.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            var run = find('button.execute');
+            if (run) run.click();
+          }, 15000);
+        }, 15000);
       }, at);
-      setTimeout(function () {
-        var block = document.getElementById(id);
-        if (block && !block.classList.contains('is-open')) block.querySelector('.opblock-summary-control').click();
-      }, at + 1200);
-      setTimeout(function () {
-        var tryOut = document.querySelector('#' + id + ' .try-out__btn');
-        if (tryOut && !tryOut.classList.contains('cancel')) tryOut.click();
-      }, at + 2400);
-      setTimeout(function () {
-        var area = document.querySelector('#' + id + ' textarea');
-        if (area && body) {
-          Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(area, body);
-          area.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      }, at + 3400);
-      setTimeout(function () {
-        var run = document.querySelector('#' + id + ' button.execute');
-        if (run) run.click();
-      }, at + 4400);
     },
-    /* Opens a tag section and one operation, nothing more. */
+    /* Opens a tag section and one operation, nothing more: not before `at`,
+       and then as soon as the page has the section and the operation to
+       click, since a click on a page still building finds nothing. */
     open: function (tag, operationId, at) {
       opening[tag + ' ' + operationId] = true;
+      var self = this;
+      var section = function () { return document.querySelector('h3.opblock-tag[data-tag="' + tag + '"]'); };
+      var block = function () { return document.getElementById('operations-' + tag + '-' + operationId); };
       setTimeout(function () {
-        var section = document.querySelector('h3.opblock-tag[data-tag="' + tag + '"]');
-        if (section && section.getAttribute('data-is-open') === 'false') section.click();
+        self.until(function () { return !!section(); }, function () {
+          if (section() && section().getAttribute('data-is-open') === 'false') section().click();
+          self.until(function () { return !!block(); }, function () {
+            if (block() && !block().classList.contains('is-open')) block().querySelector('.opblock-summary-control').click();
+          }, 15000);
+        }, 15000);
       }, at);
-      setTimeout(function () {
-        var block = document.getElementById('operations-' + tag + '-' + operationId);
-        if (block && !block.classList.contains('is-open')) block.querySelector('.opblock-summary-control').click();
-      }, at + 1000);
     },
     /* A response as if Execute had run, without touching the backend: the
        request is set too, both plain and mutated, because Swagger's live

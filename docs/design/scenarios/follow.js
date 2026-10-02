@@ -5,8 +5,10 @@
 // clock; the only real waits are the follow's own backoff and Retry-After.
 // The stamps of a real run: 11 ms queued in Kafka, 34 ms rendering.
 var stamps = { queuedAt: '2026-09-19T12:00:00.000Z', startedAt: '2026-09-19T12:00:00.011Z', finishedAt: '2026-09-19T12:00:00.045Z' };
+// The first read answers late, so the document is seen PENDING for as long
+// as the check of that state needs, however fast the follow reads.
 var plan = {
-  done: [{ status: 200, state: 'PROCESSING', stamps: { queuedAt: stamps.queuedAt, startedAt: stamps.startedAt } },
+  done: [{ status: 200, state: 'PROCESSING', stamps: { queuedAt: stamps.queuedAt, startedAt: stamps.startedAt }, delay: 1500 },
          { status: 200, state: 'DONE', stamps: stamps }],
   limited: [{ status: 429, headers: { 'Retry-After': '2', 'RateLimit-Remaining': '0' } }, { status: 200, state: 'DONE' }],
   saving: [{ status: 200, state: 'PROCESSING', headers: { 'RateLimit-Remaining': '1' } }]
@@ -22,8 +24,9 @@ window.fetch = function (url, options) {
   headersSent[id] = options && options.headers;
   var step = plan[id][Math.min(reads[id], plan[id].length) - 1];
   var body = step.state ? JSON.stringify(Object.assign({ id: id, status: step.state }, step.stamps || {})) : '';
-  return Promise.resolve(new Response(body,
-    { status: step.status, headers: Object.assign({ 'Content-Type': 'application/json' }, step.headers || {}) }));
+  var response = new Response(body,
+    { status: step.status, headers: Object.assign({ 'Content-Type': 'application/json' }, step.headers || {}) });
+  return new Promise(function (resolve) { setTimeout(function () { resolve(response); }, step.delay || 0); });
 };
 var accepted = function (id) {
   V.fakeResponse('/v1/documents/{id}/generate', 'post', 202, null, 'http://localhost:8080/v1/documents/' + id + '/generate', {});
