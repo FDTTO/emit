@@ -10,6 +10,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import dev.emit.shared.web.ApiErrorWriter;
+import dev.emit.tenant.domain.Tenant;
+import dev.emit.tenant.domain.TenantRepository;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,13 +27,6 @@ import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import dev.emit.tenant.domain.Tenant;
-import dev.emit.tenant.domain.TenantRepository;
-import dev.emit.shared.web.ApiErrorWriter;
-import jakarta.servlet.Filter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.HttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 class TenantFilterTest {
@@ -75,10 +74,11 @@ class TenantFilterTest {
             capturedTenant[0] = TenantContext.getTenant();
             capturedSchema[0] = MDC.get("tenantSchema");
             var auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null)
-                capturedPrincipal[0] = auth.getName();
+            if (auth != null) capturedPrincipal[0] = auth.getName();
         };
-        tenantFilter.doFilterInternal(request, new MockHttpServletResponse(),
+        tenantFilter.doFilterInternal(
+                request,
+                new MockHttpServletResponse(),
                 new MockFilterChain(mock(jakarta.servlet.Servlet.class), capturingFilter));
 
         assertThat(capturedTenant[0]).isEqualTo("tenant_abc");
@@ -113,8 +113,7 @@ class TenantFilterTest {
 
         tenantFilter.doFilterInternal(request, response, chain);
 
-        verify(errorWriter).write(any(), eq(HttpServletResponse.SC_UNAUTHORIZED),
-                any());
+        verify(errorWriter).write(any(), eq(HttpServletResponse.SC_UNAUTHORIZED), any());
         assertThat(TenantContext.getTenant()).isNull();
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
         verify(chain, never()).doFilter(any(), any());
@@ -135,8 +134,7 @@ class TenantFilterTest {
 
         tenantFilter.doFilterInternal(request, response, chain);
 
-        verify(errorWriter).write(any(), eq(HttpServletResponse.SC_FORBIDDEN),
-                any());
+        verify(errorWriter).write(any(), eq(HttpServletResponse.SC_FORBIDDEN), any());
         assertThat(TenantContext.getTenant()).isNull();
         verify(chain, never()).doFilter(any(), any());
     }
@@ -150,8 +148,8 @@ class TenantFilterTest {
     void shouldLeaveMdcKeysItDoesNotOwn() throws Exception {
         MDC.put("requestId", "outer-id");
         try {
-            tenantFilter.doFilterInternal(new MockHttpServletRequest(), new MockHttpServletResponse(),
-                    new MockFilterChain());
+            tenantFilter.doFilterInternal(
+                    new MockHttpServletRequest(), new MockHttpServletResponse(), new MockFilterChain());
 
             assertThat(MDC.get("requestId")).isEqualTo("outer-id");
         } finally {

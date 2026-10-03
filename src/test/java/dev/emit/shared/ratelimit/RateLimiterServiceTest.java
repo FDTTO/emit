@@ -19,8 +19,8 @@ class RateLimiterServiceTest {
 
     @SuppressWarnings("resource")
     @Container
-    static GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
-            .withExposedPorts(6379);
+    static GenericContainer<?> redis =
+            new GenericContainer<>(DockerImageName.parse("redis:7-alpine")).withExposedPorts(6379);
 
     private static StringRedisTemplate redisTemplate;
     private static LettuceConnectionFactory connectionFactory;
@@ -42,7 +42,11 @@ class RateLimiterServiceTest {
 
     @BeforeEach
     void setUp() {
-        redisTemplate.getRequiredConnectionFactory().getConnection().serverCommands().flushDb();
+        redisTemplate
+                .getRequiredConnectionFactory()
+                .getConnection()
+                .serverCommands()
+                .flushDb();
 
         RateLimitProperties properties = new RateLimitProperties();
         properties.setRequestsPerMinute(3);

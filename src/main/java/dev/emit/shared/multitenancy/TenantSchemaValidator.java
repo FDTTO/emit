@@ -6,8 +6,7 @@ public final class TenantSchemaValidator {
 
     private static final Pattern VALID_SCHEMA = Pattern.compile("^[a-z][a-z0-9_]{1,62}$");
 
-    private TenantSchemaValidator() {
-    }
+    private TenantSchemaValidator() {}
 
     public static void validate(String schemaName) {
         if (schemaName == null || (!VALID_SCHEMA.matcher(schemaName).matches() && !schemaName.equals("public"))) {

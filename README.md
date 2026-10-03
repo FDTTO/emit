@@ -270,7 +270,7 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 
 ## Testing
 
-**226 tests**, run with `mvn test` (Docker must be running). No mocks for infrastructure: PostgreSQL, Kafka and Redis are real containers.
+**226 tests**, run with `mvn test` (Docker must be running). No mocks for infrastructure: PostgreSQL, Kafka and Redis are real containers. The build also refuses Java sources out of format (palantir-java-format, checked by Spotless); `mvn spotless:apply` formats them.
 
 - **Unit** (JUnit 6, Mockito): the document's state machine, the services, the filters, the consumer and its tenant context, the PDF renderer's refusal to fetch anything a document references.
 - **Slice** (`@WebMvcTest`): every controller's validation and status codes.

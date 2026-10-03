@@ -12,16 +12,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
-
 import javax.sql.DataSource;
 
+import liquibase.Scope;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
-import liquibase.Scope;
 
 @Testcontainers
 class TenantProvisionerConcurrencyTest {
@@ -46,12 +45,13 @@ class TenantProvisionerConcurrencyTest {
     @Test
     void concurrentProvisioningCompletesForEverySchema() throws Exception {
         Scope.getCurrentScope();
-        DataSource dataSource = new DriverManagerDataSource(
-                postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        DataSource dataSource =
+                new DriverManagerDataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         TenantProvisioner provisioner = new TenantProvisioner(dataSource);
         ReflectionTestUtils.setField(provisioner, "dbUsername", postgres.getUsername());
 
-        List<String> schemas = IntStream.range(0, 6).mapToObj(i -> "concurrent_" + i).toList();
+        List<String> schemas =
+                IntStream.range(0, 6).mapToObj(i -> "concurrent_" + i).toList();
         ExecutorService pool = Executors.newFixedThreadPool(schemas.size());
         CountDownLatch start = new CountDownLatch(1);
         try {
@@ -73,9 +73,8 @@ class TenantProvisionerConcurrencyTest {
         try (Connection connection = dataSource.getConnection();
                 Statement statement = connection.createStatement()) {
             for (String schema : schemas) {
-                ResultSet tables = statement.executeQuery(
-                        "SELECT count(*) FROM information_schema.tables"
-                                + " WHERE table_schema = '" + schema + "' AND table_name = 'documents'");
+                ResultSet tables = statement.executeQuery("SELECT count(*) FROM information_schema.tables"
+                        + " WHERE table_schema = '" + schema + "' AND table_name = 'documents'");
                 tables.next();
                 assertThat(tables.getInt(1)).as("documents table in %s", schema).isEqualTo(1);
             }

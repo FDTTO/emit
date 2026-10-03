@@ -2,6 +2,10 @@ package dev.emit.document.adapter.in.messaging;
 
 import java.util.Map;
 
+import dev.emit.document.application.PdfGenerationService;
+import dev.emit.document.domain.DocumentGenerationRequestedEvent;
+import dev.emit.shared.multitenancy.TenantContextDecorator;
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +14,6 @@ import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.stereotype.Component;
-
-import dev.emit.document.application.PdfGenerationService;
-import dev.emit.document.domain.DocumentGenerationRequestedEvent;
-import dev.emit.shared.multitenancy.TenantContextDecorator;
-import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -31,9 +30,16 @@ class DocumentGenerationConsumer {
         DocumentGenerationRequestedEvent event = record.value();
         tenantContextDecorator.run(
                 event.tenantSchema(),
-                Map.of("tenantSchema", event.tenantSchema(), "documentId", event.documentId().toString()),
+                Map.of(
+                        "tenantSchema",
+                        event.tenantSchema(),
+                        "documentId",
+                        event.documentId().toString()),
                 () -> {
-                    log.info("Starting PDF generation documentId={} tenant={}", event.documentId(), event.tenantSchema());
+                    log.info(
+                            "Starting PDF generation documentId={} tenant={}",
+                            event.documentId(),
+                            event.tenantSchema());
                     pdfGenerationService.generateSync(event.documentId(), event.requestedAt());
                 });
     }
@@ -43,9 +49,14 @@ class DocumentGenerationConsumer {
         DocumentGenerationRequestedEvent event = record.value();
         tenantContextDecorator.run(
                 event.tenantSchema(),
-                Map.of("tenantSchema", event.tenantSchema(), "documentId", event.documentId().toString()),
+                Map.of(
+                        "tenantSchema",
+                        event.tenantSchema(),
+                        "documentId",
+                        event.documentId().toString()),
                 () -> {
-                    log.error("Document generation permanently failed after retries, documentId={}", event.documentId());
+                    log.error(
+                            "Document generation permanently failed after retries, documentId={}", event.documentId());
                     pdfGenerationService.abandonGeneration(event.documentId());
                 });
     }

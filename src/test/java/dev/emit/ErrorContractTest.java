@@ -10,18 +10,15 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -30,6 +27,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Every error example in the published spec is a claim about what the API
@@ -64,16 +63,16 @@ class ErrorContractTest extends ContainerizedTest {
     private String inactiveTenantKey;
     private String exhaustedTenantKey;
 
-    private record Operation(String id, HttpMethod method, String path, String scheme) {
-    }
+    private record Operation(String id, HttpMethod method, String path, String scheme) {}
 
-    private record Credential(String header, String value) {
-    }
+    private record Credential(String header, String value) {}
 
     @BeforeAll
     void createCallers() throws Exception {
-        adminToken = json(send(HttpMethod.POST, "/v1/auth/login", null,
-                "{\"username\":\"admin\",\"password\":\"admin123\"}")).get("token").asString();
+        adminToken = json(send(
+                        HttpMethod.POST, "/v1/auth/login", null, "{\"username\":\"admin\",\"password\":\"admin123\"}"))
+                .get("token")
+                .asString();
         tenantKey = createTenant("contract_main").get("apiKey").asString();
 
         JsonNode inactive = createTenant("contract_inactive");
@@ -91,31 +90,46 @@ class ErrorContractTest extends ContainerizedTest {
         JsonNode spec = json(send(HttpMethod.GET, "/v3/api-docs", null, null));
         List<DynamicTest> tests = new ArrayList<>();
 
-        spec.get("paths").properties().forEach(path -> path.getValue().properties().forEach(entry -> {
-            JsonNode node = entry.getValue();
-            JsonNode security = node.path("security");
-            Operation operation = new Operation(
-                    node.get("operationId").asString(),
-                    HttpMethod.valueOf(entry.getKey().toUpperCase()),
-                    path.getKey(),
-                    security.isEmpty() ? null : security.get(0).propertyNames().iterator().next());
+        spec.get("paths")
+                .properties()
+                .forEach(path -> path.getValue().properties().forEach(entry -> {
+                    JsonNode node = entry.getValue();
+                    JsonNode security = node.path("security");
+                    Operation operation = new Operation(
+                            node.get("operationId").asString(),
+                            HttpMethod.valueOf(entry.getKey().toUpperCase()),
+                            path.getKey(),
+                            security.isEmpty()
+                                    ? null
+                                    : security.get(0).propertyNames().iterator().next());
 
-            node.get("responses").properties().forEach(response -> {
-                int status = Integer.parseInt(response.getKey());
-                if (status < 400) {
-                    return;
-                }
-                JsonNode examples = response.getValue().path("content").path("application/json").path("examples");
-                if (examples.isEmpty()) {
-                    tests.add(DynamicTest.dynamicTest(operation.id() + " " + status + " has named examples",
-                            () -> assertThat(examples.isEmpty()).as("examples").isFalse()));
-                    return;
-                }
-                examples.properties().forEach(example -> tests.add(DynamicTest.dynamicTest(
-                        operation.id() + " " + status + " " + example.getKey(),
-                        () -> assertAnswer(operation, status, example.getKey(), example.getValue().get("value")))));
-            });
-        }));
+                    node.get("responses").properties().forEach(response -> {
+                        int status = Integer.parseInt(response.getKey());
+                        if (status < 400) {
+                            return;
+                        }
+                        JsonNode examples = response.getValue()
+                                .path("content")
+                                .path("application/json")
+                                .path("examples");
+                        if (examples.isEmpty()) {
+                            tests.add(DynamicTest.dynamicTest(
+                                    operation.id() + " " + status + " has named examples",
+                                    () -> assertThat(examples.isEmpty())
+                                            .as("examples")
+                                            .isFalse()));
+                            return;
+                        }
+                        examples.properties()
+                                .forEach(example -> tests.add(DynamicTest.dynamicTest(
+                                        operation.id() + " " + status + " " + example.getKey(),
+                                        () -> assertAnswer(
+                                                operation,
+                                                status,
+                                                example.getKey(),
+                                                example.getValue().get("value")))));
+                    });
+                }));
         return tests.stream();
     }
 
@@ -128,8 +142,12 @@ class ErrorContractTest extends ContainerizedTest {
         assertThat(actual.getStatusCode().value()).as("%s: status", label).isEqualTo(status);
 
         JsonNode body = json(actual);
-        assertThat(body.get("status").asInt()).as("%s: status in the body", label).isEqualTo(status);
-        assertThat(documented.get("status").asInt()).as("%s: status in the example", label).isEqualTo(status);
+        assertThat(body.get("status").asInt())
+                .as("%s: status in the body", label)
+                .isEqualTo(status);
+        assertThat(documented.get("status").asInt())
+                .as("%s: status in the example", label)
+                .isEqualTo(status);
         assertThat(normalized(body.get("message").asString()))
                 .as("%s: message", label)
                 .isEqualTo(normalized(documented.get("message").asString()));
@@ -139,18 +157,35 @@ class ErrorContractTest extends ContainerizedTest {
         return Map.ofEntries(
                 Map.entry("missing-credential", operation -> call(operation, null)),
                 Map.entry("invalid-api-key", operation -> call(operation, new Credential("X-API-Key", "not-a-key"))),
-                Map.entry("invalid-token", operation -> call(operation, new Credential(HttpHeaders.AUTHORIZATION, "Bearer not-a-token"))),
-                Map.entry("wrong-credential", operation -> call(operation,
-                        "apiKeyAuth".equals(operation.scheme()) ? admin() : apiKey(tenantKey))),
+                Map.entry(
+                        "invalid-token",
+                        operation -> call(operation, new Credential(HttpHeaders.AUTHORIZATION, "Bearer not-a-token"))),
+                Map.entry(
+                        "wrong-credential",
+                        operation ->
+                                call(operation, "apiKeyAuth".equals(operation.scheme()) ? admin() : apiKey(tenantKey))),
                 Map.entry("tenant-inactive", operation -> call(operation, apiKey(inactiveTenantKey))),
                 Map.entry("rate-limited", operation -> call(operation, apiKey(exhaustedTenantKey))),
-                Map.entry("unknown-id", operation -> send(operation.method(),
-                        withId(operation, UUID.randomUUID().toString()), valid(operation), null)),
-                Map.entry("invalid-id", operation -> send(operation.method(),
-                        withId(operation, "not-a-uuid"), valid(operation), null)),
-                Map.entry("invalid-body", operation -> send(operation.method(), operation.path(), valid(operation), "{}")),
-                Map.entry("invalid-credentials", operation -> send(operation.method(), operation.path(), null,
-                        "{\"username\":\"admin\",\"password\":\"wrong\"}")),
+                Map.entry(
+                        "unknown-id",
+                        operation -> send(
+                                operation.method(),
+                                withId(operation, UUID.randomUUID().toString()),
+                                valid(operation),
+                                null)),
+                Map.entry(
+                        "invalid-id",
+                        operation -> send(operation.method(), withId(operation, "not-a-uuid"), valid(operation), null)),
+                Map.entry(
+                        "invalid-body",
+                        operation -> send(operation.method(), operation.path(), valid(operation), "{}")),
+                Map.entry(
+                        "invalid-credentials",
+                        operation -> send(
+                                operation.method(),
+                                operation.path(),
+                                null,
+                                "{\"username\":\"admin\",\"password\":\"wrong\"}")),
                 Map.entry("schema-taken", operation -> {
                     String body = "{\"name\":\"Taken\",\"schemaName\":\"contract_taken\"}";
                     send(operation.method(), operation.path(), admin(), body);
@@ -159,13 +194,19 @@ class ErrorContractTest extends ContainerizedTest {
                 Map.entry("not-pending", operation -> {
                     String id = createDocument();
                     send(HttpMethod.POST, "/v1/documents/" + id + "/generate", apiKey(tenantKey), null);
-                    Awaitility.await().atMost(Duration.ofSeconds(30)).pollInterval(Duration.ofMillis(500))
-                            .until(() -> "DONE".equals(json(send(HttpMethod.GET, "/v1/documents/" + id,
-                                    apiKey(tenantKey), null)).get("status").asString()));
+                    Awaitility.await()
+                            .atMost(Duration.ofSeconds(30))
+                            .pollInterval(Duration.ofMillis(500))
+                            .until(() -> "DONE"
+                                    .equals(json(send(HttpMethod.GET, "/v1/documents/" + id, apiKey(tenantKey), null))
+                                            .get("status")
+                                            .asString()));
                     return send(operation.method(), withId(operation, id), apiKey(tenantKey), null);
                 }),
-                Map.entry("pdf-not-ready", operation -> send(operation.method(), withId(operation, createDocument()),
-                        apiKey(tenantKey), null)),
+                Map.entry(
+                        "pdf-not-ready",
+                        operation ->
+                                send(operation.method(), withId(operation, createDocument()), apiKey(tenantKey), null)),
                 Map.entry("limiter-unavailable", operation -> {
                     String container = REDIS.getContainerId();
                     REDIS.getDockerClient().pauseContainerCmd(container).exec();
@@ -192,8 +233,7 @@ class ErrorContractTest extends ContainerizedTest {
      * in a rate-limit window), so both sides compare with them masked.
      */
     private static String normalized(String message) {
-        return message
-                .replaceAll("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "{uuid}")
+        return message.replaceAll("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "{uuid}")
                 .replaceAll("\\d+", "{n}");
     }
 
@@ -218,14 +258,22 @@ class ErrorContractTest extends ContainerizedTest {
     }
 
     private JsonNode createTenant(String schemaName) throws Exception {
-        return json(send(HttpMethod.POST, "/v1/tenants", admin(),
+        return json(send(
+                HttpMethod.POST,
+                "/v1/tenants",
+                admin(),
                 "{\"name\":\"" + schemaName + "\",\"schemaName\":\"" + schemaName + "\"}"));
     }
 
     private String createDocument() {
         try {
-            return json(send(HttpMethod.POST, "/v1/documents", apiKey(tenantKey),
-                    "{\"title\":\"Contract\",\"content\":\"<p>Contract</p>\"}")).get("id").asString();
+            return json(send(
+                            HttpMethod.POST,
+                            "/v1/documents",
+                            apiKey(tenantKey),
+                            "{\"title\":\"Contract\",\"content\":\"<p>Contract</p>\"}"))
+                    .get("id")
+                    .asString();
         } catch (Exception exception) {
             throw new IllegalStateException(exception);
         }
@@ -244,7 +292,9 @@ class ErrorContractTest extends ContainerizedTest {
     }
 
     private JsonNode json(ResponseEntity<String> response) throws Exception {
-        assertThat(response.getBody()).as("body of %s", response.getStatusCode()).isNotBlank();
+        assertThat(response.getBody())
+                .as("body of %s", response.getStatusCode())
+                .isNotBlank();
         return objectMapper.readTree(response.getBody());
     }
 }

@@ -72,9 +72,15 @@ class SwaggerUiController {
     private final String page;
 
     SwaggerUiController() throws IOException {
-        Resource[] modules = new PathMatchingResourcePatternResolver().getResources("classpath:/static/swagger/console/*.js");
-        String preloads = Stream.concat(Stream.of("emit.js"),
-                        Arrays.stream(modules).map(Resource::getFilename).filter(Objects::nonNull).sorted().map(name -> "console/" + name))
+        Resource[] modules =
+                new PathMatchingResourcePatternResolver().getResources("classpath:/static/swagger/console/*.js");
+        String preloads = Stream.concat(
+                        Stream.of("emit.js"),
+                        Arrays.stream(modules)
+                                .map(Resource::getFilename)
+                                .filter(Objects::nonNull)
+                                .sorted()
+                                .map(name -> "console/" + name))
                 .map(path -> "    <link rel=\"modulepreload\" href=\"/swagger/" + path + "\">")
                 .collect(Collectors.joining("\n"));
         this.page = PAGE.replace("MODULE_PRELOADS", preloads);

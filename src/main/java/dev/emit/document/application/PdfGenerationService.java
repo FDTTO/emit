@@ -3,17 +3,16 @@ package dev.emit.document.application;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
-
 import dev.emit.document.domain.Document;
 import dev.emit.document.domain.DocumentNotFoundException;
 import dev.emit.document.domain.DocumentRepository;
 import dev.emit.document.domain.DocumentStatus;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -28,8 +27,7 @@ public class PdfGenerationService {
 
     @Transactional
     public void abandonGeneration(UUID id) {
-        Document document = documentRepository.findById(id)
-                .orElseThrow(() -> new DocumentNotFoundException(id));
+        Document document = documentRepository.findById(id).orElseThrow(() -> new DocumentNotFoundException(id));
         if (document.getStatus() == DocumentStatus.FAILED || document.getStatus() == DocumentStatus.DONE) {
             log.warn("Document already in terminal state {}, skipping documentId={}", document.getStatus(), id);
             return;
@@ -47,8 +45,7 @@ public class PdfGenerationService {
     // duplicate request (generate called twice) and is skipped, not retried.
     public void generateSync(UUID id, OffsetDateTime requestedAt) {
         Document document = transactionTemplate.execute(tx -> {
-            Document fetched = documentRepository.findById(id)
-                    .orElseThrow(() -> new DocumentNotFoundException(id));
+            Document fetched = documentRepository.findById(id).orElseThrow(() -> new DocumentNotFoundException(id));
             if (fetched.getStatus() == DocumentStatus.PENDING) {
                 fetched.markAsProcessing(requestedAt);
                 return documentRepository.save(fetched);
@@ -57,7 +54,10 @@ public class PdfGenerationService {
         });
 
         if (document.getStatus() == DocumentStatus.DONE || document.getStatus() == DocumentStatus.FAILED) {
-            log.warn("Document already {}, skipping duplicate generation request documentId={}", document.getStatus(), id);
+            log.warn(
+                    "Document already {}, skipping duplicate generation request documentId={}",
+                    document.getStatus(),
+                    id);
             return;
         }
 

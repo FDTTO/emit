@@ -15,8 +15,7 @@ public final class TenantContext {
 
     private static final ThreadLocal<String> CURRENT_TENANT = new ThreadLocal<>();
 
-    private TenantContext() {
-    }
+    private TenantContext() {}
 
     public static Scope open(String schemaName) {
         Scope scope = new Scope(CURRENT_TENANT.get());

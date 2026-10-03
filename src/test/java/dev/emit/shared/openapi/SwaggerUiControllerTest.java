@@ -17,12 +17,15 @@ class SwaggerUiControllerTest {
     @Test
     void shouldPreloadEveryModuleOfTheConsole() throws Exception {
         String page = new SwaggerUiController().index();
-        String[] modules = new File("src/main/resources/static/swagger/console").list((dir, name) -> name.endsWith(".js"));
+        String[] modules =
+                new File("src/main/resources/static/swagger/console").list((dir, name) -> name.endsWith(".js"));
 
         assertThat(modules).isNotEmpty();
-        Arrays.stream(modules).forEach(module ->
-                assertThat(page).contains("<link rel=\"modulepreload\" href=\"/swagger/console/" + module + "\">"));
-        assertThat(page).contains("<link rel=\"modulepreload\" href=\"/swagger/emit.js\">")
+        Arrays.stream(modules)
+                .forEach(module -> assertThat(page)
+                        .contains("<link rel=\"modulepreload\" href=\"/swagger/console/" + module + "\">"));
+        assertThat(page)
+                .contains("<link rel=\"modulepreload\" href=\"/swagger/emit.js\">")
                 .contains("<script type=\"module\" src=\"/swagger/emit.js\"></script>");
     }
 }

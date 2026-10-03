@@ -12,6 +12,11 @@ import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import dev.emit.document.domain.Document;
+import dev.emit.document.domain.DocumentNotFoundException;
+import dev.emit.document.domain.DocumentPdfNotReadyException;
+import dev.emit.document.domain.DocumentRepository;
+import dev.emit.document.domain.DocumentStatusException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,12 +24,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import dev.emit.document.domain.Document;
-import dev.emit.document.domain.DocumentNotFoundException;
-import dev.emit.document.domain.DocumentPdfNotReadyException;
-import dev.emit.document.domain.DocumentRepository;
-import dev.emit.document.domain.DocumentStatusException;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentServiceTest {
@@ -60,8 +59,10 @@ class DocumentServiceTest {
 
         documentService.requestGeneration(id);
 
-        verify(eventPublisher).publishGenerationRequested(argThat(event -> id.equals(event.documentId())
-                && !event.requestedAt().isBefore(before) && !event.requestedAt().isAfter(OffsetDateTime.now())));
+        verify(eventPublisher)
+                .publishGenerationRequested(argThat(event -> id.equals(event.documentId())
+                        && !event.requestedAt().isBefore(before)
+                        && !event.requestedAt().isAfter(OffsetDateTime.now())));
     }
 
     @Test
@@ -69,8 +70,7 @@ class DocumentServiceTest {
         UUID id = UUID.randomUUID();
         when(documentRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> documentService.requestGeneration(id))
-                .isInstanceOf(DocumentNotFoundException.class);
+        assertThatThrownBy(() -> documentService.requestGeneration(id)).isInstanceOf(DocumentNotFoundException.class);
     }
 
     @Test
@@ -80,8 +80,7 @@ class DocumentServiceTest {
         document.markAsProcessing(OffsetDateTime.now());
         when(documentRepository.findById(id)).thenReturn(Optional.of(document));
 
-        assertThatThrownBy(() -> documentService.requestGeneration(id))
-                .isInstanceOf(DocumentStatusException.class);
+        assertThatThrownBy(() -> documentService.requestGeneration(id)).isInstanceOf(DocumentStatusException.class);
 
         verify(eventPublisher, never()).publishGenerationRequested(any());
     }
@@ -89,7 +88,7 @@ class DocumentServiceTest {
     @Test
     void getPdfShouldReturnBytesWhenPdfIsReady() {
         UUID id = UUID.randomUUID();
-        byte[] pdfBytes = new byte[] { 1, 2, 3 };
+        byte[] pdfBytes = new byte[] {1, 2, 3};
         Document document = Document.create("Test", "Content");
         document.markAsProcessing(OffsetDateTime.now());
         document.markAsDone(pdfBytes);
@@ -106,8 +105,7 @@ class DocumentServiceTest {
         Document document = Document.create("Test", "Content");
         when(documentRepository.findById(id)).thenReturn(Optional.of(document));
 
-        assertThatThrownBy(() -> documentService.getPdf(id))
-                .isInstanceOf(DocumentPdfNotReadyException.class);
+        assertThatThrownBy(() -> documentService.getPdf(id)).isInstanceOf(DocumentPdfNotReadyException.class);
     }
 
     @Test
@@ -115,14 +113,12 @@ class DocumentServiceTest {
         UUID id = UUID.randomUUID();
         when(documentRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> documentService.getPdf(id))
-                .isInstanceOf(DocumentNotFoundException.class);
+        assertThatThrownBy(() -> documentService.getPdf(id)).isInstanceOf(DocumentNotFoundException.class);
     }
 
     @Test
     void listAllShouldDelegateToRepository() {
-        when(documentRepository.findAll(any(Pageable.class)))
-                .thenReturn(Page.empty());
+        when(documentRepository.findAll(any(Pageable.class))).thenReturn(Page.empty());
 
         Page<Document> result = documentService.listAll(Pageable.unpaged());
 
@@ -135,7 +131,6 @@ class DocumentServiceTest {
         UUID id = UUID.randomUUID();
         when(documentRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> documentService.findById(id))
-                .isInstanceOf(DocumentNotFoundException.class);
+        assertThatThrownBy(() -> documentService.findById(id)).isInstanceOf(DocumentNotFoundException.class);
     }
 }

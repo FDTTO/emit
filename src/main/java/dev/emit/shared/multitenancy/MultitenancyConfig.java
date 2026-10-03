@@ -2,11 +2,10 @@ package dev.emit.shared.multitenancy;
 
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import org.hibernate.cfg.AvailableSettings;
 import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
 import org.springframework.context.annotation.Configuration;
-
-import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor

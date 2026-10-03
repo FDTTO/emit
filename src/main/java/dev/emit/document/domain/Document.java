@@ -56,8 +56,7 @@ public class Document {
     private byte[] pdfContent;
 
     public static Document create(String title, String content) {
-        if (title == null || title.isBlank())
-            throw new IllegalArgumentException("Document title must not be blank");
+        if (title == null || title.isBlank()) throw new IllegalArgumentException("Document title must not be blank");
         if (content == null || content.isBlank())
             throw new IllegalArgumentException("Document content must not be blank");
 

@@ -6,14 +6,11 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
 class ApiErrorWriterTest {
 
-    private final ApiErrorWriter errorWriter =
-            new ApiErrorWriter(new JsonMapper());
+    private final ApiErrorWriter errorWriter = new ApiErrorWriter(new JsonMapper());
 
     /**
      * The charset assertion is the point of this test: {@code getWriter()} falls

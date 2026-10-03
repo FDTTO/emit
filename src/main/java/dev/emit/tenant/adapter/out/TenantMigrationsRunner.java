@@ -1,12 +1,11 @@
 package dev.emit.tenant.adapter.out;
 
+import dev.emit.tenant.domain.TenantRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.stereotype.Component;
-
-import dev.emit.tenant.domain.TenantRepository;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Brings every tenant schema up to date with the changelog at startup.

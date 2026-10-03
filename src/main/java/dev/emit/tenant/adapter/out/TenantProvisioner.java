@@ -5,13 +5,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.sql.DataSource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import dev.emit.shared.multitenancy.TenantSchemaValidator;
 import dev.emit.tenant.application.SchemaProvisioner;
@@ -19,6 +13,10 @@ import dev.emit.tenant.domain.SchemaProvisioningException;
 import liquibase.exception.LiquibaseException;
 import liquibase.integration.spring.SpringLiquibase;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

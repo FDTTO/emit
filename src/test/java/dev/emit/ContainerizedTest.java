@@ -24,12 +24,12 @@ abstract class ContainerizedTest {
             .withPassword("emit_pass");
 
     @SuppressWarnings("resource")
-    static final ConfluentKafkaContainer KAFKA = new ConfluentKafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
+    static final ConfluentKafkaContainer KAFKA =
+            new ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
 
     @SuppressWarnings("resource")
-    static final GenericContainer<?> REDIS = new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
-            .withExposedPorts(6379);
+    static final GenericContainer<?> REDIS =
+            new GenericContainer<>(DockerImageName.parse("redis:7-alpine")).withExposedPorts(6379);
 
     static {
         POSTGRES.start();

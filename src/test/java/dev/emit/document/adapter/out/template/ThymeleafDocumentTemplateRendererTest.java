@@ -4,12 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.OffsetDateTime;
 
+import dev.emit.document.domain.Document;
 import org.junit.jupiter.api.Test;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-
-import dev.emit.document.domain.Document;
 
 class ThymeleafDocumentTemplateRendererTest {
 
@@ -30,7 +29,8 @@ class ThymeleafDocumentTemplateRendererTest {
 
         String html = renderer.render(document);
 
-        assertThat(html).contains("Q3 Invoice", "<h1>Invoice</h1><p>Total: $1,200.00</p>")
+        assertThat(html)
+                .contains("Q3 Invoice", "<h1>Invoice</h1><p>Total: $1,200.00</p>")
                 .contains(document.getCreatedAt().toLocalDate().toString());
     }
 

@@ -4,13 +4,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import dev.emit.document.domain.Document;
 import dev.emit.document.domain.DocumentGenerationRequestedEvent;
 import dev.emit.document.domain.DocumentNotFoundException;
@@ -20,6 +13,12 @@ import dev.emit.document.domain.DocumentStatus;
 import dev.emit.document.domain.DocumentStatusException;
 import dev.emit.shared.multitenancy.TenantContext;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -44,8 +43,7 @@ public class DocumentService {
 
     @Transactional(readOnly = true)
     public Document findById(UUID id) {
-        return documentRepository.findById(id)
-                .orElseThrow(() -> new DocumentNotFoundException(id));
+        return documentRepository.findById(id).orElseThrow(() -> new DocumentNotFoundException(id));
     }
 
     @Transactional(readOnly = true)
@@ -55,8 +53,8 @@ public class DocumentService {
             throw new DocumentStatusException(id, DocumentStatus.PENDING, document.getStatus());
         }
         log.info("Requesting PDF generation documentId={} tenant={}", id, TenantContext.getTenant());
-        eventPublisher.publishGenerationRequested(
-                new DocumentGenerationRequestedEvent(id, TenantContext.getTenant(), OffsetDateTime.now(ZoneOffset.UTC)));
+        eventPublisher.publishGenerationRequested(new DocumentGenerationRequestedEvent(
+                id, TenantContext.getTenant(), OffsetDateTime.now(ZoneOffset.UTC)));
     }
 
     @Transactional(readOnly = true)

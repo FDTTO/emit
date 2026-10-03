@@ -14,6 +14,10 @@ import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import dev.emit.document.domain.Document;
+import dev.emit.document.domain.DocumentNotFoundException;
+import dev.emit.document.domain.DocumentRepository;
+import dev.emit.document.domain.DocumentStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,11 +27,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import dev.emit.document.domain.Document;
-import dev.emit.document.domain.DocumentNotFoundException;
-import dev.emit.document.domain.DocumentRepository;
-import dev.emit.document.domain.DocumentStatus;
 
 @ExtendWith(MockitoExtension.class)
 class PdfGenerationServiceTest {
@@ -53,8 +52,9 @@ class PdfGenerationServiceTest {
     void setUp() {
         // TransactionTemplate delegates to the callback transparently in tests.
         // lenient() because abandonGeneration tests use @Transactional AOP, not transactionTemplate.
-        lenient().when(transactionTemplate.execute(any())).thenAnswer(inv ->
-                inv.<org.springframework.transaction.support.TransactionCallback<?>>getArgument(0)
+        lenient()
+                .when(transactionTemplate.execute(any()))
+                .thenAnswer(inv -> inv.<org.springframework.transaction.support.TransactionCallback<?>>getArgument(0)
                         .doInTransaction(null));
     }
 
@@ -98,7 +98,7 @@ class PdfGenerationServiceTest {
         when(documentRepository.findById(id)).thenReturn(Optional.of(document));
         when(documentRepository.save(any())).thenReturn(document);
         when(templateRenderer.render(any())).thenReturn("<html></html>");
-        when(pdfRenderer.render(anyString())).thenReturn(new byte[] { 1, 2, 3 });
+        when(pdfRenderer.render(anyString())).thenReturn(new byte[] {1, 2, 3});
 
         pdfGenerationService.generateSync(id, QUEUED_AT);
 
@@ -133,7 +133,7 @@ class PdfGenerationServiceTest {
         when(documentRepository.findById(id)).thenReturn(Optional.of(document));
         when(documentRepository.save(any())).thenReturn(document);
         when(templateRenderer.render(any())).thenReturn("<html></html>");
-        when(pdfRenderer.render(anyString())).thenReturn(new byte[] { 1, 2, 3 });
+        when(pdfRenderer.render(anyString())).thenReturn(new byte[] {1, 2, 3});
 
         pdfGenerationService.generateSync(id, QUEUED_AT.plusSeconds(3));
 
@@ -153,7 +153,7 @@ class PdfGenerationServiceTest {
         when(templateRenderer.render(any())).thenReturn("<html></html>");
         when(pdfRenderer.render(anyString()))
                 .thenThrow(new RuntimeException("render failed"))
-                .thenReturn(new byte[] { 1, 2, 3 });
+                .thenReturn(new byte[] {1, 2, 3});
 
         assertThatThrownBy(() -> pdfGenerationService.generateSync(id, QUEUED_AT))
                 .isInstanceOf(PdfGenerationException.class);
@@ -163,13 +163,15 @@ class PdfGenerationServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DocumentStatus.class, names = { "DONE", "FAILED" })
+    @EnumSource(
+            value = DocumentStatus.class,
+            names = {"DONE", "FAILED"})
     void generateSyncShouldSkipARequestForAFinishedDocument(DocumentStatus finished) {
         UUID id = UUID.randomUUID();
         Document document = buildDocument();
         document.markAsProcessing(QUEUED_AT);
         if (finished == DocumentStatus.DONE) {
-            document.markAsDone(new byte[] { 1 });
+            document.markAsDone(new byte[] {1});
         } else {
             document.markAsFailed();
         }

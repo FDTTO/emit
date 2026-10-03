@@ -5,16 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import com.lowagie.text.pdf.BaseFont;
+import dev.emit.document.application.PdfRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.xhtmlrenderer.pdf.ITextOutputDevice;
-
-import com.lowagie.text.pdf.BaseFont;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 import org.xhtmlrenderer.pdf.ITextUserAgent;
-
-import dev.emit.document.application.PdfRenderer;
 
 @Component
 class FlyingSaucerPdfRenderer implements PdfRenderer {
@@ -24,8 +22,11 @@ class FlyingSaucerPdfRenderer implements PdfRenderer {
     // Classpath resources, read by the PDF library itself rather than through the
     // offline user agent below. Latin subsets: the coverage the built-in fonts had.
     private static final List<String> FONTS = List.of(
-            "fonts/Inter-400.ttf", "fonts/Inter-600.ttf", "fonts/Inter-700.ttf",
-            "fonts/JetBrainsMono-400.ttf", "fonts/JetBrainsMono-500.ttf");
+            "fonts/Inter-400.ttf",
+            "fonts/Inter-600.ttf",
+            "fonts/Inter-700.ttf",
+            "fonts/JetBrainsMono-400.ttf",
+            "fonts/JetBrainsMono-500.ttf");
 
     @Override
     public byte[] render(String html) {

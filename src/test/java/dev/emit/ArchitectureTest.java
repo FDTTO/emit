@@ -1,7 +1,7 @@
 package dev.emit;
 
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -18,19 +18,27 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule theDomainKnowsNeitherItsUseCasesNorItsAdapters = noClasses()
-            .that().resideInAPackage("..domain..")
-            .should().dependOnClassesThat().resideInAnyPackage("..application..", "..adapter..");
+            .that()
+            .resideInAPackage("..domain..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage("..application..", "..adapter..");
 
     @ArchTest
     static final ArchRule useCasesReachAdaptersOnlyThroughPorts = noClasses()
-            .that().resideInAPackage("..application..")
-            .should().dependOnClassesThat().resideInAPackage("..adapter..");
+            .that()
+            .resideInAPackage("..application..")
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage("..adapter..");
 
     // JPA annotations on the entities and Spring Data's Page in the repository
     // ports are the two exceptions the record names; nothing else from Spring.
     @ArchTest
     static final ArchRule theDomainUsesNoSpringButPaging = noClasses()
-            .that().resideInAPackage("..domain..")
-            .should().dependOnClassesThat(resideInAPackage("org.springframework..")
+            .that()
+            .resideInAPackage("..domain..")
+            .should()
+            .dependOnClassesThat(resideInAPackage("org.springframework..")
                     .and(not(resideInAPackage("org.springframework.data.domain.."))));
 }

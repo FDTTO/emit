@@ -5,6 +5,13 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.stream.Collectors;
 
+import dev.emit.document.application.GenerationNotQueuedException;
+import dev.emit.document.domain.DocumentNotFoundException;
+import dev.emit.document.domain.DocumentPdfNotReadyException;
+import dev.emit.document.domain.DocumentStatusException;
+import dev.emit.shared.auth.InvalidCredentialsException;
+import dev.emit.tenant.domain.TenantNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -18,15 +25,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
-
-import jakarta.servlet.http.HttpServletRequest;
-
-import dev.emit.document.application.GenerationNotQueuedException;
-import dev.emit.document.domain.DocumentNotFoundException;
-import dev.emit.document.domain.DocumentPdfNotReadyException;
-import dev.emit.document.domain.DocumentStatusException;
-import dev.emit.shared.auth.InvalidCredentialsException;
-import dev.emit.tenant.domain.TenantNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -43,13 +41,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleConflict(DataIntegrityViolationException exception) {
         log.warn("Data integrity violation", exception);
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse(409, "Record already exists with the given data.", OffsetDateTime.now(ZoneOffset.UTC)));
+                .body(new ErrorResponse(
+                        409, "Record already exists with the given data.", OffsetDateTime.now(ZoneOffset.UTC)));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException exception) {
         return ResponseEntity.badRequest()
-                .body(new ErrorResponse(400, "Request body is missing or malformed.", OffsetDateTime.now(ZoneOffset.UTC)));
+                .body(new ErrorResponse(
+                        400, "Request body is missing or malformed.", OffsetDateTime.now(ZoneOffset.UTC)));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -59,11 +59,12 @@ public class GlobalExceptionHandler {
                 .map(e -> e.getField() + ": " + e.getDefaultMessage())
                 .sorted()
                 .collect(Collectors.joining(", "));
-        return ResponseEntity.badRequest().body(new ErrorResponse(400,
-                message.isEmpty() ? "Invalid data." : message, OffsetDateTime.now(ZoneOffset.UTC)));
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(
+                        400, message.isEmpty() ? "Invalid data." : message, OffsetDateTime.now(ZoneOffset.UTC)));
     }
 
-    @ExceptionHandler({ DocumentNotFoundException.class, TenantNotFoundException.class })
+    @ExceptionHandler({DocumentNotFoundException.class, TenantNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleNotFound(RuntimeException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(404, exception.getMessage(), OffsetDateTime.now(ZoneOffset.UTC)));
@@ -115,9 +116,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
         Class<?> required = exception.getRequiredType();
         String expected = required == null ? "the expected type" : required.getSimpleName();
-        return ResponseEntity.badRequest().body(new ErrorResponse(400,
-                "'" + exception.getName() + "' is not a valid " + expected + ".",
-                OffsetDateTime.now(ZoneOffset.UTC)));
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(
+                        400,
+                        "'" + exception.getName() + "' is not a valid " + expected + ".",
+                        OffsetDateTime.now(ZoneOffset.UTC)));
     }
 
     /**

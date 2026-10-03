@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import dev.emit.tenant.adapter.out.TenantMigrationsRunner;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -11,8 +12,6 @@ import org.springframework.boot.web.server.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
-
-import dev.emit.tenant.adapter.out.TenantMigrationsRunner;
 
 /**
  * Tenant schemas must be migrated before the application accepts a request.

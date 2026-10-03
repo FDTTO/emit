@@ -46,8 +46,9 @@ class TenantContextDecoratorTest {
     @Test
     void shouldClearTenantContextAfterException() {
         assertThatThrownBy(() -> decorator.run("acme_corp", Map.of(), () -> {
-            throw new RuntimeException("boom");
-        })).isInstanceOf(RuntimeException.class);
+                    throw new RuntimeException("boom");
+                }))
+                .isInstanceOf(RuntimeException.class);
 
         assertThat(TenantContext.getTenant()).isNull();
     }
@@ -55,8 +56,9 @@ class TenantContextDecoratorTest {
     @Test
     void shouldClearMdcAfterException() {
         assertThatThrownBy(() -> decorator.run("acme_corp", Map.of("tenantSchema", "acme_corp"), () -> {
-            throw new RuntimeException("boom");
-        })).isInstanceOf(RuntimeException.class);
+                    throw new RuntimeException("boom");
+                }))
+                .isInstanceOf(RuntimeException.class);
 
         assertThat(MDC.get("tenantSchema")).isNull();
     }

@@ -2,13 +2,11 @@ package dev.emit.shared.multitenancy;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-
 import javax.sql.DataSource;
 
+import lombok.RequiredArgsConstructor;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor

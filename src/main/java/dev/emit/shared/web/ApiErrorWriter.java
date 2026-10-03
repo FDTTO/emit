@@ -5,13 +5,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
-
-import tools.jackson.databind.ObjectMapper;
-
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Writes error bodies for the security layer, which runs in the filter chain
@@ -32,7 +30,7 @@ public class ApiErrorWriter {
         // (Servlet spec) and non-ASCII text in the JSON body is mangled.
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        objectMapper.writeValue(response.getWriter(),
-                new ErrorResponse(status, message, OffsetDateTime.now(ZoneOffset.UTC)));
+        objectMapper.writeValue(
+                response.getWriter(), new ErrorResponse(status, message, OffsetDateTime.now(ZoneOffset.UTC)));
     }
 }

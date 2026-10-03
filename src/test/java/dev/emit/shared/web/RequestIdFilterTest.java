@@ -6,14 +6,13 @@ import static org.mockito.Mockito.mock;
 
 import java.util.UUID;
 
+import jakarta.servlet.Filter;
+import jakarta.servlet.Servlet;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import jakarta.servlet.Filter;
-import jakarta.servlet.Servlet;
 
 class RequestIdFilterTest {
 
@@ -49,8 +48,10 @@ class RequestIdFilterTest {
             throw new IllegalStateException("downstream failure");
         };
 
-        assertThatThrownBy(() -> filter.doFilter(new MockHttpServletRequest(), new MockHttpServletResponse(),
-                new MockFilterChain(mock(Servlet.class), failing)))
+        assertThatThrownBy(() -> filter.doFilter(
+                        new MockHttpServletRequest(),
+                        new MockHttpServletResponse(),
+                        new MockFilterChain(mock(Servlet.class), failing)))
                 .hasMessage("downstream failure");
         assertThat(MDC.get("requestId")).isNull();
     }

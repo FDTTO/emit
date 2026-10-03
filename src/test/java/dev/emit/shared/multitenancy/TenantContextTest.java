@@ -31,10 +31,11 @@ class TenantContextTest {
     @Test
     void workThatFailsStillLeavesNoTenant() {
         assertThatThrownBy(() -> {
-            try (var _ = TenantContext.open("tenant_acme")) {
-                throw new IllegalStateException("work failed");
-            }
-        }).hasMessage("work failed");
+                    try (var _ = TenantContext.open("tenant_acme")) {
+                        throw new IllegalStateException("work failed");
+                    }
+                })
+                .hasMessage("work failed");
 
         assertThat(TenantContext.getTenant()).isNull();
     }

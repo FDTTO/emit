@@ -8,17 +8,16 @@ import static org.mockito.Mockito.verify;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import dev.emit.document.application.PdfGenerationService;
+import dev.emit.document.domain.DocumentGenerationRequestedEvent;
+import dev.emit.shared.multitenancy.TenantContext;
+import dev.emit.shared.multitenancy.TenantContextDecorator;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import dev.emit.document.application.PdfGenerationService;
-import dev.emit.document.domain.DocumentGenerationRequestedEvent;
-import dev.emit.shared.multitenancy.TenantContext;
-import dev.emit.shared.multitenancy.TenantContextDecorator;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentGenerationConsumerTest {
@@ -36,7 +35,8 @@ class DocumentGenerationConsumerTest {
     }
 
     private ConsumerRecord<String, DocumentGenerationRequestedEvent> buildRecord(UUID documentId, String tenantSchema) {
-        DocumentGenerationRequestedEvent event = new DocumentGenerationRequestedEvent(documentId, tenantSchema, REQUESTED_AT);
+        DocumentGenerationRequestedEvent event =
+                new DocumentGenerationRequestedEvent(documentId, tenantSchema, REQUESTED_AT);
         return new ConsumerRecord<>("document-generation", 0, 0L, documentId.toString(), event);
     }
 

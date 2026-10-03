@@ -3,7 +3,6 @@ package dev.emit.tenant.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -11,15 +10,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import dev.emit.tenant.domain.Tenant;
+import dev.emit.tenant.domain.TenantNotFoundException;
+import dev.emit.tenant.domain.TenantRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import dev.emit.tenant.domain.Tenant;
-import dev.emit.tenant.domain.TenantNotFoundException;
-import dev.emit.tenant.domain.TenantRepository;
 
 @ExtendWith(MockitoExtension.class)
 class TenantServiceTest {
@@ -81,8 +79,7 @@ class TenantServiceTest {
         UUID id = UUID.randomUUID();
         when(tenantRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> tenantService.deactivate(id))
-                .isInstanceOf(TenantNotFoundException.class);
+        assertThatThrownBy(() -> tenantService.deactivate(id)).isInstanceOf(TenantNotFoundException.class);
     }
 
     @Test
@@ -90,8 +87,7 @@ class TenantServiceTest {
         UUID id = UUID.randomUUID();
         when(tenantRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> tenantService.reactivate(id))
-                .isInstanceOf(TenantNotFoundException.class);
+        assertThatThrownBy(() -> tenantService.reactivate(id)).isInstanceOf(TenantNotFoundException.class);
     }
 
     @Test
@@ -122,8 +118,7 @@ class TenantServiceTest {
         UUID id = UUID.randomUUID();
         when(tenantRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> tenantService.findById(id))
-                .isInstanceOf(TenantNotFoundException.class);
+        assertThatThrownBy(() -> tenantService.findById(id)).isInstanceOf(TenantNotFoundException.class);
     }
 
     @Test

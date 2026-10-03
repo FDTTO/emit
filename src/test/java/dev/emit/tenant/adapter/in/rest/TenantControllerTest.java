@@ -12,6 +12,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.UUID;
 
+import dev.emit.shared.ratelimit.RateLimiterService;
+import dev.emit.shared.security.JwtService;
+import dev.emit.shared.web.ApiErrorWriter;
+import dev.emit.tenant.application.TenantService;
+import dev.emit.tenant.domain.Tenant;
+import dev.emit.tenant.domain.TenantNotFoundException;
+import dev.emit.tenant.domain.TenantRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
@@ -22,19 +29,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-
 import tools.jackson.databind.ObjectMapper;
 
-import dev.emit.shared.ratelimit.RateLimiterService;
-import dev.emit.shared.security.JwtService;
-import dev.emit.shared.web.ApiErrorWriter;
-import dev.emit.tenant.application.TenantService;
-import dev.emit.tenant.domain.Tenant;
-import dev.emit.tenant.domain.TenantNotFoundException;
-import dev.emit.tenant.domain.TenantRepository;
-
-@WebMvcTest(value = TenantController.class, excludeAutoConfiguration = { SecurityAutoConfiguration.class,
-        SecurityFilterAutoConfiguration.class })
+@WebMvcTest(
+        value = TenantController.class,
+        excludeAutoConfiguration = {SecurityAutoConfiguration.class, SecurityFilterAutoConfiguration.class})
 class TenantControllerTest {
 
     @Autowired
@@ -70,12 +69,11 @@ class TenantControllerTest {
         when(tenantService.create(anyString(), anyString()))
                 .thenReturn(new TenantService.TenantCreated(tenant, "generated-api-key"));
 
-        String body = objectMapper.writeValueAsString(
-                new CreateTenantRequest("Acme Corp", "acme_corp"));
+        String body = objectMapper.writeValueAsString(new CreateTenantRequest("Acme Corp", "acme_corp"));
 
         mockMvc.perform(post("/v1/tenants")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.name").value("Acme Corp"))
@@ -88,67 +86,61 @@ class TenantControllerTest {
         when(tenantService.create(anyString(), anyString()))
                 .thenThrow(new DataIntegrityViolationException("schema already exists"));
 
-        String body = objectMapper.writeValueAsString(
-                new CreateTenantRequest("Acme Corp", "acme_corp"));
+        String body = objectMapper.writeValueAsString(new CreateTenantRequest("Acme Corp", "acme_corp"));
 
         mockMvc.perform(post("/v1/tenants")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isConflict());
     }
 
     @Test
     void shouldReturn400WhenSchemaNameStartsWithDigit() throws Exception {
-        String body = objectMapper.writeValueAsString(
-                new CreateTenantRequest("Acme Corp", "1invalid"));
+        String body = objectMapper.writeValueAsString(new CreateTenantRequest("Acme Corp", "1invalid"));
 
         mockMvc.perform(post("/v1/tenants")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldReturn400WhenSchemaNameHasUppercase() throws Exception {
-        String body = objectMapper.writeValueAsString(
-                new CreateTenantRequest("Acme Corp", "AcmeCorp"));
+        String body = objectMapper.writeValueAsString(new CreateTenantRequest("Acme Corp", "AcmeCorp"));
 
         mockMvc.perform(post("/v1/tenants")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldReturn400WhenSchemaNameHasHyphen() throws Exception {
-        String body = objectMapper.writeValueAsString(
-                new CreateTenantRequest("Acme Corp", "acme-corp"));
+        String body = objectMapper.writeValueAsString(new CreateTenantRequest("Acme Corp", "acme-corp"));
 
         mockMvc.perform(post("/v1/tenants")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldReturn400WhenSchemaNameIsTooShort() throws Exception {
-        String body = objectMapper.writeValueAsString(
-                new CreateTenantRequest("Acme Corp", "a"));
+        String body = objectMapper.writeValueAsString(new CreateTenantRequest("Acme Corp", "a"));
 
         mockMvc.perform(post("/v1/tenants")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldReturn400WhenNameIsBlank() throws Exception {
-        String body = objectMapper.writeValueAsString(
-                new CreateTenantRequest("", "acme_corp"));
+        String body = objectMapper.writeValueAsString(new CreateTenantRequest("", "acme_corp"));
 
         mockMvc.perform(post("/v1/tenants")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest());
     }
 
@@ -157,8 +149,7 @@ class TenantControllerTest {
         UUID id = UUID.randomUUID();
         when(tenantService.findById(id)).thenThrow(new TenantNotFoundException(id));
 
-        mockMvc.perform(get("/v1/tenants/" + id))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/v1/tenants/" + id)).andExpect(status().isNotFound());
     }
 
     @Test
@@ -177,8 +168,7 @@ class TenantControllerTest {
         UUID id = UUID.randomUUID();
         doNothing().when(tenantService).deactivate(id);
 
-        mockMvc.perform(post("/v1/tenants/" + id + "/deactivate"))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(post("/v1/tenants/" + id + "/deactivate")).andExpect(status().isNoContent());
     }
 
     @Test
@@ -186,8 +176,7 @@ class TenantControllerTest {
         UUID id = UUID.randomUUID();
         doThrow(new TenantNotFoundException(id)).when(tenantService).deactivate(id);
 
-        mockMvc.perform(post("/v1/tenants/" + id + "/deactivate"))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/v1/tenants/" + id + "/deactivate")).andExpect(status().isNotFound());
     }
 
     @Test
@@ -195,8 +184,7 @@ class TenantControllerTest {
         UUID id = UUID.randomUUID();
         doNothing().when(tenantService).reactivate(id);
 
-        mockMvc.perform(post("/v1/tenants/" + id + "/reactivate"))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(post("/v1/tenants/" + id + "/reactivate")).andExpect(status().isNoContent());
     }
 
     @Test
@@ -204,7 +192,6 @@ class TenantControllerTest {
         UUID id = UUID.randomUUID();
         doThrow(new TenantNotFoundException(id)).when(tenantService).reactivate(id);
 
-        mockMvc.perform(post("/v1/tenants/" + id + "/reactivate"))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/v1/tenants/" + id + "/reactivate")).andExpect(status().isNotFound());
     }
 }

@@ -5,15 +5,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 import java.util.UUID;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-
+import dev.emit.document.adapter.in.rest.CreateDocumentRequest;
+import dev.emit.document.adapter.in.rest.DocumentResponse;
+import dev.emit.document.domain.DocumentStatus;
+import dev.emit.shared.auth.LoginRequest;
+import dev.emit.shared.auth.LoginResponse;
+import dev.emit.tenant.adapter.in.rest.CreateTenantRequest;
+import dev.emit.tenant.adapter.in.rest.TenantCreatedResponse;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -23,14 +27,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-
-import dev.emit.document.adapter.in.rest.CreateDocumentRequest;
-import dev.emit.document.adapter.in.rest.DocumentResponse;
-import dev.emit.document.domain.DocumentStatus;
-import dev.emit.shared.auth.LoginRequest;
-import dev.emit.shared.auth.LoginResponse;
-import dev.emit.tenant.adapter.in.rest.CreateTenantRequest;
-import dev.emit.tenant.adapter.in.rest.TenantCreatedResponse;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -58,9 +56,7 @@ class DocumentIntegrationTest extends ContainerizedTest {
 
     private String login() {
         ResponseEntity<LoginResponse> response = restTemplate.postForEntity(
-                "/v1/auth/login",
-                new LoginRequest("admin", "admin123"),
-                LoginResponse.class);
+                "/v1/auth/login", new LoginRequest("admin", "admin123"), LoginResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         return response.getBody().token();
@@ -99,10 +95,7 @@ class DocumentIntegrationTest extends ContainerizedTest {
         headers.set("X-API-Key", apiKey);
 
         ResponseEntity<Void> response = restTemplate.exchange(
-                "/v1/documents/" + documentId + "/generate",
-                HttpMethod.POST,
-                new HttpEntity<>(headers),
-                Void.class);
+                "/v1/documents/" + documentId + "/generate", HttpMethod.POST, new HttpEntity<>(headers), Void.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
     }
@@ -114,21 +107,23 @@ class DocumentIntegrationTest extends ContainerizedTest {
         return Awaitility.await()
                 .atMost(Duration.ofSeconds(30))
                 .pollInterval(Duration.ofMillis(500))
-                .until(() -> {
-                    ResponseEntity<DocumentResponse> response = restTemplate.exchange(
-                            "/v1/documents/" + documentId,
-                            HttpMethod.GET,
-                            new HttpEntity<>(headers),
-                            DocumentResponse.class);
-                    /*
-                     * Asserted before the body is read: any non-200 here comes
-                     * back as an error document, and deserialising that into a
-                     * DocumentResponse fails with a Jackson message about enum
-                     * ordinals that says nothing about what went wrong.
-                     */
-                    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-                    return response.getBody();
-                }, document -> document.status() == DocumentStatus.DONE);
+                .until(
+                        () -> {
+                            ResponseEntity<DocumentResponse> response = restTemplate.exchange(
+                                    "/v1/documents/" + documentId,
+                                    HttpMethod.GET,
+                                    new HttpEntity<>(headers),
+                                    DocumentResponse.class);
+                            /*
+                             * Asserted before the body is read: any non-200 here comes
+                             * back as an error document, and deserialising that into a
+                             * DocumentResponse fails with a Jackson message about enum
+                             * ordinals that says nothing about what went wrong.
+                             */
+                            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+                            return response.getBody();
+                        },
+                        document -> document.status() == DocumentStatus.DONE);
     }
 
     private void downloadPdf(String apiKey, UUID documentId) {
@@ -136,10 +131,7 @@ class DocumentIntegrationTest extends ContainerizedTest {
         headers.set("X-API-Key", apiKey);
 
         ResponseEntity<byte[]> response = restTemplate.exchange(
-                "/v1/documents/" + documentId + "/pdf",
-                HttpMethod.GET,
-                new HttpEntity<>(headers),
-                byte[].class);
+                "/v1/documents/" + documentId + "/pdf", HttpMethod.GET, new HttpEntity<>(headers), byte[].class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_PDF);
@@ -169,8 +161,8 @@ class DocumentIntegrationTest extends ContainerizedTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(login());
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/v1/documents", HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        ResponseEntity<String> response =
+                restTemplate.exchange("/v1/documents", HttpMethod.GET, new HttpEntity<>(headers), String.class);
 
         assertForbiddenInApiShape(response);
     }
@@ -180,8 +172,8 @@ class DocumentIntegrationTest extends ContainerizedTest {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-API-Key", createTenant(login(), "refused_tenant"));
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/v1/tenants", HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        ResponseEntity<String> response =
+                restTemplate.exchange("/v1/tenants", HttpMethod.GET, new HttpEntity<>(headers), String.class);
 
         assertForbiddenInApiShape(response);
     }

@@ -6,8 +6,7 @@ import java.security.NoSuchAlgorithmException;
 
 public final class ApiKeyHasher {
 
-    private ApiKeyHasher() {
-    }
+    private ApiKeyHasher() {}
 
     public static String hash(String apiKey) {
         try {

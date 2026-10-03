@@ -9,6 +9,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import dev.emit.shared.multitenancy.TenantContext;
+import dev.emit.shared.web.ApiErrorWriter;
+import dev.emit.shared.web.RefusalMessages;
+import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,11 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import dev.emit.shared.multitenancy.TenantContext;
-import dev.emit.shared.web.ApiErrorWriter;
-import dev.emit.shared.web.RefusalMessages;
-import jakarta.servlet.FilterChain;
 
 @ExtendWith(MockitoExtension.class)
 class RateLimitFilterTest {
@@ -84,7 +83,8 @@ class RateLimitFilterTest {
      */
     @Test
     void shouldReturn503WithoutABudgetWhenTheLimiterIsUnavailable() throws Exception {
-        when(rateLimiterService.tryConsume("tenant_abc")).thenThrow(new RateLimiterUnavailableException(new IllegalStateException("down")));
+        when(rateLimiterService.tryConsume("tenant_abc"))
+                .thenThrow(new RateLimiterUnavailableException(new IllegalStateException("down")));
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
 

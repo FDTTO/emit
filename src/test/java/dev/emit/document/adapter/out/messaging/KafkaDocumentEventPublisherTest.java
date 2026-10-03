@@ -11,15 +11,14 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import dev.emit.document.application.GenerationNotQueuedException;
+import dev.emit.document.domain.DocumentGenerationRequestedEvent;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.Test;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.messaging.Message;
-
-import dev.emit.document.application.GenerationNotQueuedException;
-import dev.emit.document.domain.DocumentGenerationRequestedEvent;
 
 class KafkaDocumentEventPublisherTest {
 
@@ -34,7 +33,8 @@ class KafkaDocumentEventPublisherTest {
 
     @Test
     void shouldReturnOnceTheBrokerHasTheEvent() {
-        RecordMetadata acknowledged = new RecordMetadata(new TopicPartition("document.generation.requested", 0), 0, 0, 0, 0, 0);
+        RecordMetadata acknowledged =
+                new RecordMetadata(new TopicPartition("document.generation.requested", 0), 0, 0, 0, 0, 0);
         when(template.send(any(Message.class)))
                 .thenReturn(CompletableFuture.completedFuture(new SendResult<>(null, acknowledged)));
 

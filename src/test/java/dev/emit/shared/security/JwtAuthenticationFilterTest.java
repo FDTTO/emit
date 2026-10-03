@@ -10,6 +10,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
+import dev.emit.shared.web.ApiErrorWriter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,10 +26,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import dev.emit.shared.web.ApiErrorWriter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.HttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
@@ -73,7 +72,8 @@ class JwtAuthenticationFilterTest {
         jwtAuthenticationFilter.doFilterInternal(request, response, chain);
 
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
-        assertThat(SecurityContextHolder.getContext().getAuthentication().getName()).isEqualTo("admin");
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getName())
+                .isEqualTo("admin");
         verify(chain).doFilter(any(), any());
     }
 
@@ -88,8 +88,9 @@ class JwtAuthenticationFilterTest {
         String token = "valid.jwt.token";
         when(jwtService.isValid(token)).thenReturn(true);
         when(jwtService.extractSubject(token)).thenReturn("admin");
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                "acme", null, List.of(new SimpleGrantedAuthority("ROLE_TENANT"))));
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(
+                        "acme", null, List.of(new SimpleGrantedAuthority("ROLE_TENANT"))));
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer " + token);

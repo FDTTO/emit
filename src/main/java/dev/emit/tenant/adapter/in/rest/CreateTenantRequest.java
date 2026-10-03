@@ -10,6 +10,7 @@ public record CreateTenantRequest(
         @NotBlank
         @Size(max = 100, message = "name must not exceed 100 characters")
         String name,
+
         @Schema(
                 description = "PostgreSQL schema name: lowercase letters, digits and underscores, "
                         + "starting with a letter.",
@@ -19,6 +20,6 @@ public record CreateTenantRequest(
         @NotBlank
         @Pattern(
                 regexp = "^[a-z][a-z0-9_]{1,62}$",
-                message = "schemaName must start with a lowercase letter and contain only lowercase letters, digits, and underscores, between 2 and 63 characters")
-        String schemaName) {
-}
+                message =
+                        "schemaName must start with a lowercase letter and contain only lowercase letters, digits, and underscores, between 2 and 63 characters")
+        String schemaName) {}

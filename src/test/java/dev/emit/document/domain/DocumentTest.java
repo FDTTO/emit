@@ -43,7 +43,7 @@ class DocumentTest {
         Document doc = Document.create("Contract", "Content");
         doc.markAsProcessing(QUEUED_AT);
 
-        doc.markAsDone(new byte[] { 1 });
+        doc.markAsDone(new byte[] {1});
 
         assertThat(doc.getFinishedAt()).isEqualTo(doc.getUpdatedAt()).isAfterOrEqualTo(doc.getStartedAt());
     }
@@ -59,10 +59,9 @@ class DocumentTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "'', Content", "' ', Content", "Title, ''", "Title, ' '" })
+    @CsvSource({"'', Content", "' ', Content", "Title, ''", "Title, ' '"})
     void createShouldThrowWhenInputIsBlank(String title, String content) {
-        assertThatThrownBy(() -> Document.create(title, content))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> Document.create(title, content)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -80,7 +79,7 @@ class DocumentTest {
     void markAsDoneShouldUpdateStatusAndStorePdf() {
         Document doc = Document.create("Contract", "Content");
         doc.markAsProcessing(QUEUED_AT);
-        byte[] pdfBytes = new byte[] { 1, 2, 3 };
+        byte[] pdfBytes = new byte[] {1, 2, 3};
 
         doc.markAsDone(pdfBytes);
 
@@ -112,16 +111,14 @@ class DocumentTest {
         Document doc = Document.create("Contract", "Content");
         doc.markAsProcessing(QUEUED_AT);
 
-        assertThatThrownBy(() -> doc.markAsProcessing(QUEUED_AT))
-                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> doc.markAsProcessing(QUEUED_AT)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     void markAsDoneShouldThrowWhenNotProcessing() {
         Document doc = Document.create("Contract", "Content");
 
-        assertThatThrownBy(() -> doc.markAsDone(new byte[] { 1 }))
-                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> doc.markAsDone(new byte[] {1})).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -129,17 +126,15 @@ class DocumentTest {
         Document doc = Document.create("Contract", "Content");
         doc.markAsProcessing(QUEUED_AT);
 
-        assertThatThrownBy(() -> doc.markAsDone(null))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> doc.markAsDone(null)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void markAsFailedShouldThrowWhenDone() {
         Document doc = Document.create("Contract", "Content");
         doc.markAsProcessing(QUEUED_AT);
-        doc.markAsDone(new byte[] { 1 });
+        doc.markAsDone(new byte[] {1});
 
-        assertThatThrownBy(doc::markAsFailed)
-                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(doc::markAsFailed).isInstanceOf(IllegalStateException.class);
     }
 }

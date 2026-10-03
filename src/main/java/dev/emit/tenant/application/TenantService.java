@@ -4,16 +4,15 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import dev.emit.shared.multitenancy.ApiKeyHasher;
 import dev.emit.tenant.domain.Tenant;
 import dev.emit.tenant.domain.TenantNotFoundException;
 import dev.emit.tenant.domain.TenantRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -52,8 +51,7 @@ public class TenantService {
 
     @Transactional(readOnly = true)
     public Tenant findById(UUID id) {
-        return tenantRepository.findById(id)
-                .orElseThrow(() -> new TenantNotFoundException(id));
+        return tenantRepository.findById(id).orElseThrow(() -> new TenantNotFoundException(id));
     }
 
     @Transactional
@@ -72,6 +70,5 @@ public class TenantService {
         log.info("Tenant reactivated tenantId={}", id);
     }
 
-    public record TenantCreated(Tenant tenant, String apiKey) {
-    }
+    public record TenantCreated(Tenant tenant, String apiKey) {}
 }

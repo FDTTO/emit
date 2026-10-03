@@ -15,8 +15,7 @@ public final class RefusalMessages {
             + "Tenant management needs an admin token; documents need a tenant API key.";
     public static final String LIMITER_UNAVAILABLE = "The rate limiter is unavailable. Try again in a few seconds.";
 
-    private RefusalMessages() {
-    }
+    private RefusalMessages() {}
 
     public static String rateLimited(long resetSeconds) {
         return "Rate limit exceeded. Try again in " + resetSeconds + (resetSeconds == 1 ? " second." : " seconds.");

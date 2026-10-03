@@ -5,19 +5,18 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import dev.emit.document.application.DocumentEventPublisher;
+import dev.emit.document.application.GenerationNotQueuedException;
+import dev.emit.document.domain.DocumentGenerationRequestedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.KafkaException;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
-
-import dev.emit.document.application.DocumentEventPublisher;
-import dev.emit.document.application.GenerationNotQueuedException;
-import dev.emit.document.domain.DocumentGenerationRequestedEvent;
 
 @Component
 class KafkaDocumentEventPublisher implements DocumentEventPublisher {
@@ -44,22 +43,26 @@ class KafkaDocumentEventPublisher implements DocumentEventPublisher {
     public void publishGenerationRequested(DocumentGenerationRequestedEvent event) {
         SendResult<String, DocumentGenerationRequestedEvent> result;
         try {
-            result = kafkaTemplate.send(MessageBuilder
-                    .withPayload(event)
-                    .setHeader(KafkaHeaders.TOPIC, topic)
-                    .setHeader(KafkaHeaders.KEY, event.documentId().toString())
-                    .setHeader("tenantSchema", event.tenantSchema())
-                    .build())
+            result = kafkaTemplate
+                    .send(MessageBuilder.withPayload(event)
+                            .setHeader(KafkaHeaders.TOPIC, topic)
+                            .setHeader(KafkaHeaders.KEY, event.documentId().toString())
+                            .setHeader("tenantSchema", event.tenantSchema())
+                            .build())
                     .get(ackTimeout.toMillis(), TimeUnit.MILLISECONDS);
         } catch (InterruptedException interrupted) {
             Thread.currentThread().interrupt();
             throw new GenerationNotQueuedException(interrupted);
-        } catch (ExecutionException | TimeoutException | KafkaException
-                 | org.apache.kafka.common.KafkaException failure) {
+        } catch (ExecutionException
+                | TimeoutException
+                | KafkaException
+                | org.apache.kafka.common.KafkaException failure) {
             log.error("Generation event not acknowledged documentId={}", event.documentId(), failure);
             throw new GenerationNotQueuedException(failure);
         }
-        log.debug("Published generation event documentId={} offset={}",
-                event.documentId(), result.getRecordMetadata().offset());
+        log.debug(
+                "Published generation event documentId={} offset={}",
+                event.documentId(),
+                result.getRecordMetadata().offset());
     }
 }

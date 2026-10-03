@@ -19,14 +19,12 @@ class TenantSchemaValidatorTest {
 
     @Test
     void shouldRejectNullSchemaName() {
-        assertThatThrownBy(() -> TenantSchemaValidator.validate(null))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> TenantSchemaValidator.validate(null)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void shouldRejectSingleCharSchemaName() {
-        assertThatThrownBy(() -> TenantSchemaValidator.validate("a"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> TenantSchemaValidator.validate("a")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

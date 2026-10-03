@@ -40,8 +40,7 @@ public class Tenant {
     private OffsetDateTime createdAt;
 
     public static Tenant create(String name, String schemaName, String apiKeyHash) {
-        if (name == null || name.isBlank())
-            throw new IllegalArgumentException("Tenant name must not be blank");
+        if (name == null || name.isBlank()) throw new IllegalArgumentException("Tenant name must not be blank");
         if (schemaName == null || schemaName.isBlank())
             throw new IllegalArgumentException("Schema name must not be blank");
         if (apiKeyHash == null || apiKeyHash.isBlank())

@@ -10,16 +10,6 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springdoc.core.customizers.OpenApiCustomizer;
-import org.springdoc.core.customizers.OperationCustomizer;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.DefaultParameterNameDiscoverer;
-import org.springframework.core.MethodParameter;
-import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.web.bind.annotation.PathVariable;
-
 import dev.emit.shared.web.ErrorResponse;
 import dev.emit.shared.web.RefusalMessages;
 import io.swagger.v3.core.converter.ModelConverter;
@@ -41,6 +31,15 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
+import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springdoc.core.customizers.OperationCustomizer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.MethodParameter;
+import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Configuration
 public class OpenApiConfig {
@@ -59,9 +58,7 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI openAPI() {
         var api = new OpenAPI()
-                .info(new Info()
-                        .title("EMIT API")
-                        .description("""
+                .info(new Info().title("EMIT API").description("""
                                 Multi-tenant document processing engine. Each tenant operates in complete \
                                 data isolation via PostgreSQL schema separation. Authenticated requests \
                                 trigger async PDF generation with tenant context propagated across \
@@ -80,25 +77,41 @@ public class OpenApiConfig {
                                 2. Create a tenant `POST /v1/tenants`
                                 3. Create a document `POST /v1/documents`
                                 4. Generate its PDF `POST /v1/documents/{id}/generate`
-                                5. Download it `GET /v1/documents/{id}/pdf`""")
-                        .version("v1"))
-                .tags(List.of(
-                        new Tag().name("Authentication").description("Admin login. Returns a JWT required for all tenant management endpoints."),
-                        new Tag().name("Tenants").description("Tenant lifecycle management. Each tenant gets an isolated PostgreSQL schema and a one-time API key. Requires JWT authentication."),
-                        new Tag().name("Documents").description("Document creation and PDF generation. Operations are scoped to the authenticated tenant's schema. Requires API Key authentication via the X-API-Key header.")))
+                                5. Download it `GET /v1/documents/{id}/pdf`""").version("v1"))
+                .tags(
+                        List.of(
+                                new Tag()
+                                        .name("Authentication")
+                                        .description(
+                                                "Admin login. Returns a JWT required for all tenant management endpoints."),
+                                new Tag()
+                                        .name("Tenants")
+                                        .description(
+                                                "Tenant lifecycle management. Each tenant gets an isolated PostgreSQL schema and a one-time API key. Requires JWT authentication."),
+                                new Tag()
+                                        .name("Documents")
+                                        .description(
+                                                "Document creation and PDF generation. Operations are scoped to the authenticated tenant's schema. Requires API Key authentication via the X-API-Key header.")))
                 // No document-level security requirement: the two credentials are not
                 // interchangeable, so each controller declares the scheme it accepts.
-                .components(new Components()
-                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")
-                                .description("JWT obtained from POST /v1/auth/login. Required for all /v1/tenants endpoints."))
-                        .addSecuritySchemes("apiKeyAuth", new SecurityScheme()
-                                .type(SecurityScheme.Type.APIKEY)
-                                .in(SecurityScheme.In.HEADER)
-                                .name("X-API-Key")
-                                .description("Tenant API key returned at registration. Displayed exactly once; store it securely. Required for all /v1/documents endpoints.")));
+                .components(
+                        new Components()
+                                .addSecuritySchemes(
+                                        "bearerAuth",
+                                        new SecurityScheme()
+                                                .type(SecurityScheme.Type.HTTP)
+                                                .scheme("bearer")
+                                                .bearerFormat("JWT")
+                                                .description(
+                                                        "JWT obtained from POST /v1/auth/login. Required for all /v1/tenants endpoints."))
+                                .addSecuritySchemes(
+                                        "apiKeyAuth",
+                                        new SecurityScheme()
+                                                .type(SecurityScheme.Type.APIKEY)
+                                                .in(SecurityScheme.In.HEADER)
+                                                .name("X-API-Key")
+                                                .description(
+                                                        "Tenant API key returned at registration. Displayed exactly once; store it securely. Required for all /v1/documents endpoints.")));
 
         // Declared rather than left to springdoc, whose generated entry is
         // labelled "Generated server url" in the Servers select.
@@ -116,8 +129,10 @@ public class OpenApiConfig {
      */
     @Bean
     public OpenApiCustomizer errorSchema() {
-        return api -> api.getComponents().addSchemas(ERROR_SCHEMA,
-                ModelConverters.getInstance().readAllAsResolvedSchema(ErrorResponse.class).schema);
+        return api -> api.getComponents()
+                .addSchemas(
+                        ERROR_SCHEMA,
+                        ModelConverters.getInstance().readAllAsResolvedSchema(ErrorResponse.class).schema);
     }
 
     /*
@@ -131,24 +146,31 @@ public class OpenApiConfig {
      */
     @Bean
     public OpenApiCustomizer rateLimitHeaders() {
-        return api -> api.getPaths().values().forEach(path -> path.readOperations().forEach(operation -> {
-            boolean tenantScoped = operation.getSecurity() != null
-                    && operation.getSecurity().stream().anyMatch(requirement -> requirement.containsKey("apiKeyAuth"));
-            if (!tenantScoped || operation.getResponses() == null) {
-                return;
-            }
-            operation.getResponses().forEach((code, response) -> {
-                if (ANSWERED_WITHOUT_A_BUDGET.contains(code)) {
-                    return;
-                }
-                response.addHeaderObject("RateLimit-Limit", header("Requests this tenant may make per rolling minute."));
-                response.addHeaderObject("RateLimit-Remaining", header("Requests left in the current window after this one."));
-                response.addHeaderObject("RateLimit-Reset", header("Seconds until the oldest request in the window leaves it and frees a slot."));
-                if ("429".equals(code)) {
-                    response.addHeaderObject("Retry-After", header("Seconds to wait before retrying."));
-                }
-            });
-        }));
+        return api -> api.getPaths()
+                .values()
+                .forEach(path -> path.readOperations().forEach(operation -> {
+                    boolean tenantScoped = operation.getSecurity() != null
+                            && operation.getSecurity().stream()
+                                    .anyMatch(requirement -> requirement.containsKey("apiKeyAuth"));
+                    if (!tenantScoped || operation.getResponses() == null) {
+                        return;
+                    }
+                    operation.getResponses().forEach((code, response) -> {
+                        if (ANSWERED_WITHOUT_A_BUDGET.contains(code)) {
+                            return;
+                        }
+                        response.addHeaderObject(
+                                "RateLimit-Limit", header("Requests this tenant may make per rolling minute."));
+                        response.addHeaderObject(
+                                "RateLimit-Remaining", header("Requests left in the current window after this one."));
+                        response.addHeaderObject(
+                                "RateLimit-Reset",
+                                header("Seconds until the oldest request in the window leaves it and frees a slot."));
+                        if ("429".equals(code)) {
+                            response.addHeaderObject("Retry-After", header("Seconds to wait before retrying."));
+                        }
+                    });
+                }));
     }
 
     /*
@@ -168,8 +190,10 @@ public class OpenApiConfig {
             }
             for (Field field : model.getDeclaredFields()) {
                 Schema<?> property = defined.getProperties().get(field.getName());
-                if (property != null && field.isAnnotationPresent(NotBlank.class)
-                        && property.getMinLength() != null && property.getMinLength() < 1) {
+                if (property != null
+                        && field.isAnnotationPresent(NotBlank.class)
+                        && property.getMinLength() != null
+                        && property.getMinLength() < 1) {
                     property.setMinLength(1);
                 }
             }
@@ -201,9 +225,10 @@ public class OpenApiConfig {
             }
 
             Map<Integer, List<Case>> byStatus = new TreeMap<>();
-            cases.forEach(each -> byStatus.computeIfAbsent(each.status(), status -> new ArrayList<>()).add(each));
-            byStatus.forEach((status, group) -> operation.getResponses().addApiResponse(String.valueOf(status),
-                    errorResponse(group)));
+            cases.forEach(each -> byStatus.computeIfAbsent(each.status(), status -> new ArrayList<>())
+                    .add(each));
+            byStatus.forEach((status, group) ->
+                    operation.getResponses().addApiResponse(String.valueOf(status), errorResponse(group)));
 
             ApiResponses sorted = new ApiResponses();
             new TreeMap<>(operation.getResponses()).forEach(sorted::addApiResponse);
@@ -211,8 +236,7 @@ public class OpenApiConfig {
         };
     }
 
-    private record Case(int status, String name, String summary, String message) {
-    }
+    private record Case(int status, String name, String summary, String message) {}
 
     private static List<Case> refusals(io.swagger.v3.oas.models.Operation operation) {
         List<SecurityRequirement> security = operation.getSecurity();
@@ -220,26 +244,28 @@ public class OpenApiConfig {
             return List.of();
         }
         Case missing = new Case(401, "missing-credential", "No credential", RefusalMessages.AUTHENTICATION_REQUIRED);
-        Case wrong = new Case(403, "wrong-credential", "Credential for the other scope", RefusalMessages.WRONG_CREDENTIAL);
+        Case wrong =
+                new Case(403, "wrong-credential", "Credential for the other scope", RefusalMessages.WRONG_CREDENTIAL);
         if (security.get(0).containsKey("apiKeyAuth")) {
-            return List.of(missing,
+            return List.of(
+                    missing,
                     new Case(401, "invalid-api-key", "Unknown API key", RefusalMessages.INVALID_API_KEY),
                     wrong,
                     new Case(403, "tenant-inactive", "Tenant deactivated", RefusalMessages.TENANT_INACTIVE),
                     new Case(429, "rate-limited", "Rate limit exceeded", RefusalMessages.rateLimited(12)),
-                    new Case(503, "limiter-unavailable", "The rate limiter cannot be reached",
+                    new Case(
+                            503,
+                            "limiter-unavailable",
+                            "The rate limiter cannot be reached",
                             RefusalMessages.LIMITER_UNAVAILABLE));
         }
-        return List.of(missing,
-                new Case(401, "invalid-token", "Rejected token", RefusalMessages.INVALID_TOKEN),
-                wrong);
+        return List.of(missing, new Case(401, "invalid-token", "Rejected token", RefusalMessages.INVALID_TOKEN), wrong);
     }
 
     private static ApiResponse errorResponse(List<Case> group) {
         MediaType body = new MediaType().schema(new Schema<>().$ref("#/components/schemas/" + ERROR_SCHEMA));
-        group.forEach(each -> body.addExamples(each.name(), new Example()
-                .summary(each.summary())
-                .value(errorExample(each))));
+        group.forEach(each -> body.addExamples(
+                each.name(), new Example().summary(each.summary()).value(errorExample(each))));
         return new ApiResponse()
                 .description(describe(group))
                 .content(new Content().addMediaType("application/json", body));
@@ -247,9 +273,13 @@ public class OpenApiConfig {
 
     /* "No credential or unknown API key": the first summary as written, the rest lower-cased. */
     private static String describe(List<Case> group) {
-        return group.get(0).summary() + group.stream().skip(1)
-                .map(each -> " or " + Character.toLowerCase(each.summary().charAt(0)) + each.summary().substring(1))
-                .collect(Collectors.joining());
+        return group.get(0).summary()
+                + group.stream()
+                        .skip(1)
+                        .map(each ->
+                                " or " + Character.toLowerCase(each.summary().charAt(0))
+                                        + each.summary().substring(1))
+                        .collect(Collectors.joining());
     }
 
     private static Map<String, Object> errorExample(Case error) {

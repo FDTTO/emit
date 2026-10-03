@@ -6,16 +6,15 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import java.util.ArrayList;
 import java.util.List;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Rules the published models state about their fields, checked against
@@ -37,17 +36,22 @@ class ApiDocsTest extends ContainerizedTest {
 
     @Test
     void aRequiredStringWithALengthRuleNeverAdmitsAnEmptyValue() throws Exception {
-        JsonNode schemas = objectMapper.readTree(restTemplate.getForObject("/v3/api-docs", String.class))
-                .path("components").path("schemas");
+        JsonNode schemas = objectMapper
+                .readTree(restTemplate.getForObject("/v3/api-docs", String.class))
+                .path("components")
+                .path("schemas");
 
         List<String> admitsEmpty = new ArrayList<>();
         schemas.properties().forEach(model -> {
             JsonNode required = model.getValue().path("required");
             model.getValue().path("properties").properties().forEach(property -> {
                 JsonNode rules = property.getValue();
-                boolean isRequired = required.isArray() && required.toString().contains("\"" + property.getKey() + "\"");
-                if (isRequired && "string".equals(rules.path("type").asString())
-                        && rules.has("minLength") && rules.path("minLength").asInt() < 1) {
+                boolean isRequired =
+                        required.isArray() && required.toString().contains("\"" + property.getKey() + "\"");
+                if (isRequired
+                        && "string".equals(rules.path("type").asString())
+                        && rules.has("minLength")
+                        && rules.path("minLength").asInt() < 1) {
                     admitsEmpty.add(model.getKey() + "." + property.getKey());
                 }
             });
@@ -69,9 +73,13 @@ class ApiDocsTest extends ContainerizedTest {
 
     @Test
     void everyErrorIsDescribedByTheErrorSchemaWithItsTimestamp() throws Exception {
-        JsonNode error = objectMapper.readTree(restTemplate.getForObject("/v3/api-docs", String.class))
-                .path("components").path("schemas").path("ErrorResponse");
+        JsonNode error = objectMapper
+                .readTree(restTemplate.getForObject("/v3/api-docs", String.class))
+                .path("components")
+                .path("schemas")
+                .path("ErrorResponse");
 
-        assertThat(error.path("properties").path("timestamp").path("example").asString()).isEqualTo("2026-01-15T10:30:00Z");
+        assertThat(error.path("properties").path("timestamp").path("example").asString())
+                .isEqualTo("2026-01-15T10:30:00Z");
     }
 }

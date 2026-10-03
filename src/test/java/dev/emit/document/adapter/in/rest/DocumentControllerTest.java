@@ -15,6 +15,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.UUID;
 
+import dev.emit.document.application.DocumentService;
+import dev.emit.document.domain.Document;
+import dev.emit.document.domain.DocumentNotFoundException;
+import dev.emit.document.domain.DocumentPdfNotReadyException;
+import dev.emit.document.domain.DocumentStatus;
+import dev.emit.document.domain.DocumentStatusException;
+import dev.emit.shared.ratelimit.RateLimiterService;
+import dev.emit.shared.security.JwtService;
+import dev.emit.shared.web.ApiErrorWriter;
+import dev.emit.tenant.domain.TenantRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
@@ -27,22 +37,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import tools.jackson.databind.ObjectMapper;
 
-import dev.emit.document.application.DocumentService;
-import dev.emit.document.domain.Document;
-import dev.emit.document.domain.DocumentNotFoundException;
-import dev.emit.document.domain.DocumentPdfNotReadyException;
-import dev.emit.document.domain.DocumentStatus;
-import dev.emit.document.domain.DocumentStatusException;
-import dev.emit.shared.ratelimit.RateLimiterService;
-import dev.emit.shared.security.JwtService;
-import dev.emit.shared.web.ApiErrorWriter;
-import dev.emit.tenant.domain.TenantRepository;
-
-@WebMvcTest(value = DocumentController.class, excludeAutoConfiguration = { SecurityAutoConfiguration.class,
-        SecurityFilterAutoConfiguration.class })
+@WebMvcTest(
+        value = DocumentController.class,
+        excludeAutoConfiguration = {SecurityAutoConfiguration.class, SecurityFilterAutoConfiguration.class})
 class DocumentControllerTest {
 
     @Autowired
@@ -83,10 +82,7 @@ class DocumentControllerTest {
     @Test
     void shouldReturnPageWithDocumentsAndCorrectMetadata() throws Exception {
         Document document = buildDocument();
-        Page<Document> page = new PageImpl<>(
-                List.of(document),
-                PageRequest.of(0, 20),
-                1);
+        Page<Document> page = new PageImpl<>(List.of(document), PageRequest.of(0, 20), 1);
         when(documentService.listAll(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/v1/documents"))
@@ -104,12 +100,11 @@ class DocumentControllerTest {
         Document document = buildDocument();
         when(documentService.create(anyString(), anyString())).thenReturn(document);
 
-        String body = objectMapper.writeValueAsString(
-                new CreateDocumentRequest("Contract", "Contract content"));
+        String body = objectMapper.writeValueAsString(new CreateDocumentRequest("Contract", "Contract content"));
 
         mockMvc.perform(post("/v1/documents")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("Contract"))
                 .andExpect(jsonPath("$.status").value("PENDING"));
@@ -133,42 +128,38 @@ class DocumentControllerTest {
         UUID id = UUID.randomUUID();
         when(documentService.findById(id)).thenThrow(new DocumentNotFoundException(id));
 
-        mockMvc.perform(get("/v1/documents/" + id))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/v1/documents/" + id)).andExpect(status().isNotFound());
     }
 
     @Test
     void shouldReturn400WhenTitleIsBlank() throws Exception {
-        String body = objectMapper.writeValueAsString(
-                new CreateDocumentRequest("", "Some content"));
+        String body = objectMapper.writeValueAsString(new CreateDocumentRequest("", "Some content"));
 
         mockMvc.perform(post("/v1/documents")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldReturn400WhenTitleExceedsMaxLength() throws Exception {
         String longTitle = "a".repeat(256);
-        String body = objectMapper.writeValueAsString(
-                new CreateDocumentRequest(longTitle, "Some content"));
+        String body = objectMapper.writeValueAsString(new CreateDocumentRequest(longTitle, "Some content"));
 
         mockMvc.perform(post("/v1/documents")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldReturn400WhenContentExceedsMaxLength() throws Exception {
         String longContent = "a".repeat(50001);
-        String body = objectMapper.writeValueAsString(
-                new CreateDocumentRequest("Title", longContent));
+        String body = objectMapper.writeValueAsString(new CreateDocumentRequest("Title", longContent));
 
         mockMvc.perform(post("/v1/documents")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest());
     }
 
@@ -177,15 +168,15 @@ class DocumentControllerTest {
         UUID id = UUID.randomUUID();
         doNothing().when(documentService).requestGeneration(id);
 
-        mockMvc.perform(post("/v1/documents/" + id + "/generate"))
-                .andExpect(status().isAccepted());
+        mockMvc.perform(post("/v1/documents/" + id + "/generate")).andExpect(status().isAccepted());
     }
 
     @Test
     void shouldReturn409WhenDocumentIsNotPending() throws Exception {
         UUID id = UUID.randomUUID();
         doThrow(new DocumentStatusException(id, DocumentStatus.PENDING, DocumentStatus.PROCESSING))
-                .when(documentService).requestGeneration(id);
+                .when(documentService)
+                .requestGeneration(id);
 
         mockMvc.perform(post("/v1/documents/" + id + "/generate"))
                 .andExpect(status().isConflict())
@@ -197,40 +188,36 @@ class DocumentControllerTest {
         UUID id = UUID.randomUUID();
         doThrow(new DocumentNotFoundException(id)).when(documentService).requestGeneration(id);
 
-        mockMvc.perform(post("/v1/documents/" + id + "/generate"))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/v1/documents/" + id + "/generate")).andExpect(status().isNotFound());
     }
 
     @Test
     void shouldReturn400WhenBodyIsMissing() throws Exception {
-        mockMvc.perform(post("/v1/documents")
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(post("/v1/documents").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test
     void shouldReturn400WhenContentIsBlank() throws Exception {
-        String body = objectMapper.writeValueAsString(
-                new CreateDocumentRequest("Valid Title", ""));
+        String body = objectMapper.writeValueAsString(new CreateDocumentRequest("Valid Title", ""));
 
         mockMvc.perform(post("/v1/documents")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldReturnPdfWhenDocumentIsDone() throws Exception {
         UUID id = UUID.randomUUID();
-        byte[] pdfBytes = new byte[] { 1, 2, 3 };
+        byte[] pdfBytes = new byte[] {1, 2, 3};
         when(documentService.getPdf(id)).thenReturn(pdfBytes);
 
         mockMvc.perform(get("/v1/documents/" + id + "/pdf"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_PDF))
-                .andExpect(header().string("Content-Disposition",
-                        "attachment; filename=\"document-" + id + ".pdf\""))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"document-" + id + ".pdf\""))
                 .andExpect(content().bytes(pdfBytes));
     }
 
@@ -239,8 +226,7 @@ class DocumentControllerTest {
         UUID id = UUID.randomUUID();
         when(documentService.getPdf(id)).thenThrow(new DocumentNotFoundException(id));
 
-        mockMvc.perform(get("/v1/documents/" + id + "/pdf"))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/v1/documents/" + id + "/pdf")).andExpect(status().isNotFound());
     }
 
     @Test
