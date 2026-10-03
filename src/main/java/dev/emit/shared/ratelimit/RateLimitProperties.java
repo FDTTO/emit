@@ -1,15 +1,7 @@
 package dev.emit.shared.ratelimit;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
-@Component
 @ConfigurationProperties("emit.rate-limit")
-@Getter
-@Setter
-public class RateLimitProperties {
-
-    private int requestsPerMinute = 20;
-}
+public record RateLimitProperties(@DefaultValue("20") int requestsPerMinute) {}

@@ -68,7 +68,7 @@ public class RateLimiterService {
      *         there is no knowing whether the tenant is within its budget
      */
     public RateLimitDecision tryConsume(String tenantSchema) {
-        int limit = properties.getRequestsPerMinute();
+        int limit = properties.requestsPerMinute();
         List<?> result;
         try {
             result = redisTemplate.execute(

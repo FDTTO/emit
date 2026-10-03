@@ -48,8 +48,7 @@ class RateLimiterServiceTest {
                 .serverCommands()
                 .flushDb();
 
-        RateLimitProperties properties = new RateLimitProperties();
-        properties.setRequestsPerMinute(3);
+        RateLimitProperties properties = new RateLimitProperties(3);
         service = new RateLimiterService(redisTemplate, properties);
     }
 
@@ -92,8 +91,7 @@ class RateLimiterServiceTest {
         nowhere.afterPropertiesSet();
         StringRedisTemplate unreachable = new StringRedisTemplate(nowhere);
         unreachable.afterPropertiesSet();
-        RateLimitProperties properties = new RateLimitProperties();
-        properties.setRequestsPerMinute(3);
+        RateLimitProperties properties = new RateLimitProperties(3);
         try {
             assertThatThrownBy(() -> new RateLimiterService(unreachable, properties).tryConsume("tenant_a"))
                     .isInstanceOf(RateLimiterUnavailableException.class);
