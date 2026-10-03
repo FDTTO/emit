@@ -14,7 +14,7 @@ var scopeOf = function (id) {
   return badge ? badge.className.replace(/.*emit-scope--(\w+).*/, '$1') : null;
 };
 
-V.until(function () { return all('.opblock .emit-op-icon svg path').length === all('.opblock').length && !!q('.emit-count'); }, function () {
+V.until(function () { return all('.opblock .emit-op-icon svg').length === all('.opblock').length && !!q('.emit-count'); }, function () {
   var blocks = all('.opblock');
   check('every operation has an icon', blocks.every(function (b) { return !!b.querySelector('.emit-op-icon svg path'); }),
         blocks.length + ' operations');
