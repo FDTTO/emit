@@ -26,7 +26,7 @@ class GlobalExceptionHandlerTest {
     @Test
     void shouldReturn404ForUnknownPath() {
         ResponseEntity<ErrorResponse> response =
-                handler.handleNoResource(new NoResourceFoundException(HttpMethod.GET, "/does-not-exist"));
+                handler.handleNoResource(new NoResourceFoundException(HttpMethod.GET, "/does-not-exist", "does-not-exist"));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isNotNull();

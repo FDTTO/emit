@@ -72,7 +72,7 @@ function lifecycleNode(step, reserve) {
  */
 function lifecycleAnchor() {
   const markdown = document.querySelector(
-    '.information-container .info .info__description .renderedMarkdown');
+    '.information-container .info .description .renderedMarkdown');
   if (!markdown) return null;
   const lede = markdown.querySelector(':scope > p');
   return { parent: markdown, before: lede ? lede.nextSibling : markdown.firstChild };

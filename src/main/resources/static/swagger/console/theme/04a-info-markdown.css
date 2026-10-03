@@ -4,14 +4,14 @@
    every paragraph once a max-width is set.
    -------------------------------------------------------------------------- */
 /* Spacing lives here, not on .renderedMarkdown, or it applies twice. */
-#emit-swagger .swagger-ui .info .info__description {
+#emit-swagger .swagger-ui .info .description {
   border-top: 0;
   /* hgroup.main already carries this gap. */
   padding-top: 0;
   margin: 0;
 }
-#emit-swagger .swagger-ui .info .info__description .renderedMarkdown,
-#emit-swagger .swagger-ui .info .info__description .markdown {
+#emit-swagger .swagger-ui .info .description .renderedMarkdown,
+#emit-swagger .swagger-ui .info .description .markdown {
   border-top: 0;
   padding-top: 0;
   margin: 0;
@@ -44,8 +44,8 @@
   overflow-wrap: anywhere;
 }
 /* Lead paragraph: the overview's one piece of prose. */
-#emit-swagger .swagger-ui .info .info__description .renderedMarkdown > p:first-child,
-#emit-swagger .swagger-ui .info .info__description .markdown > p:first-child {
+#emit-swagger .swagger-ui .info .description .renderedMarkdown > p:first-child,
+#emit-swagger .swagger-ui .info .description .markdown > p:first-child {
   margin-bottom: var(--sp-7);
   font-size: var(--t-xl);
   max-width: 64ch;

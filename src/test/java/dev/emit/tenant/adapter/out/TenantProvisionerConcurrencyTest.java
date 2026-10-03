@@ -18,10 +18,9 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import liquibase.Scope;
 
 @Testcontainers
@@ -29,7 +28,7 @@ class TenantProvisionerConcurrencyTest {
 
     @SuppressWarnings("resource")
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+    static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16");
 
     /*
      * Liquibase keeps its scope manager in an InheritableThreadLocal: a thread

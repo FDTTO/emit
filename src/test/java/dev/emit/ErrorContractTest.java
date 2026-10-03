@@ -10,8 +10,8 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
@@ -19,8 +19,9 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -41,6 +42,7 @@ import org.springframework.test.context.DynamicPropertySource;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+@AutoConfigureTestRestTemplate
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ErrorContractTest extends ContainerizedTest {
 
@@ -71,14 +73,14 @@ class ErrorContractTest extends ContainerizedTest {
     @BeforeAll
     void createCallers() throws Exception {
         adminToken = json(send(HttpMethod.POST, "/v1/auth/login", null,
-                "{\"username\":\"admin\",\"password\":\"admin123\"}")).get("token").asText();
-        tenantKey = createTenant("contract_main").get("apiKey").asText();
+                "{\"username\":\"admin\",\"password\":\"admin123\"}")).get("token").asString();
+        tenantKey = createTenant("contract_main").get("apiKey").asString();
 
         JsonNode inactive = createTenant("contract_inactive");
-        inactiveTenantKey = inactive.get("apiKey").asText();
-        send(HttpMethod.POST, "/v1/tenants/" + inactive.get("id").asText() + "/deactivate", admin(), null);
+        inactiveTenantKey = inactive.get("apiKey").asString();
+        send(HttpMethod.POST, "/v1/tenants/" + inactive.get("id").asString() + "/deactivate", admin(), null);
 
-        exhaustedTenantKey = createTenant("contract_exhausted").get("apiKey").asText();
+        exhaustedTenantKey = createTenant("contract_exhausted").get("apiKey").asString();
         for (int i = 0; i < LIMIT; i++) {
             send(HttpMethod.GET, "/v1/documents", apiKey(exhaustedTenantKey), null);
         }
@@ -89,16 +91,16 @@ class ErrorContractTest extends ContainerizedTest {
         JsonNode spec = json(send(HttpMethod.GET, "/v3/api-docs", null, null));
         List<DynamicTest> tests = new ArrayList<>();
 
-        spec.get("paths").fields().forEachRemaining(path -> path.getValue().fields().forEachRemaining(entry -> {
+        spec.get("paths").properties().forEach(path -> path.getValue().properties().forEach(entry -> {
             JsonNode node = entry.getValue();
             JsonNode security = node.path("security");
             Operation operation = new Operation(
-                    node.get("operationId").asText(),
+                    node.get("operationId").asString(),
                     HttpMethod.valueOf(entry.getKey().toUpperCase()),
                     path.getKey(),
-                    security.isEmpty() ? null : security.get(0).fieldNames().next());
+                    security.isEmpty() ? null : security.get(0).propertyNames().iterator().next());
 
-            node.get("responses").fields().forEachRemaining(response -> {
+            node.get("responses").properties().forEach(response -> {
                 int status = Integer.parseInt(response.getKey());
                 if (status < 400) {
                     return;
@@ -109,7 +111,7 @@ class ErrorContractTest extends ContainerizedTest {
                             () -> assertThat(examples.isEmpty()).as("examples").isFalse()));
                     return;
                 }
-                examples.fields().forEachRemaining(example -> tests.add(DynamicTest.dynamicTest(
+                examples.properties().forEach(example -> tests.add(DynamicTest.dynamicTest(
                         operation.id() + " " + status + " " + example.getKey(),
                         () -> assertAnswer(operation, status, example.getKey(), example.getValue().get("value")))));
             });
@@ -128,9 +130,9 @@ class ErrorContractTest extends ContainerizedTest {
         JsonNode body = json(actual);
         assertThat(body.get("status").asInt()).as("%s: status in the body", label).isEqualTo(status);
         assertThat(documented.get("status").asInt()).as("%s: status in the example", label).isEqualTo(status);
-        assertThat(normalized(body.get("message").asText()))
+        assertThat(normalized(body.get("message").asString()))
                 .as("%s: message", label)
-                .isEqualTo(normalized(documented.get("message").asText()));
+                .isEqualTo(normalized(documented.get("message").asString()));
     }
 
     private Map<String, Function<Operation, ResponseEntity<String>>> triggers() {
@@ -159,7 +161,7 @@ class ErrorContractTest extends ContainerizedTest {
                     send(HttpMethod.POST, "/v1/documents/" + id + "/generate", apiKey(tenantKey), null);
                     Awaitility.await().atMost(Duration.ofSeconds(30)).pollInterval(Duration.ofMillis(500))
                             .until(() -> "DONE".equals(json(send(HttpMethod.GET, "/v1/documents/" + id,
-                                    apiKey(tenantKey), null)).get("status").asText()));
+                                    apiKey(tenantKey), null)).get("status").asString()));
                     return send(operation.method(), withId(operation, id), apiKey(tenantKey), null);
                 }),
                 Map.entry("pdf-not-ready", operation -> send(operation.method(), withId(operation, createDocument()),
@@ -223,7 +225,7 @@ class ErrorContractTest extends ContainerizedTest {
     private String createDocument() {
         try {
             return json(send(HttpMethod.POST, "/v1/documents", apiKey(tenantKey),
-                    "{\"title\":\"Contract\",\"content\":\"<p>Contract</p>\"}")).get("id").asText();
+                    "{\"title\":\"Contract\",\"content\":\"<p>Contract</p>\"}")).get("id").asString();
         } catch (Exception exception) {
             throw new IllegalStateException(exception);
         }

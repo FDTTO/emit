@@ -14,7 +14,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.15</version>
+        <version>4.1.1</version>
         <relativePath />
     </parent>
 
@@ -70,14 +70,14 @@
 
         <!-- ==================================================
              WEB & VALIDATION
-             spring-boot-starter-web includes: Spring MVC, embedded Tomcat,
-             Jackson (JSON), spring-web, spring-webmvc.
+             spring-boot-starter-webmvc includes: Spring MVC, embedded Tomcat,
+             Jackson 3 (JSON), spring-web, spring-webmvc.
              starter-validation includes: Hibernate Validator (the Jakarta Bean
              Validation implementation - annotations @NotNull, @Valid, etc.)
              ================================================== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -115,8 +115,8 @@
             and spring.liquibase.change-log is set.
         -->
         <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-liquibase</artifactId>
         </dependency>
 
         <!-- ==================================================
@@ -156,22 +156,6 @@
         </dependency>
 
         <!-- ==================================================
-             ASYNC & RETRY
-             spring-retry: @Retryable, @Recover, @Backoff annotations.
-             spring-boot-starter-aop: Spring AOP via AspectJ - required for
-             @Retryable to work (it is implemented as an aspect).
-             Without AOP, @Retryable silently does nothing.
-             ================================================== -->
-        <dependency>
-            <groupId>org.springframework.retry</groupId>
-            <artifactId>spring-retry</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
-
-        <!-- ==================================================
              OBSERVABILITY
              Actuator exposes endpoints: /actuator/health, /actuator/metrics,
              /actuator/hikaricp (live pool stats).
@@ -205,7 +189,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.8.9</version>
+            <version>3.1.1</version>
         </dependency>
 
         <!-- ==================================================
@@ -227,21 +211,30 @@
              @RetryableTopic, ConcurrentKafkaListenerContainerFactory.
              ================================================== -->
         <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-kafka</artifactId>
         </dependency>
 
         <!-- ==================================================
              TEST
-             spring-boot-starter-test includes: JUnit 5, Mockito, AssertJ,
-             Hamcrest, MockMvc, @SpringBootTest.
-             spring-boot-testcontainers: automatic Testcontainers + Spring Boot 3 integration.
-             testcontainers/junit-jupiter: @Testcontainers, @Container annotations.
-             testcontainers/postgresql: Docker-managed PostgreSQL image for tests.
+             spring-boot-starter-test: JUnit 6, Mockito, AssertJ, @SpringBootTest.
+             The webmvc and restclient test starters: MockMvc for the controller
+             slices, TestRestTemplate for the tests that call the running app.
+             Testcontainers 2: PostgreSQL and Kafka as real containers.
              ================================================== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -251,17 +244,17 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
+            <artifactId>testcontainers-postgresql</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>kafka</artifactId>
+            <artifactId>testcontainers-kafka</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

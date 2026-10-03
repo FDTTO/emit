@@ -10,8 +10,6 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.type.TypeFactory;
-
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +24,7 @@ import dev.emit.shared.web.ErrorResponse;
 import dev.emit.shared.web.RefusalMessages;
 import io.swagger.v3.core.converter.ModelConverter;
 import io.swagger.v3.core.converter.ModelConverters;
+import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.examples.Example;
@@ -161,7 +160,8 @@ public class OpenApiConfig {
     public ModelConverter notBlankHasOneCharacter() {
         return (type, context, chain) -> {
             Schema<?> resolved = chain.hasNext() ? chain.next().resolve(type, context, chain) : null;
-            Class<?> model = TypeFactory.defaultInstance().constructType(type.getType()).getRawClass();
+            // swagger-core hands over its own Jackson 2 types, which only its own mapper reads.
+            Class<?> model = Json.mapper().constructType(type.getType()).getRawClass();
             Schema<?> defined = context.getDefinedModels().get(model.getSimpleName());
             if (defined == null || defined.getProperties() == null) {
                 return resolved;

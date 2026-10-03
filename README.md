@@ -2,7 +2,7 @@
 
 # EMIT
 
-[![Java](https://img.shields.io/badge/Java_25-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/25/) [![Spring Boot](https://img.shields.io/badge/Spring_Boot_3.5-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Redis](https://img.shields.io/badge/Redis_7-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/) [![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?style=flat-square&logo=apachekafka&logoColor=white)](https://kafka.apache.org/) [![CI](https://github.com/FDTTO/emit/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/FDTTO/emit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+[![Java](https://img.shields.io/badge/Java_25-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/25/) [![Spring Boot](https://img.shields.io/badge/Spring_Boot_4.1-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Redis](https://img.shields.io/badge/Redis_7-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/) [![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?style=flat-square&logo=apachekafka&logoColor=white)](https://kafka.apache.org/) [![CI](https://github.com/FDTTO/emit/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/FDTTO/emit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
 <br/>
 
@@ -122,7 +122,7 @@ The API documents itself in a console: Swagger UI redrawn as a cockpit, drawn to
 | Technology | Version | Role |
 |:---|:---|:---|
 | Java | 25 | Core language |
-| Spring Boot | 3.5 | Web, Data JPA, Security, Validation, Actuator |
+| Spring Boot | 4.1 | Web, Data JPA, Security, Validation, Actuator |
 | PostgreSQL | 16 | Persistence with schema-based multi-tenancy |
 | Apache Kafka | via Spring | Event-driven async generation, @RetryableTopic, DLQ |
 | Redis | 7 | Distributed sliding-window rate limiting |
@@ -130,7 +130,7 @@ The API documents itself in a console: Swagger UI redrawn as a cockpit, drawn to
 | JJWT | 0.12.5 | JWT generation and validation (HMAC-SHA256) |
 | Flying Saucer | 9.1.22 | HTML-to-PDF rendering via Thymeleaf |
 | Testcontainers | via Spring | PostgreSQL, Kafka, Redis for integration tests |
-| springdoc-openapi | 2.8.9 | OpenAPI 3 spec + Swagger UI at `/swagger-ui` |
+| springdoc-openapi | 3.1.1 | OpenAPI 3.0 spec + Swagger UI at `/swagger-ui` |
 | Swagger UI | 5 | Redrawn as the console by a kit of ES modules, no build step |
 | Prumo | 0.1.0 | The console checked in a real browser: suite, coverage, mutation, fidelity |
 | Lombok | via Spring | Compile-time code generation, excluded from fat JAR |
@@ -272,7 +272,7 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 
 **223 tests**, run with `mvn test` (Docker must be running). No mocks for infrastructure: PostgreSQL, Kafka and Redis are real containers.
 
-- **Unit** (JUnit 5, Mockito): the document's state machine, the services, the filters, the consumer and its tenant context, the PDF renderer's refusal to fetch anything a document references.
+- **Unit** (JUnit 6, Mockito): the document's state machine, the services, the filters, the consumer and its tenant context, the PDF renderer's refusal to fetch anything a document references.
 - **Slice** (`@WebMvcTest`): every controller's validation and status codes.
 - **Integration** (Testcontainers): the whole lifecycle from login to the downloaded PDF and its stage times; tenant migrations, concurrent and at startup; and `ErrorContractTest`, which triggers every error the published spec documents against the running API, a paused Kafka and a paused Redis included, and requires the status and message the spec shows.
 - **Architecture** (ArchUnit): the dependency rules of [0005](docs/decisions/0005-package-by-feature-hexagonal.md).
@@ -287,6 +287,7 @@ The console has its own suite, run by [Prumo](https://github.com/FDTTO/prumo), t
 - **Unknown routes answer `401` without a credential.** With one they answer `404`. A caller who has not authenticated learns nothing about which routes exist.
 - **Latin text in PDFs.** Inter and JetBrains Mono are embedded in their Latin subsets, the coverage the PDF's built-in fonts had; other scripts do not render.
 - **Clients poll for the outcome.** A document is followed by reading it; a webhook on completion is on the roadmap.
+- **The spec is OpenAPI 3.0.** Client generators and contract tools support it fully, while their 3.1 support is uneven, and the console is drawn on Swagger UI's 3.0 rendering. Nothing a caller sends or receives depends on the difference.
 - **The console suite covers Chromium engines.** It runs in Chrome, Edge and Opera; Firefox and Safari are not verified.
 
 ---

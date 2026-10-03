@@ -3,8 +3,8 @@ package dev.emit;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
@@ -18,7 +18,7 @@ import org.testcontainers.utility.DockerImageName;
 abstract class ContainerizedTest {
 
     @SuppressWarnings("resource")
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16")
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16")
             .withDatabaseName("emit_test")
             .withUsername("emit_user")
             .withPassword("emit_pass");

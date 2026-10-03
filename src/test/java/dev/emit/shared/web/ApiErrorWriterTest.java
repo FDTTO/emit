@@ -7,13 +7,13 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class ApiErrorWriterTest {
 
     private final ApiErrorWriter errorWriter =
-            new ApiErrorWriter(new ObjectMapper().registerModule(new JavaTimeModule()));
+            new ApiErrorWriter(new JsonMapper());
 
     /**
      * The charset assertion is the point of this test: {@code getWriter()} falls

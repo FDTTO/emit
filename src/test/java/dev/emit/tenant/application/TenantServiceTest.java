@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,7 +41,6 @@ class TenantServiceTest {
     void createShouldSaveTenantAndProvisionSchema() {
         Tenant saved = buildTenant();
         when(tenantRepository.save(any())).thenReturn(saved);
-        doNothing().when(schemaProvisioner).provision(anyString());
 
         TenantService.TenantCreated result = tenantService.create("Test Corp", "test_corp");
 
