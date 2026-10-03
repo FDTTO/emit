@@ -24,6 +24,18 @@ jobs:
       - name: Run tests
         run: mvn test
 
+  # The image the Dockerfile describes. Nothing else in CI runs it, so it is
+  # built on every push, or a base image or a build step could rot unseen.
+  image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build the image
+        run: docker build --tag emit:ci .
+
   # The console's regression suite: the application on its real dependencies,
   # driven in headless Chrome by Prumo (tools/prumo). The Java tests cannot see
   # the theme or the console's behaviour; this is the only check that does.

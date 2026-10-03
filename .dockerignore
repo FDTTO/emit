@@ -1,0 +1,5 @@
+# The image is built from the pom and the sources alone; nothing else is
+# sent to the Docker daemon.
+*
+!pom.xml
+!src/
