@@ -261,14 +261,13 @@ export function openOperation(target, options) {
 
 /* A smooth scroll aims at where the block is when it starts. Content that
    lands above it meanwhile (the lifecycle figure is drawn once the spec
-   arrives) leaves it short, so where the scroll ends is checked and
-   corrected. Only for a moment, and never once the reader scrolls: from
-   then on where the page sits is theirs. */
+   arrives) leaves it short, so where this scroll ends is checked and
+   corrected, however long a busy page takes to end it. Never once the
+   reader scrolls: from then on where the page sits is theirs. */
 export function bringIntoView(block) {
   block.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const pane = contentPane();
   if (!pane || !('onscrollend' in window)) return;
-  const started = Date.now();
   let corrections = 0;
   const inputs = ['wheel', 'touchmove', 'keydown'];
   const stop = function () {
@@ -278,7 +277,7 @@ export function bringIntoView(block) {
   const settle = function () {
     const margin = parseFloat(getComputedStyle(block).scrollMarginTop) || 0;
     const off = block.getBoundingClientRect().top - pane.getBoundingClientRect().top - margin;
-    if (Date.now() - started < 4000 && Math.abs(off) > 4 && corrections++ < 2) {
+    if (Math.abs(off) > 4 && corrections++ < 2) {
       block.scrollIntoView({ block: 'start' });
       return;
     }
