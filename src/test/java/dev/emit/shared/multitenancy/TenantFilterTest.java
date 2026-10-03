@@ -45,7 +45,6 @@ class TenantFilterTest {
     void tearDown() {
         SecurityContextHolder.clearContext();
         MDC.clear();
-        TenantContext.clear();
     }
 
     private Tenant buildActiveTenant(String schemaName) {

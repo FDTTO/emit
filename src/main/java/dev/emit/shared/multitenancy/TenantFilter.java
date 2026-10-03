@@ -33,37 +33,33 @@ public class TenantFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
-        try {
-            String apiKey = request.getHeader("X-API-Key");
+        String apiKey = request.getHeader("X-API-Key");
+        if (apiKey == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-            if (apiKey != null) {
-                String hash = ApiKeyHasher.hash(apiKey);
-                Optional<Tenant> found = tenantRepository.findByApiKeyHash(hash);
+        Optional<Tenant> found = tenantRepository.findByApiKeyHash(ApiKeyHasher.hash(apiKey));
+        if (found.isEmpty()) {
+            errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, RefusalMessages.INVALID_API_KEY);
+            return;
+        }
 
-                if (found.isEmpty()) {
-                    errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, RefusalMessages.INVALID_API_KEY);
-                    return;
-                }
+        Tenant tenant = found.get();
+        if (!tenant.isActive()) {
+            errorWriter.write(response, HttpServletResponse.SC_FORBIDDEN, RefusalMessages.TENANT_INACTIVE);
+            return;
+        }
 
-                Tenant tenant = found.get();
-
-                if (!tenant.isActive()) {
-                    errorWriter.write(response, HttpServletResponse.SC_FORBIDDEN, RefusalMessages.TENANT_INACTIVE);
-                    return;
-                }
-
-                TenantContext.setTenant(tenant.getSchemaName());
-                MDC.put("tenantSchema", tenant.getSchemaName());
-                // ROLE_TENANT is what tenant routes require, which keeps a
-                // tenant key and an admin token apart in the route rules.
-                SecurityContextHolder.getContext().setAuthentication(
-                        new UsernamePasswordAuthenticationToken(tenant.getSchemaName(), null,
-                                List.of(new SimpleGrantedAuthority("ROLE_TENANT"))));
-            }
-
+        // ROLE_TENANT is what tenant routes require, which keeps a
+        // tenant key and an admin token apart in the route rules.
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(tenant.getSchemaName(), null,
+                        List.of(new SimpleGrantedAuthority("ROLE_TENANT"))));
+        MDC.put("tenantSchema", tenant.getSchemaName());
+        try (var _ = TenantContext.open(tenant.getSchemaName())) {
             filterChain.doFilter(request, response);
         } finally {
-            TenantContext.clear();
             MDC.remove("tenantSchema");
         }
     }

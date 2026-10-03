@@ -42,9 +42,9 @@ sequenceDiagram
 ```
 
 The tenant crosses the thread boundary in the event. `TenantContextDecorator`
-sets the schema and the logging context before any connection is checked
-out and clears both in `finally`, so every consumer gets the same
-restore-and-clear without repeating it.
+opens the tenant's scope and sets the logging context before any connection
+is checked out, and both end with the event, so every consumer gets the
+same restore-and-clear without repeating it.
 
 The document keeps when each stage happened on the server's clock: the
 event carries `queuedAt`, the moment `generate` was accepted, and the worker

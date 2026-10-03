@@ -9,12 +9,10 @@ import org.springframework.stereotype.Component;
 public class TenantContextDecorator {
 
     public void run(String tenantSchema, Map<String, String> mdcEntries, Runnable action) {
-        try {
-            TenantContext.setTenant(tenantSchema);
+        try (var _ = TenantContext.open(tenantSchema)) {
             mdcEntries.forEach(MDC::put);
             action.run();
         } finally {
-            TenantContext.clear();
             MDC.clear();
         }
     }

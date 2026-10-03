@@ -15,7 +15,6 @@ class TenantContextDecoratorTest {
 
     @AfterEach
     void tearDown() {
-        TenantContext.clear();
         MDC.clear();
     }
 

@@ -18,6 +18,17 @@ issues `SET search_path TO {schema}` on every connection checkout, from the
 tenant the request or the Kafka event carries. A wrong or missing schema
 resolves no tables at all, so a forgotten filter cannot exist: there is none.
 
+The tenant reaches the connection provider through `TenantContext`, and only
+inside a scope: `TenantFilter` opens one around the rest of the request,
+`TenantContextDecorator` around each event, and closing it restores the
+tenant that came before. A pooled thread cannot carry one request's tenant
+into the next, which would be the same leak in another form, and no code
+can set a tenant without the scope that takes it away. Java's `ScopedValue`
+gives that guarantee by construction, but it binds around a lambda, and a
+filter chain's two checked exceptions cannot pass through a generic lambda
+without being folded into `Exception`; the scope keeps the filter's
+signature exact with the same effect.
+
 ```
 POST /v1/tenants
   ├── INSERT INTO public.tenants    (SHA-256 of the key; the raw key is returned once)

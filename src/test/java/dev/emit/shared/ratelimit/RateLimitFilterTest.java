@@ -9,7 +9,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,11 +34,6 @@ class RateLimitFilterTest {
     @InjectMocks
     private RateLimitFilter rateLimitFilter;
 
-    @AfterEach
-    void tearDown() {
-        TenantContext.clear();
-    }
-
     @Test
     void shouldPassThroughWhenNoTenantInContext() throws Exception {
         FilterChain chain = mock(FilterChain.class);
@@ -52,12 +46,13 @@ class RateLimitFilterTest {
 
     @Test
     void shouldPassThroughAndPublishTheBudgetWhenWithinRateLimit() throws Exception {
-        TenantContext.setTenant("tenant_abc");
         when(rateLimiterService.tryConsume("tenant_abc")).thenReturn(new RateLimitDecision(true, 20, 7, 42));
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
 
-        rateLimitFilter.doFilterInternal(new MockHttpServletRequest(), response, chain);
+        try (var _ = TenantContext.open("tenant_abc")) {
+            rateLimitFilter.doFilterInternal(new MockHttpServletRequest(), response, chain);
+        }
 
         verify(chain).doFilter(any(), any());
         assertThat(response.getHeader("RateLimit-Limit")).isEqualTo("20");
@@ -68,12 +63,13 @@ class RateLimitFilterTest {
 
     @Test
     void shouldReturn429SayingWhenToRetryWhenRateLimitExceeded() throws Exception {
-        TenantContext.setTenant("tenant_abc");
         when(rateLimiterService.tryConsume("tenant_abc")).thenReturn(new RateLimitDecision(false, 20, 0, 13));
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
 
-        rateLimitFilter.doFilterInternal(new MockHttpServletRequest(), response, chain);
+        try (var _ = TenantContext.open("tenant_abc")) {
+            rateLimitFilter.doFilterInternal(new MockHttpServletRequest(), response, chain);
+        }
 
         verify(errorWriter).write(any(), eq(429), contains("13 seconds"));
         verify(chain, never()).doFilter(any(), any());
@@ -88,12 +84,13 @@ class RateLimitFilterTest {
      */
     @Test
     void shouldReturn503WithoutABudgetWhenTheLimiterIsUnavailable() throws Exception {
-        TenantContext.setTenant("tenant_abc");
         when(rateLimiterService.tryConsume("tenant_abc")).thenThrow(new RateLimiterUnavailableException(new IllegalStateException("down")));
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
 
-        rateLimitFilter.doFilterInternal(new MockHttpServletRequest(), response, chain);
+        try (var _ = TenantContext.open("tenant_abc")) {
+            rateLimitFilter.doFilterInternal(new MockHttpServletRequest(), response, chain);
+        }
 
         verify(errorWriter).write(any(), eq(503), eq(RefusalMessages.LIMITER_UNAVAILABLE));
         verify(chain, never()).doFilter(any(), any());

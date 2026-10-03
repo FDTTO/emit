@@ -9,7 +9,6 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,11 +33,6 @@ class DocumentGenerationConsumerTest {
     @BeforeEach
     void setUp() {
         consumer = new DocumentGenerationConsumer(pdfGenerationService, new TenantContextDecorator());
-    }
-
-    @AfterEach
-    void tearDown() {
-        TenantContext.clear();
     }
 
     private ConsumerRecord<String, DocumentGenerationRequestedEvent> buildRecord(UUID documentId, String tenantSchema) {
