@@ -22,20 +22,28 @@ function next(index) {
     return next(index + 1);
   }
   element.scrollIntoView({ block: 'center' });
-  setTimeout(function () {
+  /* The pointer goes where the element sits once it has stopped moving: a
+     bar that docks after the scroll would otherwise slide away from under a
+     pointer that has already arrived, and hover only follows a pointer move. */
+  var last = null;
+  var settled = function () {
+    var r = element.getBoundingClientRect(), at = [r.left, r.top, r.width, r.height].join();
+    var still = at === last;
+    last = at;
+    return still;
+  };
+  V.until(settled, function () {
     var before = getComputedStyle(element)[step.property.replace(/-(\w)/g, function (m, c) { return c.toUpperCase(); })];
     V.hover(step.selector);
     V.until(function () { return element.matches(':hover'); }, function () {
-      setTimeout(function () {
-        var after = getComputedStyle(element)[step.property.replace(/-(\w)/g, function (m, c) { return c.toUpperCase(); })];
-        var box = element.getBoundingClientRect();
-        var under = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
-        check(step.name, element.matches(':hover') && after !== before,
-              { before: before, after: after, hovered: element.matches(':hover'), under: under && String(under.className || under.tagName).slice(0, 60) });
-        next(index + 1);
-      }, 150);
+      var after = getComputedStyle(element)[step.property.replace(/-(\w)/g, function (m, c) { return c.toUpperCase(); })];
+      var box = element.getBoundingClientRect();
+      var under = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      check(step.name, element.matches(':hover') && after !== before,
+            { before: before, after: after, hovered: element.matches(':hover'), under: under && String(under.className || under.tagName).slice(0, 60) });
+      next(index + 1);
     }, 3000);
-  }, 300);
+  }, 3000);
 }
 
 V.until(function () { return !!document.querySelector('.emit-journey__next') && !document.getElementById('emit-window').hasAttribute('data-loading'); }, function () {
