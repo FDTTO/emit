@@ -10,7 +10,7 @@
 
 Accepts an HTTP request to generate a PDF, returns `202 Accepted` as soon as the request is durable in Kafka, and processes it asynchronously. Each tenant runs in an isolated PostgreSQL schema. Rate limiting is distributed and atomic across any number of instances.
 
-Five structural decisions. 223 tests that prove the contract holds.
+Five structural decisions. 224 tests that prove the contract holds.
 
 **[Try the console live](https://fdtto.github.io/emit/)**, nothing to install.
 
@@ -27,6 +27,7 @@ Five structural decisions. 223 tests that prove the contract holds.
 - [The Problem](#the-problem)
 - [Architecture](#architecture)
 - [Five Structural Decisions](#five-structural-decisions)
+- [The Console](#the-console)
 - [Tech Stack](#tech-stack)
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
@@ -106,6 +107,16 @@ Each one has a record in [`docs/decisions`](docs/decisions/README.md): the failu
 
 ---
 
+## The Console
+
+The API documents itself in a console: Swagger UI redrawn as a cockpit, drawn to two reference pages in [`docs/design`](docs/design/README.md). A rail holds the walkthrough and a map of every operation. A credential a response hands over goes straight into **Authorize**, a created id carries into the operations that take it, and after `generate` the page follows the document through Kafka to `DONE`, timing each stage on the server's clock. A command palette (`Ctrl+K`), keyboard walking, each operation's recent calls and a phone layout complete it.
+
+**A kit configured by the API** ([0006](docs/decisions/0006-console-as-modules.md)). The console is native ES modules that name no API; `emit.js` tells it EMIT's scopes, lifecycle and walkthrough. There is no build step, so what runs is what was reviewed.
+
+**Checked in a real browser** ([0007](docs/decisions/0007-verification-as-prumo.md)). [Prumo](https://github.com/FDTTO/prumo), extracted from this project, drives the console on the real clock, reports what no scenario reaches, breaks one function at a time to see whether a check notices, and measures the page against its reference design property by property.
+
+---
+
 ## Tech Stack
 
 | Technology | Version | Role |
@@ -120,6 +131,8 @@ Each one has a record in [`docs/decisions`](docs/decisions/README.md): the failu
 | Flying Saucer | 9.1.22 | HTML-to-PDF rendering via Thymeleaf |
 | Testcontainers | via Spring | PostgreSQL, Kafka, Redis for integration tests |
 | springdoc-openapi | 2.8.9 | OpenAPI 3 spec + Swagger UI at `/swagger-ui` |
+| Swagger UI | 5 | Redrawn as the console by a kit of ES modules, no build step |
+| Prumo | 0.1.0 | The console checked in a real browser: suite, coverage, mutation, fidelity |
 | Lombok | via Spring | Compile-time code generation, excluded from fat JAR |
 
 ---
@@ -257,7 +270,7 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 
 ## Testing
 
-**223 tests**, run with `mvn test` (Docker must be running). No mocks for infrastructure: PostgreSQL, Kafka and Redis are real containers.
+**224 tests**, run with `mvn test` (Docker must be running). No mocks for infrastructure: PostgreSQL, Kafka and Redis are real containers.
 
 - **Unit** (JUnit 5, Mockito): the document's state machine, the services, the filters, the consumer and its tenant context, the PDF renderer's refusal to fetch anything a document references.
 - **Slice** (`@WebMvcTest`): every controller's validation and status codes.
@@ -281,12 +294,13 @@ The console has its own suite, run by [Prumo](https://github.com/FDTTO/prumo), t
 ## Roadmap
 
 - [x] Multi-tenancy via PostgreSQL schema isolation
-- [x] JWT authentication with role-based admin access
+- [x] JWT authentication for the administrator, API keys for tenants
 - [x] Kafka event-driven PDF generation with @RetryableTopic and DLQ
 - [x] Redis distributed sliding-window rate limiting (atomic Lua script)
 - [x] Testcontainers integration tests for PostgreSQL, Kafka, and Redis
 - [x] GitHub Actions CI pipeline
 - [x] Package by Feature + Hexagonal Architecture (Ports & Adapters)
+- [x] The console, and Prumo to check it in a real browser
 - [ ] Webhook notification on generation completion (eliminate polling)
 - [ ] Full cloud deployment with Kafka and Redis provisioned
 
