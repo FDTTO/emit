@@ -10,6 +10,7 @@ import dev.emit.document.application.GenerationNotQueuedException;
 import dev.emit.document.domain.DocumentGenerationRequestedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -19,7 +20,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
-class KafkaDocumentEventPublisher implements DocumentEventPublisher {
+class KafkaDocumentEventPublisher implements DocumentEventPublisher, SmartInitializingSingleton {
 
     private static final Logger log = LoggerFactory.getLogger(KafkaDocumentEventPublisher.class);
 
@@ -34,6 +35,15 @@ class KafkaDocumentEventPublisher implements DocumentEventPublisher {
         this.topic = topic;
         this.ackTimeout = ackTimeout;
         this.kafkaTemplate = kafkaTemplate;
+    }
+
+    // The producer is created before the app serves, so its handshake with the
+    // broker (its producer id, once measured at 3.4 s) happens in the background
+    // instead of inside the first request's acknowledgement budget. Creating it
+    // does not wait for a broker, so one that is down does not stop startup.
+    @Override
+    public void afterSingletonsInstantiated() {
+        kafkaTemplate.getProducerFactory().createProducer().close();
     }
 
     // Returns only once the broker has acknowledged the event (acks=all), so the
