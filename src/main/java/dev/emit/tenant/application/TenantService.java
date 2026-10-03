@@ -29,6 +29,9 @@ public class TenantService {
         return tenantRepository.findAll();
     }
 
+    // One transaction on purpose: the tenant's row commits only once its schema
+    // is migrated, so a failed migration leaves no tenant to route requests to.
+    // It holds a connection through the migration, seconds on a rare admin call.
     @Transactional
     public TenantCreated create(String name, String schemaName) {
         String apiKey = generateApiKey();
