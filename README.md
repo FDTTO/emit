@@ -10,7 +10,7 @@
 
 Accepts an HTTP request to generate a PDF, returns `202 Accepted` as soon as the request is durable in Kafka, and processes it asynchronously. Each tenant runs in an isolated PostgreSQL schema. Rate limiting is distributed and atomic across any number of instances.
 
-Five structural decisions. 228 tests that prove the contract holds.
+Five structural decisions. 235 tests that prove the contract holds.
 
 **[Try the console live](https://fdtto.github.io/emit/)**, nothing to install.
 
@@ -270,12 +270,12 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 
 ## Testing
 
-**228 tests**, run with `mvn test` (Docker must be running). No mocks for infrastructure: PostgreSQL, Kafka and Redis are real containers. The build also refuses Java sources out of format (palantir-java-format, checked by Spotless); `mvn spotless:apply` formats them.
+**235 tests**, run with `mvn test` (Docker must be running). No mocks for infrastructure: PostgreSQL, Kafka and Redis are real containers. The build also refuses Java sources out of format (palantir-java-format, checked by Spotless); `mvn spotless:apply` formats them.
 
 - **Unit** (JUnit 6, Mockito): the document's state machine, the services, the filters, the consumer and its tenant context, the PDF renderer's refusal to fetch anything a document references.
 - **Slice** (`@WebMvcTest`): every controller's validation and status codes.
 - **Integration** (Testcontainers): the whole lifecycle from login to the downloaded PDF and its stage times; tenant migrations, concurrent and at startup; and `ErrorContractTest`, which triggers every error the published spec documents against the running API, a paused Kafka and a paused Redis included, and requires the status and message the spec shows.
-- **Architecture** (ArchUnit): the dependency rules of [0005](docs/decisions/0005-package-by-feature-hexagonal.md).
+- **Architecture** (ArchUnit): the dependency rules of [0005](docs/decisions/0005-package-by-feature-hexagonal.md), and the naming the code follows: exceptions, controllers, services, configurations, filters and adapters each named for what they are.
 
 The console has its own suite, run by [Prumo](https://github.com/FDTTO/prumo), the browser verification tool extracted from this project (a submodule: clone with `--recursive`): 34 scenarios, run at the widths each declares, in headless Chrome against the running application in CI, a new check being run against the code before it to prove it can fail ([`docs/design/VERIFY.md`](docs/design/VERIFY.md)). The live demo's answers are held against the application's own on every push ([`demo/`](demo/README.md)).
 
