@@ -36,8 +36,8 @@ With the app running on 8080:
 
 ```bash
 python demo/export.py http://localhost:8080 site
-python demo/check.py site
+python tools/prumo visit demo/accept.js --serve site --at /emit/ --wait 90000
 ```
 
-`check.py` serves the site under `/emit/`, as Pages does, so an absolute
+The check serves the site under `/emit/`, as Pages does, so an absolute
 path that would break there breaks here first.

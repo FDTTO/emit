@@ -25,14 +25,16 @@ jobs:
         run: mvn test
 
   # The console's regression suite: the application on its real dependencies,
-  # driven in headless Chrome. The Java tests cannot see the theme or the
-  # console's behaviour; this is the only check that does.
+  # driven in headless Chrome by Prumo (tools/prumo). The Java tests cannot see
+  # the theme or the console's behaviour; this is the only check that does.
   ui-suite:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
@@ -47,7 +49,7 @@ jobs:
       - uses: ./.github/actions/start-app
 
       - name: Run the UI suite
-        run: python docs/design/verify.py --suite --jobs 2
+        run: python tools/prumo suite --jobs 2
 
       - name: Keep the application log
         if: failure()
@@ -64,6 +66,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
@@ -80,8 +84,10 @@ jobs:
       - name: Record the application as the demo site
         run: python demo/export.py http://localhost:8080 site
 
+      # Served under /emit/, as Pages serves it, so a path that only works
+      # from the root fails here first.
       - name: Check the demo against the application
-        run: python demo/check.py site
+        run: python tools/prumo visit demo/accept.js --serve site --at /emit/ --wait 90000
 
       - name: Keep the site for Pages
         uses: actions/upload-pages-artifact@v3

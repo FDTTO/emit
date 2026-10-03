@@ -1,0 +1,15 @@
+{
+  "base": "http://localhost:8080",
+  "publish": { "dir": "target/classes/static/swagger", "url": "/swagger/" },
+  "harness": "docs/design/harness.html",
+  "mirror": "/swagger-ui/index.html",
+  "adapters": ["swagger-ui"],
+  "scenarios": "docs/design/scenarios",
+  "fidelity": {
+    "states": "docs/design/fidelity/states",
+    "roles": "docs/design/fidelity/roles.js",
+    "include": ["docs/design/fidelity/shared.js"],
+    "hide": [".picker"],
+    "viewport": [1440, 900]
+  }
+}

@@ -1,10 +1,10 @@
 // @widths 1280,320
-// @spec-url /v3/api-docs-does-not-exist
 // When the API description does not load, the page says what failed, where
 // and what to try, and each part drawn from the description says why it is
 // empty instead of showing what it had. The failed fetch is the point, so its
 // console noise is expected.
 allowErrors(/api-docs-does-not-exist|Failed to load|401/);
+window.scenarioConfig = { url: '/v3/api-docs-does-not-exist' };
 
 var q = function (selector) { return document.querySelector(selector); };
 var seen = function (node) { return !!node && node.getClientRects().length > 0; };

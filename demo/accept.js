@@ -1,8 +1,7 @@
 // The demo held against the app it records: its answers to demo/cases.json
 // must read as the app's own (ids and numbers aside), and Run all steps must
-// walk the whole journey in the page. Runs at document start, after
-// verify-lib.js, so the page loads with nothing remembered.
-localStorage.clear();
+// walk the whole journey in the page. Run by `prumo visit` at document
+// start, after Prumo's core, so the page loads with nothing remembered.
 
 var normalize = function (message) {
   return String(message).replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '{id}').replace(/\d+/g, '{n}');

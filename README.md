@@ -264,7 +264,7 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 - **Integration** (Testcontainers): the whole lifecycle from login to the downloaded PDF and its stage times; tenant migrations, concurrent and at startup; and `ErrorContractTest`, which triggers every error the published spec documents against the running API, a paused Kafka and a paused Redis included, and requires the status and message the spec shows.
 - **Architecture** (ArchUnit): the dependency rules of [0005](docs/decisions/0005-package-by-feature-hexagonal.md).
 
-The console has its own suite: 34 scenarios, run at the widths each declares, in headless Chrome against the running application in CI, a new check being run against the code before it to prove it can fail ([`docs/design/VERIFY.md`](docs/design/VERIFY.md)). The live demo's answers are held against the application's own on every push ([`demo/`](demo/README.md)).
+The console has its own suite, run by [Prumo](https://github.com/FDTTO/prumo), the browser verification tool extracted from this project (a submodule: clone with `--recursive`): 34 scenarios, run at the widths each declares, in headless Chrome against the running application in CI, a new check being run against the code before it to prove it can fail ([`docs/design/VERIFY.md`](docs/design/VERIFY.md)). The live demo's answers are held against the application's own on every push ([`demo/`](demo/README.md)).
 
 ---
 

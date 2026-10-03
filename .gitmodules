@@ -1,0 +1,3 @@
+[submodule "tools/prumo"]
+	path = tools/prumo
+	url = https://github.com/FDTTO/prumo

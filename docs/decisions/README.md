@@ -12,3 +12,5 @@ commit that changes it.
 | [0003](0003-redis-lua-rate-limiting.md) | Rate limiting | One atomic Lua script on Redis | An in-memory bucket per instance |
 | [0004](0004-filters-in-the-security-chain.md) | Filter order | Filters inside the `SecurityFilterChain` | `@Order` servlet filters |
 | [0005](0005-package-by-feature-hexagonal.md) | Code organisation | Package by feature, ports and adapters | Layers by technical concern |
+| [0006](0006-console-as-modules.md) | The console's code | A kit of ES modules, configured by the API | One script; a bundler |
+| [0007](0007-verification-as-prumo.md) | Browser verification | Prumo, a public repository, as a submodule | A private copy; packages on two registries |

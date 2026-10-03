@@ -134,14 +134,15 @@ specified here, and each item has a scenario in `scenarios/`.
 ## Checking the console against it
 
 ```
-python docs/design/fidelity.py STATE [--only ROLE,...] [--shots] [--exact] [--base URL]
+python tools/prumo fidelity [STATE] [--only ROLE,...] [--shots] [--exact]
 ```
 
 opens a reference page and the console in the same state and viewport,
-measures each pair of elements named in `fidelity-roles.js`, and prints every
-property that differs, reference value first. `--shots` also saves both
-screenshots for `pixdiff.py`. The states are those of the two pages. See
-`VERIFY.md` for the rest of the tooling.
+measures each pair of elements named in `fidelity/roles.js`, and prints every
+property that differs, reference value first; with no state, it checks them
+all. `--shots` also saves both screenshots for `prumo diff`. The states are
+those of the two pages, one file each in `fidelity/states/`. See `VERIFY.md`
+for the rest of the tooling.
 
 ## Where the console departs from them, on purpose
 

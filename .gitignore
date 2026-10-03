@@ -27,5 +27,5 @@ application-local.properties
 .DS_Store
 Thumbs.db
 
-# Python bytecode from docs/design tooling
+# Python bytecode from the demo tooling
 __pycache__/

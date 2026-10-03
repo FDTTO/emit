@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
   <!--
-    Verification harness for the Swagger theme. Not part of the application:
-    it is never compiled, never served, and never referenced by the app.
+    The page Prumo runs the console's scenarios in (prumo.json). Not part of
+    the application: it is never compiled and never referenced by the app.
 
     Swagger UI renders nothing for a collapsed region, so this page boots the
     real bundles, theme.css and the console against the real /v3/api-docs with
-    the operations listed and the schemas open. verify.py publishes it next to
-    the app's static files for a run and removes it afterwards.
+    the operations listed and the schemas open. Prumo publishes it next to the
+    app's static files for a run and removes it afterwards. A scenario sets
+    window.scenarioConfig to run under other settings, another spec URL
+    included.
   -->
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>EMIT API verification harness</title>
+    <title>EMIT console harness</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
