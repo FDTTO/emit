@@ -1,13 +1,13 @@
 name: Start the application
-description: Java 21, PostgreSQL, Kafka and Redis from docker compose, and the app on port 8080 with the dev profile.
+description: Java 25, PostgreSQL, Kafka and Redis from docker compose, and the app on port 8080 with the dev profile.
 
 runs:
   using: composite
   steps:
-    - name: Set up Java 21
+    - name: Set up Java 25
       uses: actions/setup-java@v4
       with:
-        java-version: '21'
+        java-version: '25'
         distribution: 'temurin'
         cache: maven
 

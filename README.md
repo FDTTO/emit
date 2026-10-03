@@ -2,7 +2,7 @@
 
 # EMIT
 
-[![Java](https://img.shields.io/badge/Java_21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/) [![Spring Boot](https://img.shields.io/badge/Spring_Boot_3.5-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Redis](https://img.shields.io/badge/Redis_7-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/) [![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?style=flat-square&logo=apachekafka&logoColor=white)](https://kafka.apache.org/) [![CI](https://github.com/FDTTO/emit/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/FDTTO/emit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+[![Java](https://img.shields.io/badge/Java_25-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/25/) [![Spring Boot](https://img.shields.io/badge/Spring_Boot_3.5-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Redis](https://img.shields.io/badge/Redis_7-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/) [![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?style=flat-square&logo=apachekafka&logoColor=white)](https://kafka.apache.org/) [![CI](https://github.com/FDTTO/emit/actions/workflows/ci.yml/badge.svg?style=flat-square)](https://github.com/FDTTO/emit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
 <br/>
 
@@ -121,7 +121,7 @@ The API documents itself in a console: Swagger UI redrawn as a cockpit, drawn to
 
 | Technology | Version | Role |
 |:---|:---|:---|
-| Java | 21 | Core language |
+| Java | 25 | Core language |
 | Spring Boot | 3.5 | Web, Data JPA, Security, Validation, Actuator |
 | PostgreSQL | 16 | Persistence with schema-based multi-tenancy |
 | Apache Kafka | via Spring | Event-driven async generation, @RetryableTopic, DLQ |
@@ -141,7 +141,7 @@ The API documents itself in a console: Swagger UI redrawn as a cockpit, drawn to
 
 To look before installing, the [live demo](https://fdtto.github.io/emit/) is this console recorded from the running app on every push to `main`: its page, spec, timings and a PDF it rendered, with the API answered inside the page. CI holds its answers against the real app's before publishing it (`demo/`).
 
-Requires Docker Desktop, Java 21, and Maven 3.9+.
+Requires Docker Desktop, Java 25, and Maven 3.9+.
 
 ```bash
 git clone https://github.com/FDTTO/emit.git && cd emit
