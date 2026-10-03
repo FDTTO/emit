@@ -308,6 +308,17 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <!--
+                        Every compiler warning fails the build, but two: serial,
+                        since nothing here uses Java serialization and the classes
+                        it names are Serializable only by inheritance; processing,
+                        which reports annotations no processor is meant to claim.
+                    -->
+                    <compilerArgs>
+                        <arg>-Xlint:all,-serial,-processing</arg>
+                        <arg>-Werror</arg>
+                    </compilerArgs>
+                    <showWarnings>true</showWarnings>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
