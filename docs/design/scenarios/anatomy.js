@@ -53,7 +53,9 @@ function rows() {
   V.open('Documents', 'getDocument', 0);
   V.until(function () {
     var found = all('#operations-Documents-getDocument tr.response');
-    return found.length === 5 && found.every(function (r) { return /resp-s/.test(r.className); });
+    // As many rows as the description documents, so the wait follows the API.
+    var documented = Object.keys(window.ui.specSelectors.specJson().getIn(['paths', '/v1/documents/{id}', 'get', 'responses']).toJS()).length;
+    return found.length === documented && found.every(function (r) { return /resp-s/.test(r.className); });
   }, function () {
     var band = function (code) { var r = q('#operations-Documents-getDocument tr.response[data-code="' + code + '"]'); return r && r.className; };
     check('response rows carry their status band',
