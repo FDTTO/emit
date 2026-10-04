@@ -94,7 +94,7 @@ export const SHORT_SCREEN = window.matchMedia('(max-height: 820px)');
 
 export function applyDensity() {
   let chosen = null;
-  try { chosen = localStorage.getItem(DENSITY_KEY); } catch (ignored) { /* private mode */ }
+  try { chosen = localStorage.getItem(DENSITY_KEY); } catch { /* private mode */ }
   const density = chosen === 'compact' || chosen === 'comfortable' ? chosen
     : SHORT_SCREEN.matches ? 'compact' : 'comfortable';
   document.documentElement.dataset.density = density;
@@ -109,6 +109,6 @@ export function applyDensity() {
 
 export function toggleDensity() {
   const next = document.documentElement.dataset.density === 'compact' ? 'comfortable' : 'compact';
-  try { localStorage.setItem(DENSITY_KEY, next); } catch (ignored) { /* private mode */ }
+  try { localStorage.setItem(DENSITY_KEY, next); } catch { /* private mode */ }
   applyDensity();
 }

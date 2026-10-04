@@ -81,7 +81,7 @@ export function expiryOf(value) {
     const padded = payload.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((payload.length + 3) % 4);
     const exp = JSON.parse(atob(padded)).exp;
     return typeof exp === 'number' ? exp * 1000 : null;
-  } catch (ignored) {
+  } catch {
     return null;
   }
 }

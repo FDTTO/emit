@@ -30,14 +30,14 @@ export function jsonBody(response) {
   try {
     const body = JSON.parse(response.get('text'));
     return body && typeof body === 'object' ? body : null;
-  } catch (ignored) {
+  } catch {
     return null;
   }
 }
 
 export function headerNumber(response, name) {
   const value = parseInt(response.headers.get(name), 10);
-  return isNaN(value) ? null : value;
+  return Number.isNaN(value) ? null : value;
 }
 
 /* A header of a stored response, as one string. Swagger splits header

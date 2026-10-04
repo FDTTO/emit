@@ -8,19 +8,19 @@
 V.execute('Authentication', 'login', '{"username":"admin","password":"admin123"}', 0);
 V.open('Documents', 'getDocument', 0);
 V.open('Tenants', 'createTenant', 0);
-var ready = function (id) {
-  var op = document.getElementById('operations-' + id);
+const ready = function (id) {
+  const op = document.getElementById('operations-' + id);
   return !!op && op.classList.contains('is-open') && !!op.querySelector('.responses-wrapper');
 };
 V.until(function () { return !!document.querySelector('.models-control'); }, function () {
-  var models = document.querySelector('.models-control');
+  const models = document.querySelector('.models-control');
   if (models.getAttribute('aria-expanded') !== 'true') models.click();
   V.until(function () {
     return !!document.querySelector('#operations-Authentication-login .emit-result')
       && ready('Documents-getDocument') && ready('Tenants-createTenant')
       && document.querySelector('.models-control').getAttribute('aria-expanded') === 'true';
   }, function () {
-    var found = V.inventory();
+    const found = V.inventory();
     Object.keys(found).forEach(function (kind) { L(kind, found[kind]); });
     done();
   }, 25000);

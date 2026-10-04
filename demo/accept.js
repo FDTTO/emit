@@ -3,21 +3,21 @@
 // walk the whole journey in the page. Run by `prumo visit` at document
 // start, after Prumo's core, so the page loads with nothing remembered.
 
-var normalize = function (message) {
+const normalize = function (message) {
   return String(message).replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '{id}').replace(/\d+/g, '{n}');
 };
-var json = function (path) { return fetch(path).then(function (response) { return response.json(); }); };
-var call = function (method, path, body, headers) {
+const json = function (path) { return fetch(path).then(function (response) { return response.json(); }); };
+const call = function (method, path, body, headers) {
   return fetch(path, { method: method, headers: Object.assign({ 'Content-Type': 'application/json' }, headers || {}),
                        body: body === undefined ? undefined : JSON.stringify(body) })
     .then(function (response) {
       return response.text().then(function (text) { return { status: response.status, body: text ? JSON.parse(text) : null }; });
     });
 };
-var waitFor = function (check) {
+const waitFor = function (check) {
   return new Promise(function (resolve) { V.until(check, resolve, 40000); });
 };
-var untilDone = function (id, key) {
+const untilDone = function (id, key) {
   return call('GET', '/v1/documents/' + id, undefined, key).then(function (read) {
     return read.body.status === 'DONE' ? read.body
       : new Promise(function (resolve) { setTimeout(resolve, 100); }).then(function () { return untilDone(id, key); });
@@ -25,13 +25,13 @@ var untilDone = function (id, key) {
 };
 
 function answers() {
-  var stamp = Date.now().toString(36);
-  var fill = {};
-  var credentials = { none: {}, badToken: { Authorization: 'Bearer not.a.token' }, badKey: { 'X-API-Key': 'not-a-key' } };
+  const stamp = Date.now().toString(36);
+  const fill = {};
+  const credentials = { none: {}, badToken: { Authorization: 'Bearer not.a.token' }, badKey: { 'X-API-Key': 'not-a-key' } };
   return Promise.all([json('../demo/cases.json'), json('../demo/answers.json'), json('../v3/api-docs.json')])
     .then(function (loaded) {
-      var cases = loaded[0], recorded = loaded[1];
-      var example = {};
+      const cases = loaded[0], recorded = loaded[1];
+      const example = {};
       Object.keys(loaded[2].components.schemas.CreateDocumentRequest.properties).forEach(function (name) {
         example[name] = loaded[2].components.schemas.CreateDocumentRequest.properties[name].example;
       });
@@ -59,12 +59,12 @@ function answers() {
       }).then(function () {
         return cases.reduce(function (previous, item, index) {
           return previous.then(function () {
-            var text = JSON.stringify(item);
+            let text = JSON.stringify(item);
             Object.keys(fill).forEach(function (placeholder) { text = text.split(placeholder).join(fill[placeholder]); });
-            var resolved = JSON.parse(text);
+            const resolved = JSON.parse(text);
             return call(resolved.method, resolved.path, resolved.body, credentials[resolved.auth]).then(function (got) {
-              var app = recorded[index];
-              var demo = { status: got.status, message: got.body && got.body.message };
+              const app = recorded[index];
+              const demo = { status: got.status, message: got.body && got.body.message };
               check('answers as the app does: ' + item.name,
                     app.name === item.name && demo.status === app.status && normalize(demo.message) === normalize(app.message),
                     { demo: demo, app: app });
@@ -76,13 +76,13 @@ function answers() {
 }
 
 function journey() {
-  var count = function () { return (V.text('.emit-journey__count') || '').trim(); };
-  var run = function () { return document.querySelector('.emit-journey-run'); };
+  const count = function () { return (V.text('.emit-journey__count') || '').trim(); };
+  const run = function () { return document.querySelector('.emit-journey-run'); };
   check('the page says no server is answering', /Demo/.test(V.text('.emit-status__demo') || ''), V.text('.emit-status__demo'));
   run().click();
   return waitFor(function () { return count() === '5 / 5' && run().hidden; }).then(function () {
     check('Run all steps walks the whole journey in the page', count() === '5 / 5', count());
-    var edges = Array.prototype.map.call(document.querySelectorAll('#emit-lifecycle .emit-flow-link'),
+    const edges = Array.prototype.map.call(document.querySelectorAll('#emit-lifecycle .emit-flow-link'),
                                          function (link) { return link.textContent; });
     check('the lifecycle times the run with the recorded timings', /^kafka\d+ ms\|render\d+ ms$/.test(edges.join('|')), edges);
   });
@@ -91,8 +91,8 @@ function journey() {
 // The theme is a tree of @imports the export copies file by file: a sheet
 // it missed loads as an empty one, and the page still runs, unstyled.
 function stylesheets() {
-  var loaded = 0, missing = [];
-  var walk = function (sheet) {
+  let loaded = 0, missing = [];
+  const walk = function (sheet) {
     Array.prototype.forEach.call(sheet.cssRules, function (rule) {
       if (!(rule instanceof CSSImportRule)) return;
       if (!rule.styleSheet || !rule.styleSheet.cssRules.length) return missing.push(rule.href);

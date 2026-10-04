@@ -41,7 +41,10 @@ export function paintSteps() {
       item.classList.toggle('emit-step--done', state.done[index]);
       item.classList.toggle('emit-step--next', index === state.next);
       let proof = item.querySelector('.emit-step-proof');
-      if (!proof) item.appendChild(proof = el('span', 'emit-step-proof'));
+      if (!proof) {
+        proof = el('span', 'emit-step-proof');
+        item.appendChild(proof);
+      }
       const said = state.done[index] ? config.journey[index].proof : index === state.next ? 'next' : '';
       if (proof.textContent !== said) proof.textContent = said;
     });

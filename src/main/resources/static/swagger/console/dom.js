@@ -14,7 +14,6 @@ const PATHS = {
   powerOff: ['M12 4v8', 'M7.5 7a7 7 0 1 0 9 0'],
   restore:  ['M20 12a8 8 0 1 1-2.34-5.66', 'M20 4v5h-5'],
   trash:    ['M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13'],
-  pencil:   ['M4 20h4L19 9l-4-4L4 16z'],
   building: ['M4 21V6l7-3 7 3v15', 'M9 21v-5h6v5', 'M8 10h2M14 10h2'],
   buildingPlus: ['M3 21V7l6-3 6 3v14', 'M7 21v-4h4v4', 'M6 11h2M12 11h2', 'M16 6h6M19 3v6'],
   /* Scope marks: a shield for a token, a key for an API key. */

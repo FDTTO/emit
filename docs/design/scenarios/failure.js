@@ -6,12 +6,12 @@
 allowErrors(/api-docs-does-not-exist|Failed to load|401/);
 window.scenarioConfig = { url: '/v3/api-docs-does-not-exist' };
 
-var q = function (selector) { return document.querySelector(selector); };
-var seen = function (node) { return !!node && node.getClientRects().length > 0; };
+const q = function (selector) { return document.querySelector(selector); };
+const seen = function (node) { return !!node && node.getClientRects().length > 0; };
 
 V.until(function () { return !!q('#emit-failure b') && /\d/.test(q('#emit-failure b').textContent); }, function () {
-  var root = document.documentElement, width = root.clientWidth;
-  var card = q('#emit-failure').getBoundingClientRect();
+  const root = document.documentElement, width = root.clientWidth;
+  const card = q('#emit-failure').getBoundingClientRect();
   check('the failure says what failed and where', /^\d{3}$/.test(q('#emit-failure b').textContent)
         && /GET \/v3\/api-docs-does-not-exist/.test(q('.emit-failure__call').textContent), q('.emit-failure__call').textContent);
   check('it offers a retry and the raw description', !!q('#emit-failure .emit-primary')

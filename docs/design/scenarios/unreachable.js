@@ -3,18 +3,18 @@
 // has no status. The console says so in words and where it tried, and reads
 // it as wait, then retry, on the result, the row, the map and the statusbar;
 // nothing shows "undefined" or dresses the silence as a success.
-var realFetch = window.fetch;
-window.fetch = function (url) {
+const realFetch = window.fetch;
+window.fetch = function (url, init) {
   if (String(url).indexOf('/v1/auth/login') !== -1) return Promise.reject(new TypeError('Failed to fetch'));
-  return realFetch.apply(this, arguments);
+  return realFetch.call(this, url, init);
 };
 allowErrors(/Failed to fetch/);
-var q = function (selector) { return document.querySelector('#operations-Authentication-login ' + selector); };
+const q = function (selector) { return document.querySelector('#operations-Authentication-login ' + selector); };
 
 V.until(function () { return !!V.definition('bearerAuth'); }, function () {
   V.execute('Authentication', 'login', null, 300);
   V.until(function () { return !!q('.emit-result__status'); }, function () {
-    var status = q('.emit-result__status');
+    const status = q('.emit-result__status');
     check('the result says no answer came, in the wait-then-retry tone',
           status.textContent === 'No answer' && status.classList.contains('emit-result__status--wait'), status.className + ' ' + status.textContent);
     check('and in words where it tried and what to do', /did not answer.*at http.*Start it and Execute again/.test(q('.emit-result .emit-well').textContent),

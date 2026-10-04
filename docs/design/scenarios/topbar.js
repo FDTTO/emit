@@ -3,12 +3,12 @@
 // so the bar never twitches, inside the bar, and a click that opens a dialog
 // the reader can actually see. Each step waits for the state it checks, not
 // for a clock.
-var tag = function () { return document.getElementById('emit-topbar-auth'); };
-var state = function () { return tag().dataset.state; };
-var height = function () { return V.box('#emit-topbar-auth').height; };
-var isOpen = function (id) { var b = document.getElementById(id); return !!b && b.classList.contains('is-open'); };
-var reaches = function (expected) { return function () { return state() === expected; }; };
-var emptyHeight;
+const tag = function () { return document.getElementById('emit-topbar-auth'); };
+const state = function () { return tag().dataset.state; };
+const height = function () { return V.box('#emit-topbar-auth').height; };
+const isOpen = function (id) { const b = document.getElementById(id); return !!b && b.classList.contains('is-open'); };
+const reaches = function (expected) { return function () { return state() === expected; }; };
+let emptyHeight;
 
 V.until(function () { return !!tag() && !!V.definition('bearerAuth'); }, function () {
   check('empty: an invitation to authorize', state() === '' && /Authorize/.test(tag().textContent), state());
@@ -25,7 +25,7 @@ function admin() {
 }
 
 function both() {
-  var bar = V.box('.topbar'), box = V.box('#emit-topbar-auth');
+  const bar = V.box('.topbar'), box = V.box('#emit-topbar-auth');
   check('both: ADMIN,TENANT', state() === 'ADMIN,TENANT', state());
   check('both: same height as empty', height() === emptyHeight, { empty: emptyHeight, both: height() });
   check('tag sits inside the bar', box.top >= bar.top && box.top + box.height <= bar.top + bar.height, { bar: bar, tag: box });
@@ -46,14 +46,14 @@ function expired() {
 
 function dialog() {
   tag().click();
-  var visible = function () {
-    var box = document.querySelector('#emit-auth:not([hidden]) .emit-auth__box');
-    var r = box && box.getBoundingClientRect();
+  const visible = function () {
+    const box = document.querySelector('#emit-auth:not([hidden]) .emit-auth__box');
+    const r = box && box.getBoundingClientRect();
     return r && r.width > 200 && r.height > 100 ? { box: box, r: r } : null;
   };
   V.until(visible, function () {
-    var found = visible();
-    var hit = found && document.elementFromPoint(found.r.left + found.r.width / 2, found.r.top + Math.min(40, found.r.height / 2));
+    const found = visible();
+    const hit = found && document.elementFromPoint(found.r.left + found.r.width / 2, found.r.top + Math.min(40, found.r.height / 2));
     check('click opens a visible dialog', !!found && found.box.contains(hit),
           found ? { width: Math.round(found.r.width), height: Math.round(found.r.height) } : 'no dialog');
     done();

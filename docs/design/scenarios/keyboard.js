@@ -8,18 +8,18 @@
 // shows :focus-visible only after trusted keyboard input.
 V.execute('Authentication', 'login', '{"username":"admin","password":"admin123"}', 4000);
 
-var PROPS = ['borderTopLeftRadius', 'outlineStyle', 'outlineWidth', 'boxShadow', 'borderTopColor', 'backgroundColor', 'color'];
-var snap = function (e) { var cs = getComputedStyle(e), o = {}; PROPS.forEach(function (p) { o[p] = cs[p]; }); return o; };
-var label = function (e) {
+const PROPS = ['borderTopLeftRadius', 'outlineStyle', 'outlineWidth', 'boxShadow', 'borderTopColor', 'backgroundColor', 'color'];
+const snap = function (e) { const cs = getComputedStyle(e), o = {}; PROPS.forEach(function (p) { o[p] = cs[p]; }); return o; };
+const label = function (e) {
   return e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + (typeof e.className === 'string' && e.className ? '.' + e.className.split(' ')[0] : '')
     + ' "' + (e.textContent || e.value || '').trim().replace(/\s+/g, ' ').slice(0, 20) + '"';
 };
 
-var resting = new Map();
-var reached = [], silent = [], reshaped = [], notVisible = [], compared = 0, indicators = {};
-var steps = 0;
+const resting = new Map();
+let reached = [], silent = [], reshaped = [], notVisible = [], compared = 0, indicators = {};
+let steps = 0;
 
-var last = null;
+let last = null;
 
 /* A key is delivered by the runner's polling loop, so focus can still be on
    the previous control when this looks. Waiting for it to move (up to a
@@ -35,28 +35,28 @@ function settle(tries) {
 }
 
 function inspect() {
-  var e = document.activeElement;
+  const e = document.activeElement;
   steps++;
   // The first presses can land before the page has the window's focus.
   if ((!e || e === document.body) && steps <= 3) return step();
   if (!e || e === document.body || reached.indexOf(e) >= 0 || steps > 140) return finish();
   reached.push(e);
   last = e;
-  var before = resting.get(e);
-  var after = snap(e);
+  const before = resting.get(e);
+  const after = snap(e);
   if (!e.matches(':focus-visible')) notVisible.push(label(e));
   if (before) {
-    var outlined = after.outlineStyle !== 'none' && after.outlineWidth !== '0px';
+    const outlined = after.outlineStyle !== 'none' && after.outlineWidth !== '0px';
     // Only what reads as a focus indicator counts: a ring, a shadow, an edge
     // or a fill. A text colour shift alone is too faint to find focus by.
-    var moved = ['boxShadow', 'borderTopColor', 'backgroundColor'].filter(function (p) { return before[p] !== after[p]; });
-    var changed = moved.length > 0;
+    const moved = ['boxShadow', 'borderTopColor', 'backgroundColor'].filter(function (p) { return before[p] !== after[p]; });
+    const changed = moved.length > 0;
     compared++;
-    var how = outlined ? 'outline' : moved.join('+') || 'nothing';
+    const how = outlined ? 'outline' : moved.join('+') || 'nothing';
     indicators[how] = (indicators[how] || 0) + 1;
     if (!outlined && !changed) silent.push(label(e));
-    var cs = getComputedStyle(e);
-    var edge = cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.borderTopWidth !== '0px' || cs.borderBottomWidth !== '0px';
+    const cs = getComputedStyle(e);
+    const edge = cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.borderTopWidth !== '0px' || cs.borderBottomWidth !== '0px';
     if (edge && before.borderTopLeftRadius !== after.borderTopLeftRadius) reshaped.push(label(e));
   }
   step();

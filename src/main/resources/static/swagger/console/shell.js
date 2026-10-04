@@ -201,12 +201,12 @@ export function toggleRail() {
   if (!win) return;
   const folded = win.dataset.rail !== 'closed';
   win.dataset.rail = folded ? 'closed' : 'open';
-  try { localStorage.setItem(RAIL_KEY, win.dataset.rail); } catch (ignored) { /* private mode */ }
+  try { localStorage.setItem(RAIL_KEY, win.dataset.rail); } catch { /* private mode */ }
 }
 
 export function restoreRail() {
   const win = document.getElementById('emit-window');
   let saved = null;
-  try { saved = localStorage.getItem(RAIL_KEY); } catch (ignored) { /* private mode */ }
+  try { saved = localStorage.getItem(RAIL_KEY); } catch { /* private mode */ }
   if (win) win.dataset.rail = saved === 'closed' ? 'closed' : 'open';
 }

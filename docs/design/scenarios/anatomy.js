@@ -5,17 +5,17 @@
 // each response row, the endpoint counts, the getting-started links, the
 // lifecycle figure's place, the legend, the schema annotations, the badges in
 // the Authorize dialog, and a token that expires while the page is open.
-var q = function (selector) { return document.querySelector(selector); };
-var all = function (selector) { return Array.prototype.slice.call(document.querySelectorAll(selector)); };
-var text = function (selector) { var n = q(selector); return n ? n.textContent.replace(/\s+/g, ' ').trim() : null; };
-var isOpen = function (id) { var b = document.getElementById(id); return !!b && b.classList.contains('is-open'); };
-var scopeOf = function (id) {
-  var badge = q('#' + id + ' .opblock-summary .emit-scope');
+const q = function (selector) { return document.querySelector(selector); };
+const all = function (selector) { return Array.prototype.slice.call(document.querySelectorAll(selector)); };
+const text = function (selector) { const n = q(selector); return n ? n.textContent.replace(/\s+/g, ' ').trim() : null; };
+const isOpen = function (id) { const b = document.getElementById(id); return !!b && b.classList.contains('is-open'); };
+const scopeOf = function (id) {
+  const badge = q('#' + id + ' .opblock-summary .emit-scope');
   return badge ? badge.className.replace(/.*emit-scope--(\w+).*/, '$1') : null;
 };
 
 V.until(function () { return all('.opblock .emit-op-icon svg').length === all('.opblock').length && !!q('.emit-count'); }, function () {
-  var blocks = all('.opblock');
+  const blocks = all('.opblock');
   check('every operation has an icon', blocks.every(function (b) { return !!b.querySelector('.emit-op-icon svg path'); }),
         blocks.length + ' operations');
   check('each operation names the credential it takes',
@@ -28,22 +28,22 @@ V.until(function () { return all('.opblock .emit-op-icon svg').length === all('.
         text('h3.opblock-tag[data-tag="Documents"] .emit-count') === '5 endpoints'
         && text('h3.opblock-tag[data-tag="Authentication"] .emit-count') === '1 endpoint',
         [text('h3.opblock-tag[data-tag="Documents"] .emit-count'), text('h3.opblock-tag[data-tag="Authentication"] .emit-count')]);
-  var figure = q('#emit-lifecycle');
+  const figure = q('#emit-lifecycle');
   check('the lifecycle figure sits between the lede and Authentication',
         !!figure && figure.previousElementSibling.tagName === 'P' && figure.nextElementSibling.tagName === 'H2'
         && /Authentication/.test(figure.nextElementSibling.textContent),
         figure && [figure.previousElementSibling.tagName, figure.nextElementSibling.textContent]);
-  var fields = '#emit-schemas ';
+  const fields = '#emit-schemas ';
   check('schema fields: enum values, array item type, formats',
         all(fields + '.emit-constraint').some(function (n) { return n.textContent === 'PENDING | PROCESSING | DONE | FAILED'; })
         && all(fields + '.emit-chip--type').some(function (n) { return n.textContent === 'DocumentSummaryResponse[]'; })
         && all(fields + '.emit-chip--format').some(function (n) { return n.textContent === 'uuid'; }),
         [all(fields + '.emit-constraint').length, all(fields + '.emit-chip--format').length]);
-  var links = all('.info .emit-step-link');
-  var steps = all('.info ol > li');
+  const links = all('.info .emit-step-link');
+  const steps = all('.info ol > li');
   check('every getting-started step links to its operation', steps.length > 0 && links.length === steps.length,
         { steps: steps.length, links: links.map(function (a) { return a.textContent; }) });
-  var tenants = links.filter(function (a) { return a.textContent === 'POST /v1/tenants'; })[0];
+  const tenants = links.filter(function (a) { return a.textContent === 'POST /v1/tenants'; })[0];
   if (tenants) tenants.click();
   V.until(function () { return isOpen('operations-Tenants-createTenant'); }, rows, 15000);
 }, 20000);
@@ -52,12 +52,12 @@ function rows() {
   check('a step link opens its operation', isOpen('operations-Tenants-createTenant'));
   V.open('Documents', 'getDocument', 0);
   V.until(function () {
-    var found = all('#operations-Documents-getDocument tr.response');
+    const found = all('#operations-Documents-getDocument tr.response');
     // As many rows as the description documents, so the wait follows the API.
-    var documented = Object.keys(window.ui.specSelectors.specJson().getIn(['paths', '/v1/documents/{id}', 'get', 'responses']).toJS()).length;
+    const documented = Object.keys(window.ui.specSelectors.specJson().getIn(['paths', '/v1/documents/{id}', 'get', 'responses']).toJS()).length;
     return found.length === documented && found.every(function (r) { return /resp-s/.test(r.className); });
   }, function () {
-    var band = function (code) { var r = q('#operations-Documents-getDocument tr.response[data-code="' + code + '"]'); return r && r.className; };
+    const band = function (code) { const r = q('#operations-Documents-getDocument tr.response[data-code="' + code + '"]'); return r && r.className; };
     check('response rows carry their status band',
           /resp-s2/.test(band(200)) && /resp-s4/.test(band(404)) && /resp-s5/.test(band(429)),
           [band(200), band(404), band(429)]);
@@ -69,11 +69,11 @@ function rows() {
 function legend() {
   check('the legend opens from its button',
         !q('#emit-legend-panel').hidden && q('#emit-legend-btn').getAttribute('aria-expanded') === 'true');
-  var outcomes = all('#emit-legend-panel .emit-legend__outcome').map(function (n) { return n.textContent; });
+  const outcomes = all('#emit-legend-panel .emit-legend__outcome').map(function (n) { return n.textContent; });
   check('the legend reads outcomes, callers, fields and keys, amber as wait then retry',
         all('#emit-legend-panel section').length === 4 && outcomes.join(',') === '2xx,4xx,429,RUN'
         && /wait, then retry/.test(q('#emit-legend-panel').textContent), outcomes);
-  var starts = all('#emit-legend-panel .emit-legend__grid').map(function (grid) { return Math.round(grid.children[1].getBoundingClientRect().left); });
+  const starts = all('#emit-legend-panel .emit-legend__grid').map(function (grid) { return Math.round(grid.children[1].getBoundingClientRect().left); });
   check('every section starts its words on the same line, its marks on the left',
         starts.every(function (x) { return x === starts[0]; })
         && all('#emit-legend-panel kbd').every(function (k) { return Math.abs(k.getBoundingClientRect().left - k.parentNode.getBoundingClientRect().left) < 1; }), starts);

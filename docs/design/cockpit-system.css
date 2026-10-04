@@ -280,7 +280,7 @@ kbd { padding: 3px 6px; border-radius: var(--r1); font: 500 var(--f-micro)/1 var
 .node b { font: 600 var(--f-meta)/1 var(--mono); letter-spacing: .1em; }
 .node small { font-size: var(--f-micro); color: var(--faint); }
 .node.pending { color: var(--wait); } .node.processing { color: var(--run); } .node.done { color: var(--ok); } .node.failed { color: var(--bad); }
-.node em { font-style: normal; font: 500 var(--f-tiny)/1 var(--mono); color: var(--text); background: rgba(255,255,255,0.08); padding: 3px 7px; border-radius: var(--pill); visibility: hidden; }
+.node em { font: 500 var(--f-tiny)/1 var(--mono); color: var(--text); background: rgba(255,255,255,0.08); padding: 3px 7px; border-radius: var(--pill); visibility: hidden; }
 .window[data-run="on"] .node.lit em { visibility: visible; animation: rise .35s var(--ease); }
 .window[data-run="on"] .node.lit i { background: currentColor; box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 14%, transparent), 0 0 20px currentColor; animation: ring .7s var(--ease); }
 .edge { flex: 1; max-width: 150px; position: relative; display: grid; justify-items: center; gap: 5px; color: var(--faint); font: 400 var(--f-micro)/1 var(--mono); }

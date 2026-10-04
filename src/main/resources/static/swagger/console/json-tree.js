@@ -28,7 +28,7 @@ function jsonNode(value, key, depth, last) {
     return head;
   }
   const list = Array.isArray(value);
-  const keys = list ? value.map(function (item, index) { return index; }) : Object.keys(value);
+  const keys = list ? Array.from(value.keys()) : Object.keys(value);
   const close = (list ? ']' : '}') + comma;
   if (!keys.length) {
     head.appendChild(document.createTextNode((list ? '[' : '{') + close));

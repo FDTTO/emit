@@ -3,19 +3,19 @@
 // expired or refused, the way to get it, and the note moving on once
 // Authorize holds a working one. Responses are faked; nothing reaches the
 // backend. Every step waits for the page, not for a clock.
-var noteOf = function (block) { return document.querySelector('#operations-' + block + ' .emit-note[data-state]'); };
-var textOf = function (block) { var n = noteOf(block); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; };
-var isOpen = function (block) { var b = document.getElementById('operations-' + block); return !!b && b.classList.contains('is-open'); };
+const noteOf = function (block) { return document.querySelector('#operations-' + block + ' .emit-note[data-state]'); };
+const textOf = function (block) { const n = noteOf(block); return n ? n.textContent.replace(/\s+/g, ' ').trim() : ''; };
+const isOpen = function (block) { const b = document.getElementById('operations-' + block); return !!b && b.classList.contains('is-open'); };
 // A refusal is faked once the operation can show one: open and resolved.
-var ready = function (block) { return isOpen(block) && !!document.querySelector('#operations-' + block + ' .responses-wrapper'); };
-var REQUEST_ID = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
-var refuse = function (path, method, status, message) {
+const ready = function (block) { return isOpen(block) && !!document.querySelector('#operations-' + block + ' .responses-wrapper'); };
+const REQUEST_ID = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+const refuse = function (path, method, status, message) {
   V.fakeResponse(path, method, status, { status: status, message: message }, 'http://localhost:8080' + path,
                  { 'x-request-id': REQUEST_ID });
 };
-var says = function (block, pattern) { return function () { return pattern.test(textOf(block)); }; };
-var DOCS = 'Documents-listDocuments';
-var TENANTS = 'Tenants-listTenants';
+const says = function (block, pattern) { return function () { return pattern.test(textOf(block)); }; };
+const DOCS = 'Documents-listDocuments';
+const TENANTS = 'Tenants-listTenants';
 
 V.open('Documents', 'listDocuments', 3500);
 V.until(function () { return ready(DOCS); }, function () {
@@ -26,9 +26,9 @@ V.until(function () { return ready(DOCS); }, function () {
 function missing() {
   check('missing: names the credential', /needs TENANT, and Authorize holds none/.test(textOf(DOCS)), textOf(DOCS));
   check('missing: in the 4xx colour', !!noteOf(DOCS) && noteOf(DOCS).classList.contains('emit-note--denied'));
-  var way = noteOf(DOCS) && noteOf(DOCS).querySelector('.emit-note__action');
+  const way = noteOf(DOCS) && noteOf(DOCS).querySelector('.emit-note__action');
   check('missing: offers the way to get it', !!way && way.textContent === 'Create a tenant', way && way.textContent);
-  var ref = noteOf(DOCS) && noteOf(DOCS).querySelector('.emit-note__ref');
+  const ref = noteOf(DOCS) && noteOf(DOCS).querySelector('.emit-note__ref');
   check('missing: names the request it was refused in',
         !!ref && ref.textContent === 'request 3fa85f64' && ref.dataset.requestId === REQUEST_ID,
         ref && { shown: ref.textContent, id: ref.dataset.requestId });
@@ -52,7 +52,7 @@ function resolved() {
 
 function expired() {
   check('expired: says so', /The ADMIN token has expired/.test(textOf(TENANTS)), textOf(TENANTS));
-  var way = noteOf(TENANTS) && noteOf(TENANTS).querySelector('.emit-note__action');
+  const way = noteOf(TENANTS) && noteOf(TENANTS).querySelector('.emit-note__action');
   check('expired: offers to log in again', !!way && way.textContent === 'Log in again', way && way.textContent);
   if (way) way.click();
   V.until(function () { return isOpen('Authentication-login'); }, function () {

@@ -111,7 +111,7 @@ function rememberAnswer(key, response) {
   runtime.latestAnswer = answer;
   /* The budget and the id outlive an answer that does not carry them: the
      budget is the caller's, and an answer without it says nothing about it. */
-  if (!isNaN(answer.limit) && !isNaN(answer.remaining)) runtime.latestBudget = answer;
+  if (!Number.isNaN(answer.limit) && !Number.isNaN(answer.remaining)) runtime.latestBudget = answer;
   if (answer.requestId) runtime.latestRequestId = answer.requestId;
 }
 

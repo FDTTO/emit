@@ -2,17 +2,17 @@
 // Ctrl+K is one field for everything: operations to land on and actions to
 // run, each group labelled, each action saying what it would do now. Typing
 // narrows both; Enter runs the chosen one.
-var box = function () { return document.querySelector('.emit-palette'); };
-var input = function () { return document.querySelector('.emit-palette__input'); };
-var names = function () { return Array.prototype.map.call(document.querySelectorAll('.emit-palette__item .emit-palette__name'), function (n) { return n.textContent; }); };
-var open = function () { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true })); };
-var type = function (text) { input().value = text; input().dispatchEvent(new Event('input', { bubbles: true })); };
-var enter = function () { input().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); };
+const box = function () { return document.querySelector('.emit-palette'); };
+const input = function () { return document.querySelector('.emit-palette__input'); };
+const names = function () { return Array.prototype.map.call(document.querySelectorAll('.emit-palette__item .emit-palette__name'), function (n) { return n.textContent; }); };
+const open = function () { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true })); };
+const type = function (text) { input().value = text; input().dispatchEvent(new Event('input', { bubbles: true })); };
+const enter = function () { input().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); };
 
-try { localStorage.removeItem('emit.density'); } catch (ignored) { /* private mode */ }
+try { localStorage.removeItem('emit.density'); } catch { /* private mode */ }
 V.until(function () { return !!document.querySelector('.emit-map__item') && !document.getElementById('emit-window').hasAttribute('data-loading'); }, function () {
   open();
-  var groups = Array.prototype.map.call(document.querySelectorAll('.emit-palette__group'), function (g) { return g.textContent; });
+  const groups = Array.prototype.map.call(document.querySelectorAll('.emit-palette__group'), function (g) { return g.textContent; });
   check('it lists actions and operations, each under its label', !box().hidden && groups.join() === 'Actions,Operations', groups);
   check('actions say what they would do now', names().indexOf('Compact layout') !== -1 && names().indexOf('Open all in Tenants') !== -1, names().slice(0, 8));
   type('compact');
@@ -35,7 +35,7 @@ V.until(function () { return !!document.querySelector('.emit-map__item') && !doc
     enter();
     V.until(function () { return !!document.querySelector('#operations-Documents-createDocument.is-open'); }, function () {
       check('Enter lands on the operation', !!document.querySelector('#operations-Documents-createDocument.is-open'));
-      try { localStorage.removeItem('emit.density'); } catch (ignored) { /* private mode */ }
+      try { localStorage.removeItem('emit.density'); } catch { /* private mode */ }
       done();
     }, 5000);
   }, 5000);

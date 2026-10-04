@@ -99,7 +99,7 @@ function readStamps(body) {
   const stamps = {};
   Object.keys(config.lifecycle.stamps).forEach(function (name) {
     const time = Date.parse(body[config.lifecycle.stamps[name]]);
-    stamps[name] = isNaN(time) ? null : time;
+    stamps[name] = Number.isNaN(time) ? null : time;
   });
   return stamps;
 }

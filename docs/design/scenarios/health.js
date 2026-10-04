@@ -3,9 +3,9 @@
 // healthy, amber and "not answering" while it does not answer, amber and
 // "not healthy" while it answers that a part of it is down, with which part
 // on hover. It checks again as soon as the reader comes back to the page.
-var mode = 'up';
-var realFetch = window.fetch;
-window.fetch = function (url) {
+let mode = 'up';
+const realFetch = window.fetch;
+window.fetch = function (url, init) {
   if (String(url).indexOf('/actuator/health') !== -1) {
     if (mode === 'down') return Promise.reject(new TypeError('Failed to fetch'));
     if (mode === 'unwell') {
@@ -13,15 +13,15 @@ window.fetch = function (url) {
         { status: 503, headers: { 'Content-Type': 'application/json' } }));
     }
   }
-  return realFetch.apply(this, arguments);
+  return realFetch.call(this, url, init);
 };
 allowErrors(/Failed to fetch|503/);
-var server = function () { return document.getElementById('emit-status-server'); };
-var led = function () { return getComputedStyle(server().querySelector('.emit-status__led')).backgroundColor; };
-var comeBack = function () { document.dispatchEvent(new Event('visibilitychange')); };
+const server = function () { return document.getElementById('emit-status-server'); };
+const led = function () { return getComputedStyle(server().querySelector('.emit-status__led')).backgroundColor; };
+const comeBack = function () { document.dispatchEvent(new Event('visibilitychange')); };
 
 V.until(function () { return server() && server().dataset.state === 'up'; }, function () {
-  var green = led();
+  const green = led();
   check('a healthy API keeps the light green, with no words', server().querySelector('.emit-status__health').textContent === '');
   mode = 'down';
   comeBack();

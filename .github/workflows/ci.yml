@@ -58,6 +58,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Lint the scripts and styles
+        run: npx --yes @biomejs/biome@2.5.15 lint
+
       - uses: ./.github/actions/start-app
 
       - name: Run the UI suite

@@ -3,11 +3,11 @@
 // typed, Format and the schema one tab away. After Execute one sheet says how
 // the call went and holds what came back, the request shows as it was sent,
 // and Edit brings the editor back.
-var LOGIN = '#operations-Authentication-login ';
-var TENANT = '#operations-Tenants-createTenant ';
-var q = function (selector) { return document.querySelector(selector); };
-var seen = function (node) { return !!node && node.getClientRects().length > 0; };
-var text = function (selector) { var n = q(selector); return n ? n.textContent : ''; };
+const LOGIN = '#operations-Authentication-login ';
+const TENANT = '#operations-Tenants-createTenant ';
+const q = function (selector) { return document.querySelector(selector); };
+const seen = function (node) { return !!node && node.getClientRects().length > 0; };
+const text = function (selector) { const n = q(selector); return n ? n.textContent : ''; };
 
 V.until(function () { return !!V.definition('bearerAuth'); }, function () {
   V.authorize('bearerAuth', V.jwt(3600));
@@ -16,14 +16,14 @@ V.until(function () { return !!V.definition('bearerAuth'); }, function () {
 }, 20000);
 
 V.until(function () { return !!q(TENANT + '.emit-validity') && !!q(LOGIN + '.emit-result'); }, function () {
-  var area = q(TENANT + 'textarea.body-param__text');
-  var gutter = q(TENANT + '.emit-gutter');
+  const area = q(TENANT + 'textarea.body-param__text');
+  const gutter = q(TENANT + '.emit-gutter');
   check('the editor numbers its lines', gutter.textContent.split('\n').length === area.value.split('\n').length,
         { gutter: gutter.textContent.split('\n').length, lines: area.value.split('\n').length });
   check('an example that fits the schema says so', /matches CreateTenantRequest/.test(text(TENANT + '.emit-validity')), text(TENANT + '.emit-validity'));
   check('no empty parameters block', !seen(q(TENANT + '.parameters-container')));
 
-  var setValue = function (value) {
+  const setValue = function (value) {
     Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(area, value);
     area.dispatchEvent(new Event('input', { bubbles: true }));
   };
@@ -40,10 +40,10 @@ V.until(function () { return !!q(TENANT + '.emit-validity') && !!q(LOGIN + '.emi
 
       check('the result says how it went', /^200 OK$/.test(text(LOGIN + '.emit-result__status')), text(LOGIN + '.emit-result__status'));
       check('with its time and size', /\d+ ms/.test(text(LOGIN + '.emit-result__meta')) && /\d+ B/.test(text(LOGIN + '.emit-result__meta')));
-      var body = q(LOGIN + '.emit-result__panel:not([hidden]) .emit-well');
+      const body = q(LOGIN + '.emit-result__panel:not([hidden]) .emit-well');
       check('the body is shown, keys told apart', !!body && body.querySelector('.k') && body.querySelector('.k').textContent === '"token"');
       q(LOGIN + '.emit-result [data-tab="headers"]').click();
-      var keys = document.querySelectorAll(LOGIN + '.emit-kv__key');
+      const keys = document.querySelectorAll(LOGIN + '.emit-kv__key');
       check('the headers lead with the request id', keys.length > 3 && keys[0].textContent === 'x-request-id' && keys[0].classList.contains('is-hot'),
             keys.length && keys[0].textContent);
       check('and the tab counts them', text(LOGIN + '.emit-result [data-tab="headers"] small') === String(keys.length));

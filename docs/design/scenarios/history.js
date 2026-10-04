@@ -2,20 +2,20 @@
 // Each operation remembers its last few calls, in the page only: when,
 // what came back, where it went and the body it sent, newest first, with
 // one click to load a body into the editor again.
-var calls = 0;
-var realFetch = window.fetch;
-window.fetch = function (url, options) {
+let calls = 0;
+const realFetch = window.fetch;
+window.fetch = function (url, init) {
   if (String(url).indexOf('/v1/auth/login') !== -1) {
     calls++;
-    var ok = calls > 1;
+    const ok = calls > 1;
     return Promise.resolve(new Response(JSON.stringify(ok ? { token: V.jwt(3600) } : { status: 401, message: 'Invalid credentials.', timestamp: new Date().toISOString() }),
       { status: ok ? 200 : 401, headers: { 'Content-Type': 'application/json' } }));
   }
-  return realFetch.apply(this, arguments);
+  return realFetch.call(this, url, init);
 };
-var q = function (selector) { return document.querySelector('#operations-Authentication-login ' + selector); };
-var area = function () { return q('textarea.body-param__text'); };
-var setBody = function (text) {
+const q = function (selector) { return document.querySelector('#operations-Authentication-login ' + selector); };
+const area = function () { return q('textarea.body-param__text'); };
+const setBody = function (text) {
   Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(area(), text);
   area().dispatchEvent(new Event('input', { bubbles: true }));
 };
@@ -29,7 +29,7 @@ V.until(function () { return !!V.definition('bearerAuth'); }, function () {
     q('button.execute').click();
     V.until(function () { return q('.emit-history').dataset.count === '2'; }, function () {
       q('.emit-history').click();
-      var rows = document.querySelectorAll('#operations-Authentication-login .emit-history__row');
+      const rows = document.querySelectorAll('#operations-Authentication-login .emit-history__row');
       check('it lists the calls newest first, each in its outcome tone',
             rows.length === 2 && rows[0].querySelector('.emit-history__status').classList.contains('is-ok')
             && rows[1].querySelector('.emit-history__status').classList.contains('is-bad'), rows.length);

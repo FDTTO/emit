@@ -4,43 +4,43 @@
 // every outcome is reachable on demand. Each step waits for the note, not a
 // clock; the only real waits are the follow's own backoff and Retry-After.
 // The stamps of a real run: 11 ms queued in Kafka, 34 ms rendering.
-var stamps = { queuedAt: '2026-09-19T12:00:00.000Z', startedAt: '2026-09-19T12:00:00.011Z', finishedAt: '2026-09-19T12:00:00.045Z' };
+const stamps = { queuedAt: '2026-09-19T12:00:00.000Z', startedAt: '2026-09-19T12:00:00.011Z', finishedAt: '2026-09-19T12:00:00.045Z' };
 // The first read answers late, so the document is seen PENDING for as long
 // as the check of that state needs, however fast the follow reads.
-var plan = {
+const plan = {
   done: [{ status: 200, state: 'PROCESSING', stamps: { queuedAt: stamps.queuedAt, startedAt: stamps.startedAt }, delay: 1500 },
          { status: 200, state: 'DONE', stamps: stamps }],
   limited: [{ status: 429, headers: { 'Retry-After': '2', 'RateLimit-Remaining': '0' } }, { status: 200, state: 'DONE' }],
   saving: [{ status: 200, state: 'PROCESSING', headers: { 'RateLimit-Remaining': '1' } }]
 };
-var reads = {};
-var headersSent = {};
-var realFetch = window.fetch;
-window.fetch = function (url, options) {
-  var m = String(url).match(/^\/v1\/documents\/([^/?]+)$/);
-  if (!m) return realFetch.apply(this, arguments);
-  var id = m[1];
+const reads = {};
+const headersSent = {};
+const realFetch = window.fetch;
+window.fetch = function (url, init) {
+  const m = String(url).match(/^\/v1\/documents\/([^/?]+)$/);
+  if (!m) return realFetch.call(this, url, init);
+  const id = m[1];
   reads[id] = (reads[id] || 0) + 1;
-  headersSent[id] = options && options.headers;
-  var step = plan[id][Math.min(reads[id], plan[id].length) - 1];
-  var body = step.state ? JSON.stringify(Object.assign({ id: id, status: step.state }, step.stamps || {})) : '';
-  var response = new Response(body,
+  headersSent[id] = init && init.headers;
+  const step = plan[id][Math.min(reads[id], plan[id].length) - 1];
+  const body = step.state ? JSON.stringify(Object.assign({ id: id, status: step.state }, step.stamps || {})) : '';
+  const response = new Response(body,
     { status: step.status, headers: Object.assign({ 'Content-Type': 'application/json' }, step.headers || {}) });
   return new Promise(function (resolve) { setTimeout(function () { resolve(response); }, step.delay || 0); });
 };
-var accepted = function (id) {
+const accepted = function (id) {
   V.fakeResponse('/v1/documents/{id}/generate', 'post', 202, null, 'http://localhost:8080/v1/documents/' + id + '/generate', {});
 };
-var edges = function () {
+const edges = function () {
   return Array.prototype.map.call(document.querySelectorAll('#emit-lifecycle .emit-flow-link'), function (link) { return link.textContent; });
 };
-var note = function () { return V.text('#operations-Documents-requestDocumentGeneration .emit-note--follow') || ''; };
+const note = function () { return V.text('#operations-Documents-requestDocumentGeneration .emit-note--follow') || ''; };
 // The action button (Check again), not any button: the document id is a link button too.
-var button = function () { return !!document.querySelector('#operations-Documents-requestDocumentGeneration .emit-note--follow .emit-note__action'); };
-var lit = function () { var s = document.querySelector('#emit-lifecycle .is-current .emit-flow-state'); return s && s.textContent; };
+const button = function () { return !!document.querySelector('#operations-Documents-requestDocumentGeneration .emit-note--follow .emit-note__action'); };
+const lit = function () { const s = document.querySelector('#emit-lifecycle .is-current .emit-flow-state'); return s && s.textContent; };
 
-var isOpen = function (block) { var b = document.getElementById('operations-' + block); return !!b && b.classList.contains('is-open'); };
-var noteSays = function (pattern) { return function () { return pattern.test(note()); }; };
+const isOpen = function (block) { const b = document.getElementById('operations-' + block); return !!b && b.classList.contains('is-open'); };
+const noteSays = function (pattern) { return function () { return pattern.test(note()); }; };
 
 V.until(function () { return !!V.definition('apiKeyAuth'); }, function () {
   V.authorize('apiKeyAuth', 'key');
@@ -66,7 +66,7 @@ function reachedDone() {
   check('the figure lights DONE', lit() === 'DONE', lit());
   check('reads send the held key', (headersSent.done || {})['X-API-Key'] === 'key', headersSent.done);
   check('two reads were enough', reads.done === 2, reads.done);
-  var named = document.querySelector('#operations-Documents-requestDocumentGeneration .emit-note--follow .emit-note__link');
+  const named = document.querySelector('#operations-Documents-requestDocumentGeneration .emit-note--follow .emit-note__link');
   check('the document id is a link', !!named && named.textContent === 'done', named && named.textContent);
   if (named) named.click();
   V.until(function () { return isOpen('Documents-getDocument'); }, function () {

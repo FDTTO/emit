@@ -4,26 +4,26 @@
 // reader scrolls: then the camera is theirs and the page stops moving under
 // them, while the run goes on to the end. Follow hands it back. The API is
 // answered here, as in journey.js.
-var DOC = '5b2e7c1a-9d3f-4a6b-8c1e-2f4a6b8d0c1e';
-var reply = function (status, body, type) {
+const DOC = '5b2e7c1a-9d3f-4a6b-8c1e-2f4a6b8d0c1e';
+const reply = function (status, body, type) {
   return Promise.resolve(new Response(body === null ? null : typeof body === 'string' ? body : JSON.stringify(body),
     { status: status, headers: { 'Content-Type': type || 'application/json' } }));
 };
-var realFetch = window.fetch;
-window.fetch = function (url, options) {
-  var path = String(url).replace(/^https?:\/\/[^/]+/, '');
-  var method = String((options && options.method) || 'GET').toUpperCase();
+const realFetch = window.fetch;
+window.fetch = function (url, init) {
+  const path = String(url).replace(/^https?:\/\/[^/]+/, '');
+  const method = String((init && init.method) || 'GET').toUpperCase();
   if (method === 'POST' && path === '/v1/auth/login') return reply(200, { token: V.jwt(3600) });
   if (method === 'POST' && path === '/v1/tenants') return reply(201, { id: 'a1b2c3d4-0000-4000-8000-000000000002', name: 'Camera', schemaName: 'camera', apiKey: 'emit_camera_key', active: true });
   if (method === 'POST' && path === '/v1/documents') return reply(201, { id: DOC, title: 'Q3 Invoice', status: 'PENDING', createdAt: new Date().toISOString() });
   if (method === 'POST' && path === '/v1/documents/' + DOC + '/generate') return reply(202, null);
   if (method === 'GET' && path === '/v1/documents/' + DOC) return reply(200, { id: DOC, status: 'DONE', createdAt: new Date().toISOString() });
   if (method === 'GET' && path === '/v1/documents/' + DOC + '/pdf') return reply(200, '%PDF-1.4 camera', 'application/pdf');
-  return realFetch.apply(this, arguments);
+  return realFetch.call(this, url, init);
 };
-var pane = function () { return document.querySelector('#emit-window .swagger-container > .swagger-ui'); };
-var camera = function () { return document.querySelector('.emit-journey__camera'); };
-var count = function () { return (V.text('.emit-journey__count') || '').trim(); };
+const pane = function () { return document.querySelector('#emit-window .swagger-container > .swagger-ui'); };
+const camera = function () { return document.querySelector('.emit-journey__camera'); };
+const count = function () { return (V.text('.emit-journey__count') || '').trim(); };
 
 V.until(function () { return !!document.querySelector('.emit-journey-run') && !!V.definition('bearerAuth'); }, function () {
   V.logoutHeld();

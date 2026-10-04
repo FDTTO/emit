@@ -4,8 +4,8 @@ booted(function () {
   V.authorize('apiKeyAuth', 'emit_fidelity');
   V.until(function () { return !!document.getElementById('emit-model-CreateTenantRequest'); }, function () {
     document.querySelector('#emit-model-CreateTenantRequest .emit-model__head').click();
-    var land = function () {
-      var section = document.getElementById('emit-schemas'), pane = section.closest('.swagger-ui');
+    const land = function () {
+      const section = document.getElementById('emit-schemas'), pane = section.closest('.swagger-ui');
       pane.scrollTop += section.getBoundingClientRect().top - pane.getBoundingClientRect().top - 72;
     };
     setTimeout(land, 800);

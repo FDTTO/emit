@@ -4,17 +4,17 @@
 // refusal is still news: the page reads the document, says it was already
 // generated and offers its PDF, and the walkthrough counts the generation as
 // done. A document's later steps prove the earlier ones.
-var DOC = '9e4c2a1b-7d5f-4b3a-8e6c-1a2b3c4d5e6f';
-var stamps = { queuedAt: '2026-09-19T12:00:00.000Z', startedAt: '2026-09-19T12:00:00.012Z', finishedAt: '2026-09-19T12:00:00.043Z' };
-var realFetch = window.fetch;
-window.fetch = function (url) {
-  if (String(url).replace(/^https?:\/\/[^/]+/, '') !== '/v1/documents/' + DOC) return realFetch.apply(this, arguments);
+const DOC = '9e4c2a1b-7d5f-4b3a-8e6c-1a2b3c4d5e6f';
+const stamps = { queuedAt: '2026-09-19T12:00:00.000Z', startedAt: '2026-09-19T12:00:00.012Z', finishedAt: '2026-09-19T12:00:00.043Z' };
+const realFetch = window.fetch;
+window.fetch = function (url, init) {
+  if (String(url).replace(/^https?:\/\/[^/]+/, '') !== '/v1/documents/' + DOC) return realFetch.call(this, url, init);
   return Promise.resolve(new Response(JSON.stringify(Object.assign({ id: DOC, status: 'DONE' }, stamps)),
     { status: 200, headers: { 'Content-Type': 'application/json' } }));
 };
-var note = function () { return V.text('#operations-Documents-requestDocumentGeneration .emit-note--follow') || ''; };
-var count = function () { return (V.text('.emit-journey__count') || '').trim(); };
-var next = function () { return V.text('.emit-journey__step') || ''; };
+const note = function () { return V.text('#operations-Documents-requestDocumentGeneration .emit-note--follow') || ''; };
+const count = function () { return (V.text('.emit-journey__count') || '').trim(); };
+const next = function () { return V.text('.emit-journey__step') || ''; };
 
 V.until(function () { return !!V.definition('apiKeyAuth') && !!document.querySelector('.emit-journey__count'); }, function () {
   V.authorize('bearerAuth', V.jwt(3600));

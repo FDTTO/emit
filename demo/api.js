@@ -10,42 +10,43 @@
  * State lives in this browser only.
  */
 (function () {
+  // biome-ignore lint/suspicious/noRedundantUseStrict: a classic script, loaded by <script src>, not a module
   'use strict';
 
-  var ROOT = new URL('..', document.currentScript.src).href;
-  var STATE_KEY = 'emit.demo.state';
-  var ADMIN = { username: 'admin', password: 'admin123' };
-  var TOKEN_TTL_S = 86400;
-  var WINDOW_MS = 60000;
-  var SCHEMA_RULE = /^[a-z][a-z0-9_]{1,62}$/;
-  var UUID_RULE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const ROOT = new URL('..', document.currentScript.src).href;
+  const STATE_KEY = 'emit.demo.state';
+  const ADMIN = { username: 'admin', password: 'admin123' };
+  const TOKEN_TTL_S = 86400;
+  const WINDOW_MS = 60000;
+  const SCHEMA_RULE = /^[a-z][a-z0-9_]{1,62}$/;
+  const UUID_RULE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   /* Marks a token this page issued; the demo verifies nothing a server would. */
-  var SIGNATURE = 'ZW1pdC1kZW1v';
-  var WRONG_CREDENTIAL = 'This credential cannot access this route. '
+  const SIGNATURE = 'ZW1pdC1kZW1v';
+  const WRONG_CREDENTIAL = 'This credential cannot access this route. '
     + 'Tenant management needs an admin token; documents need a tenant API key.';
 
-  var networkFetch = window.fetch.bind(window);
-  var facts = networkFetch(ROOT + 'demo/facts.json').then(function (response) { return response.json(); });
-  var hits = {};
-  var state = load();
+  const networkFetch = window.fetch.bind(window);
+  const facts = networkFetch(ROOT + 'demo/facts.json').then(function (response) { return response.json(); });
+  const hits = {};
+  const state = load();
 
   function load() {
     try {
-      var saved = JSON.parse(localStorage.getItem(STATE_KEY));
+      const saved = JSON.parse(localStorage.getItem(STATE_KEY));
       if (saved && Array.isArray(saved.tenants) && Array.isArray(saved.documents)) return saved;
-    } catch (unavailable) { /* a private window: the demo starts empty */ }
+    } catch { /* a private window: the demo starts empty */ }
     return { tenants: [], documents: [] };
   }
 
   function save() {
-    try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch (unavailable) { /* kept in memory */ }
+    try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch { /* kept in memory */ }
   }
 
   // ------------------------------------------------------------- answers
   function iso(ms) { return new Date(ms).toISOString(); }
 
   function answer(status, body, headers) {
-    var all = Object.assign({ 'X-Request-Id': crypto.randomUUID() }, headers || {});
+    const all = Object.assign({ 'X-Request-Id': crypto.randomUUID() }, headers || {});
     if (body !== null && body !== undefined && !(body instanceof ArrayBuffer)) {
       all['Content-Type'] = 'application/json';
       body = JSON.stringify(body);
@@ -63,7 +64,7 @@
   }
 
   function required(errors, body, field) {
-    var value = body[field];
+    const value = body[field];
     if (typeof value !== 'string' || !value.trim()) errors.push(field + ': must not be blank');
     return typeof value === 'string' ? value : null;
   }
@@ -78,18 +79,18 @@
   }
 
   function issueToken() {
-    var now = Math.floor(Date.now() / 1000);
+    const now = Math.floor(Date.now() / 1000);
     return base64url(JSON.stringify({ alg: 'HS256' })) + '.'
       + base64url(JSON.stringify({ sub: ADMIN.username, iat: now, exp: now + TOKEN_TTL_S })) + '.' + SIGNATURE;
   }
 
   function tokenValid(token) {
-    var parts = token.split('.');
+    const parts = token.split('.');
     if (parts.length !== 3 || parts[2] !== SIGNATURE) return false;
     try {
-      var claims = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      const claims = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
       return claims.exp * 1000 > Date.now();
-    } catch (malformed) {
+    } catch {
       return false;
     }
   }
@@ -98,11 +99,11 @@
      valid, then whether it opens this route, then whether its tenant is
      active. Answers with the refusal, or with who is calling. */
   function caller(headers, route) {
-    var bearer = /^Bearer (.+)$/.exec(headers.get('Authorization') || '');
-    var key = headers.get('X-API-Key');
+    const bearer = /^Bearer (.+)$/.exec(headers.get('Authorization') || '');
+    const key = headers.get('X-API-Key');
     if (!bearer && !key) return { refusal: refuse(401, 'Authentication required.') };
     if (bearer && !tokenValid(bearer[1])) return { refusal: refuse(401, 'Invalid or expired token.') };
-    var tenant = bearer ? null : state.tenants.filter(function (t) { return t.apiKey === key; })[0];
+    const tenant = bearer ? null : state.tenants.filter(function (t) { return t.apiKey === key; })[0];
     if (!bearer && !tenant) return { refusal: refuse(401, 'Invalid API key.') };
     if ((route === 'admin') !== !!bearer) return { refusal: refuse(403, WRONG_CREDENTIAL) };
     if (tenant && !tenant.active) return { refusal: refuse(403, 'Tenant is inactive.') };
@@ -111,12 +112,12 @@
 
   /* A rolling minute per tenant, counted before the route answers. */
   function budget(tenant, limit) {
-    var now = Date.now();
-    var times = (hits[tenant.id] || []).filter(function (t) { return now - t < WINDOW_MS; });
+    const now = Date.now();
+    const times = (hits[tenant.id] || []).filter(function (t) { return now - t < WINDOW_MS; });
     hits[tenant.id] = times;
-    var reset = function () { return times.length ? Math.ceil((times[0] + WINDOW_MS - now) / 1000) : 0; };
+    const reset = function () { return times.length ? Math.ceil((times[0] + WINDOW_MS - now) / 1000) : 0; };
     if (times.length >= limit) {
-      var wait = reset();
+      const wait = reset();
       return { refusal: refuse(429, 'Rate limit exceeded. Try again in ' + wait + ' seconds.',
         { 'RateLimit-Limit': limit, 'RateLimit-Remaining': 0, 'RateLimit-Reset': wait, 'Retry-After': wait }) };
     }
@@ -132,25 +133,25 @@
 
   function findTenant(id) {
     if (!UUID_RULE.test(id)) return { refusal: refuse(400, "'id' is not a valid UUID.") };
-    var tenant = state.tenants.filter(function (t) { return t.id === id; })[0];
+    const tenant = state.tenants.filter(function (t) { return t.id === id; })[0];
     return tenant ? { tenant: tenant } : { refusal: refuse(404, 'Tenant not found: ' + id) };
   }
 
   function createTenant(body) {
-    var errors = [];
-    var name = required(errors, body, 'name');
+    const errors = [];
+    const name = required(errors, body, 'name');
     longest(errors, name, 'name', 100);
-    var schemaName = required(errors, body, 'schemaName');
+    const schemaName = required(errors, body, 'schemaName');
     if (schemaName !== null && !SCHEMA_RULE.test(schemaName)) {
       errors.push('schemaName: schemaName must start with a lowercase letter and contain only lowercase letters, '
         + 'digits, and underscores, between 2 and 63 characters');
     }
-    var refusal = invalid(errors);
+    const refusal = invalid(errors);
     if (refusal) return refusal;
-    var taken = state.tenants.some(function (t) { return t.schemaName === schemaName || t.name === name; });
+    const taken = state.tenants.some(function (t) { return t.schemaName === schemaName || t.name === name; });
     if (taken) return refuse(409, 'Record already exists with the given data.');
-    var bytes = crypto.getRandomValues(new Uint8Array(32));
-    var tenant = { id: crypto.randomUUID(), name: name, schemaName: schemaName, active: true, createdAt: iso(Date.now()),
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    const tenant = { id: crypto.randomUUID(), name: name, schemaName: schemaName, active: true, createdAt: iso(Date.now()),
                    apiKey: Array.prototype.map.call(bytes, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('') };
     state.tenants.push(tenant);
     save();
@@ -160,8 +161,8 @@
   function tenants(method, rest, body) {
     if (!rest && method === 'GET') return answer(200, state.tenants.map(tenantView));
     if (!rest && method === 'POST') return createTenant(body);
-    var parts = rest.split('/');
-    var found = findTenant(parts[0]);
+    const parts = rest.split('/');
+    const found = findTenant(parts[0]);
     if (found.refusal) return found.refusal;
     if (parts.length === 1 && method === 'GET') return answer(200, tenantView(found.tenant));
     if (parts[1] === 'deactivate' || parts[1] === 'reactivate') {
@@ -177,14 +178,14 @@
      for the time a real run queued, then rendering for the time it
      rendered. Derived, never scheduled, so a reload mid-run stays true. */
   function documentView(document, f) {
-    var view = { id: document.id, title: document.title, content: document.content, status: 'PENDING',
+    const view = { id: document.id, title: document.title, content: document.content, status: 'PENDING',
                  createdAt: document.createdAt, queuedAt: null, startedAt: null, finishedAt: null,
                  updatedAt: document.createdAt };
     if (!document.requestedAt) return view;
-    var requested = Date.parse(document.requestedAt);
-    var started = requested + f.queuedMs;
-    var finished = started + f.renderingMs;
-    var now = Date.now();
+    const requested = Date.parse(document.requestedAt);
+    const started = requested + f.queuedMs;
+    const finished = started + f.renderingMs;
+    const now = Date.now();
     if (now < started) return view;
     view.status = now < finished ? 'PROCESSING' : 'DONE';
     view.queuedAt = document.requestedAt;
@@ -195,12 +196,12 @@
   }
 
   function createDocument(tenant, body, f) {
-    var errors = [];
+    const errors = [];
     longest(errors, required(errors, body, 'title'), 'title', 255);
     longest(errors, required(errors, body, 'content'), 'content', 50000);
-    var refusal = invalid(errors);
+    const refusal = invalid(errors);
     if (refusal) return refusal;
-    var document = { id: crypto.randomUUID(), tenantId: tenant.id, title: body.title, content: body.content,
+    const document = { id: crypto.randomUUID(), tenantId: tenant.id, title: body.title, content: body.content,
                      createdAt: iso(Date.now()), requestedAt: null };
     state.documents.push(document);
     save();
@@ -208,14 +209,14 @@
   }
 
   function listDocuments(tenant, query, f) {
-    var page = Math.max(0, parseInt(query.get('page'), 10) || 0);
-    var size = Math.max(1, parseInt(query.get('size'), 10) || 20);
-    var own = state.documents.filter(function (d) { return d.tenantId === tenant.id; }).reverse();
-    var content = own.slice(page * size, page * size + size).map(function (d) {
-      var view = documentView(d, f);
+    const page = Math.max(0, parseInt(query.get('page'), 10) || 0);
+    const size = Math.max(1, parseInt(query.get('size'), 10) || 20);
+    const own = state.documents.filter(function (d) { return d.tenantId === tenant.id; }).reverse();
+    const content = own.slice(page * size, page * size + size).map(function (d) {
+      const view = documentView(d, f);
       return { id: view.id, title: view.title, status: view.status, createdAt: view.createdAt };
     });
-    var totalPages = Math.ceil(own.length / size);
+    const totalPages = Math.ceil(own.length / size);
     return { page: page, content: content, size: size, totalElements: own.length, totalPages: totalPages,
              first: page === 0, last: page >= totalPages - 1 };
   }
@@ -223,11 +224,11 @@
   function documents(method, rest, tenant, query, body, f) {
     if (!rest && method === 'GET') return answer(200, listDocuments(tenant, query, f));
     if (!rest && method === 'POST') return createDocument(tenant, body, f);
-    var parts = rest.split('/');
+    const parts = rest.split('/');
     if (!UUID_RULE.test(parts[0])) return refuse(400, "'id' is not a valid UUID.");
-    var document = state.documents.filter(function (d) { return d.id === parts[0] && d.tenantId === tenant.id; })[0];
+    const document = state.documents.filter(function (d) { return d.id === parts[0] && d.tenantId === tenant.id; })[0];
     if (!document) return refuse(404, 'Document not found: ' + parts[0]);
-    var view = documentView(document, f);
+    const view = documentView(document, f);
     if (parts.length === 1 && method === 'GET') return answer(200, view);
     if (parts[1] === 'generate' && method === 'POST') {
       if (view.status !== 'PENDING') return refuse(409, 'Document must be PENDING but is ' + view.status + ': ' + document.id);
@@ -249,10 +250,10 @@
 
   // -------------------------------------------------------------- routing
   function login(body) {
-    var errors = [];
-    var username = required(errors, body, 'username');
-    var password = required(errors, body, 'password');
-    var refusal = invalid(errors);
+    const errors = [];
+    const username = required(errors, body, 'username');
+    const password = required(errors, body, 'password');
+    const refusal = invalid(errors);
     if (refusal) return refusal;
     if (username !== ADMIN.username || password !== ADMIN.password) return refuse(401, 'Invalid username or password.');
     return answer(200, { token: issueToken() });
@@ -264,13 +265,13 @@
     if (path === '/actuator/health') return answer(200, { status: 'UP' });
     if (path === '/v1/auth/login' && method === 'POST') return login(body);
 
-    var match = /^\/v1\/(tenants|documents)(?:\/(.*))?$/.exec(path);
+    const match = /^\/v1\/(tenants|documents)(?:\/(.*))?$/.exec(path);
     if (!match) return refuse(404, 'Not found.');
-    var who = caller(headers, match[1] === 'tenants' ? 'admin' : 'tenant');
+    const who = caller(headers, match[1] === 'tenants' ? 'admin' : 'tenant');
     if (who.refusal) return who.refusal;
     if (match[1] === 'tenants') return tenants(method, match[2] || '', body);
 
-    var spent = budget(who.tenant, f.rateLimit);
+    const spent = budget(who.tenant, f.rateLimit);
     if (spent.refusal) return spent.refusal;
     return Promise.resolve(documents(method, match[2] || '', who.tenant, query, body, f)).then(function (response) {
       Object.keys(spent.headers).forEach(function (name) { response.headers.set(name, spent.headers[name]); });
@@ -280,18 +281,18 @@
 
   /* The API's own paths, wherever the page or the spec's server puts them. */
   function apiPath(url) {
-    var match = /\/(v1\/.+|v3\/api-docs(?:\/swagger-config)?|actuator\/health)$/.exec(url.pathname);
+    const match = /\/(v1\/.+|v3\/api-docs(?:\/swagger-config)?|actuator\/health)$/.exec(url.pathname);
     return match ? '/' + match[1] : null;
   }
 
   window.fetch = function (input, init) {
-    var request = new Request(input, init);
-    var url = new URL(request.url, location.href);
-    var path = apiPath(url);
+    const request = new Request(input, init);
+    const url = new URL(request.url, location.href);
+    const path = apiPath(url);
     if (!path) return networkFetch(input, init);
     return Promise.all([facts, request.text()]).then(function (ready) {
-      var body = {};
-      try { body = ready[1] ? JSON.parse(ready[1]) : {}; } catch (notJson) { body = {}; }
+      let body = {};
+      try { body = ready[1] ? JSON.parse(ready[1]) : {}; } catch { body = {}; }
       return route(request.method, path, url.searchParams, request.headers, body || {}, ready[0]);
     });
   };
@@ -299,9 +300,9 @@
   // ------------------------------------------------------------ the mark
   /* Says, in the statusbar, that no server is answering. */
   function markDemo() {
-    var bar = document.getElementById('emit-statusbar');
+    const bar = document.getElementById('emit-statusbar');
     if (!bar) return false;
-    var mark = document.createElement('span');
+    const mark = document.createElement('span');
     mark.className = 'emit-status__demo';
     mark.textContent = 'Demo · answered in this page';
     mark.title = 'No server behind this page: it answers as the EMIT API does, with the timings and the PDF '
@@ -310,7 +311,7 @@
     return true;
   }
 
-  new MutationObserver(function (changes, observer) {
+  new MutationObserver(function (_, observer) {
     if (markDemo()) observer.disconnect();
   }).observe(document.documentElement, { childList: true, subtree: true });
 })();

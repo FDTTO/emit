@@ -60,7 +60,7 @@ export function prettyJson(text, inline) {
     const value = JSON.parse(text);
     const spaced = JSON.stringify(value, null, 1).replace(/\n\s*/g, ' ');
     return inline && spaced.length <= 90 ? spaced : JSON.stringify(value, null, 2);
-  } catch (notJson) {
+  } catch {
     return null;
   }
 }

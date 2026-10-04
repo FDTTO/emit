@@ -3,20 +3,20 @@
 // the reader typed, replacing only its own, with the operation names as
 // links. Responses are faked; nothing reaches the backend. Each step waits
 // for what it checks, not for a clock.
-var created = function (id) {
+const created = function (id) {
   V.fakeResponse('/v1/documents', 'post', 201, { id: id, status: 'PENDING' }, 'http://localhost:8080/v1/documents');
 };
-var own = function (path, method, value) {
-  var parameter = ui.specSelectors.specJson().getIn(['paths', path, method, 'parameters'])
+const own = function (path, method, value) {
+  const parameter = ui.specSelectors.specJson().getIn(['paths', path, method, 'parameters'])
     .find(function (p) { return p.get('name') === 'id'; });
   ui.specActions.changeParamByIdentity([path, method], parameter, value);
 };
-var isOpen = function (id) { var b = document.getElementById(id); return !!b && b.classList.contains('is-open'); };
+const isOpen = function (id) { const b = document.getElementById(id); return !!b && b.classList.contains('is-open'); };
 // Fake the response only once the body with its Execute button has rendered,
 // the earliest a real one could arrive.
-var bodyReady = function (id) { var b = document.getElementById(id); return isOpen(id) && !!(b && b.querySelector('.responses-wrapper')); };
-var generateId = function () { return V.param('/v1/documents/{id}/generate', 'post'); };
-var notes = function () { return V.text('#operations-Documents-createDocument .emit-notes') || ''; };
+const bodyReady = function (id) { const b = document.getElementById(id); return isOpen(id) && !!(b && b.querySelector('.responses-wrapper')); };
+const generateId = function () { return V.param('/v1/documents/{id}/generate', 'post'); };
+const notes = function () { return V.text('#operations-Documents-createDocument .emit-notes') || ''; };
 
 V.open('Documents', 'createDocument', 2500);
 V.until(function () { return bodyReady('operations-Documents-createDocument'); }, function () {
@@ -37,7 +37,7 @@ function first() {
 function second() {
   check('a newer id replaces the page\'s own', generateId() === 'd-2', generateId());
   check('and still not the typed one', V.param('/v1/documents/{id}', 'get') === 'typed-by-hand');
-  var link = Array.prototype.filter.call(document.querySelectorAll('#operations-Documents-createDocument .emit-note__link'),
+  const link = Array.prototype.filter.call(document.querySelectorAll('#operations-Documents-createDocument .emit-note__link'),
     function (a) { return a.textContent === 'Request PDF generation'; })[0];
   check('operation names are links', !!link);
   if (link) link.click();

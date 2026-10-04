@@ -4,11 +4,11 @@
 // first, where a credential came from and until when, the way to get a
 // missing one, and pasting, logging out and closing that act on the store.
 // It is modal: Tab stays inside and Escape hands focus back.
-var card = function (index) { return document.querySelectorAll('#emit-auth .emit-auth__cred')[index]; };
-var state = function (index) { var c = card(index); return c ? c.querySelector('.emit-auth__state').textContent : ''; };
-var open = function () { var s = document.getElementById('emit-auth'); return !!s && !s.hidden; };
-var capsule = function () { return document.getElementById('emit-topbar-auth'); };
-var q = function (selector) { return document.querySelector('#emit-auth ' + selector); };
+const card = function (index) { return document.querySelectorAll('#emit-auth .emit-auth__cred')[index]; };
+const state = function (index) { const c = card(index); return c ? c.querySelector('.emit-auth__state').textContent : ''; };
+const open = function () { const s = document.getElementById('emit-auth'); return !!s && !s.hidden; };
+const capsule = function () { return document.getElementById('emit-topbar-auth'); };
+const q = function (selector) { return document.querySelector('#emit-auth ' + selector); };
 
 V.until(function () { return !!V.definition('bearerAuth') && !!capsule(); }, function () {
   V.fakeResponse('/v1/auth/login', 'post', 200, { token: V.jwt(3500) }, '/v1/auth/login', {}, 108);
@@ -20,20 +20,20 @@ V.until(function () { return !!V.definition('bearerAuth') && !!capsule(); }, fun
 }, 20000);
 
 function opened() {
-  var box = q('.emit-auth__box').getBoundingClientRect();
+  const box = q('.emit-auth__box').getBoundingClientRect();
   check('the capsule opens the dialog, in view', box.width > 400 && box.top >= 0 && box.bottom <= innerHeight, { top: box.top, bottom: box.bottom });
   check('focus moves into it', document.getElementById('emit-auth').contains(document.activeElement));
   q('.emit-auth__foot .emit-quiet').focus();
   /* Every Tab that reaches the page, when and from where: this check has
      failed now and then under a parallel suite, and its detail says which. */
-  var pressed = performance.now();
+  const pressed = performance.now();
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Tab') tabs.push(Math.round(performance.now() - pressed) + 'ms from ' + (document.activeElement && document.activeElement.className));
   }, true);
   V.press('Tab');
   V.until(function () { return document.activeElement !== q('.emit-auth__foot .emit-quiet'); }, cards, 3000);
 }
-var tabs = [];
+const tabs = [];
 
 function cards() {
   check('Tab past the last control comes back to the first', document.activeElement === q('.emit-auth__close'),
@@ -52,8 +52,8 @@ function pasted() {
   check('pasting a key authorizes it', capsule().dataset.state === 'ADMIN,TENANT', capsule().dataset.state);
   check('and its card turns held, masked', /^Held$/.test(state(1)) && /emit_p .+1234/.test(card(1).querySelector('.emit-auth__value').textContent),
         card(1).querySelector('.emit-auth__value').textContent);
-  var eye = card(0).querySelector('.emit-auth__eye'), field = card(0).querySelector('.emit-auth__field');
-  var before = eye.getBoundingClientRect().right;
+  const eye = card(0).querySelector('.emit-auth__eye'), field = card(0).querySelector('.emit-auth__field');
+  const before = eye.getBoundingClientRect().right;
   eye.click();
   check('the eye keeps its place at the edge of the field when it shows the whole value',
         eye.getBoundingClientRect().right === before && field.getBoundingClientRect().right - before < 16,

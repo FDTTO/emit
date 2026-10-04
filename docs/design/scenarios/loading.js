@@ -5,16 +5,16 @@
 // answers holds it no longer than the faces' own ceiling.
 window.scenarioConfig = { docExpansion: 'none' };
 document.fonts.load = function () { return new Promise(function () {}); };
-var win = function () { return document.getElementById('emit-window'); };
-var loading = function () { return !!win() && win().hasAttribute('data-loading'); };
+const win = function () { return document.getElementById('emit-window'); };
+const loading = function () { return !!win() && win().hasAttribute('data-loading'); };
 
 V.until(function () { return !!document.querySelector('.emit-skel'); }, function () {
   check('placeholders hold the window while it loads', loading() && !!document.querySelector('.emit-skel--main'));
   check('the figure placeholder boots through the three stages of the lifecycle',
         document.querySelectorAll('.emit-skel__figure .emit-skel__node').length === 3);
-  var seen = Date.now();
+  const seen = Date.now();
   V.until(function () { return !loading(); }, function () {
-    var waited = Date.now() - seen;
+    const waited = Date.now() - seen;
     check('with every section folded, the page still arrives',
           !loading() && !document.querySelector('.opblock') && !!document.querySelector('h3.opblock-tag[data-is-open="false"]'));
     /* Between the faces' 2.5 s and the page's 8 s ceiling: only the first can

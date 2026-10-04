@@ -1,12 +1,12 @@
 // What the fidelity states share. Each state runs once the console has
 // booted: the description read and the rail's map drawn.
-var booted = function (then) {
+const booted = function (then) {
   V.until(function () { return !!V.definition('bearerAuth') && !!document.querySelector('.emit-map__item'); }, then, 20000);
 };
 // The answers the mockup shows as already given: the dots in the map, the
 // last result on each row, the statusbar's telemetry. The latest one last.
-var replay = function () {
-  var id = '31f7dfab-2c4e-4b1a-9d0e-7a5c3e8f1b20';
+const replay = function () {
+  const id = '31f7dfab-2c4e-4b1a-9d0e-7a5c3e8f1b20';
   V.fakeResponse('/v1/auth/login', 'post', 200, { token: V.jwt(3600) }, '/v1/auth/login', {}, 142);
   V.fakeResponse('/v1/tenants', 'post', 201, { id: id, name: 'acme', apiKey: 'emit_fidelity' }, '/v1/tenants', {}, 480);
   V.fakeResponse('/v1/documents/{id}', 'get', 404, { status: 404, message: 'Document not found: ' + id }, '/v1/documents/' + id, {}, 12);
@@ -16,7 +16,7 @@ var replay = function () {
 // The mockup's idle and run states show Request PDF generation open, the
 // created id carried into it. Operations open closed by default, so it is
 // opened, and measured once resolved and filled.
-var openGenerate = function (then) {
+const openGenerate = function (then) {
   V.open('Documents', 'requestDocumentGeneration', 0);
   V.until(function () {
     return !!document.querySelector('#operations-Documents-requestDocumentGeneration .responses-wrapper')
@@ -25,19 +25,19 @@ var openGenerate = function (then) {
 };
 // Scrolls the content pane so an operation's top meets the pane's, as the
 // mockups show an open one.
-var bringToTop = function (id, below) {
-  var block = document.getElementById(id), pane = block.closest('.swagger-ui');
+const bringToTop = function (id, below) {
+  const block = document.getElementById(id), pane = block.closest('.swagger-ui');
   pane.scrollTop += block.getBoundingClientRect().top - pane.getBoundingClientRect().top - (below || 0);
 };
 // A run in progress: the document's reads answer with the given state, and
 // the 202 that starts the follow arrives now.
-var running = function (state) {
-  var id = '31f7dfab-2c4e-4b1a-9d0e-7a5c3e8f1b20', realFetch = window.fetch;
-  window.fetch = function (url) {
+const running = function (state) {
+  const id = '31f7dfab-2c4e-4b1a-9d0e-7a5c3e8f1b20', realFetch = window.fetch;
+  window.fetch = function (url, init) {
     if (String(url).indexOf('/v1/documents/' + id) !== -1 && !/generate|pdf/.test(String(url))) {
       return Promise.resolve(new Response(JSON.stringify({ id: id, status: state }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
     }
-    return realFetch.apply(this, arguments);
+    return realFetch.call(this, url, init);
   };
   V.fakeResponse('/v1/documents/{id}/generate', 'post', 202, null, location.origin + '/v1/documents/' + id + '/generate',
     { date: new Date(Date.now() - 1400).toUTCString().split(',') }, 38);

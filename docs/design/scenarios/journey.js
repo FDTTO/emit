@@ -5,21 +5,21 @@
 // once the page sees this one done, the tenant under a fresh name. The API
 // is answered here, so the run touches no database. A step that is refused
 // stops the run where it is.
-var DOC = '7c1e0f5a-3b2d-4e8f-9a6b-1d2c3e4f5a6b';
-var reads = 0;
-var refuseDocument = false;
-var tenantBodies = [];
-var reply = function (status, body, type) {
+const DOC = '7c1e0f5a-3b2d-4e8f-9a6b-1d2c3e4f5a6b';
+let reads = 0;
+let refuseDocument = false;
+const tenantBodies = [];
+const reply = function (status, body, type) {
   return Promise.resolve(new Response(body === null ? null : typeof body === 'string' ? body : JSON.stringify(body),
     { status: status, headers: { 'Content-Type': type || 'application/json', 'X-Request-Id': 'journey-' + status } }));
 };
-var realFetch = window.fetch;
-window.fetch = function (url, options) {
-  var path = String(url).replace(/^https?:\/\/[^/]+/, '');
-  var method = String((options && options.method) || 'GET').toUpperCase();
+const realFetch = window.fetch;
+window.fetch = function (url, init) {
+  const path = String(url).replace(/^https?:\/\/[^/]+/, '');
+  const method = String((init && init.method) || 'GET').toUpperCase();
   if (method === 'POST' && path === '/v1/auth/login') return reply(200, { token: V.jwt(3600) });
   if (method === 'POST' && path === '/v1/tenants') {
-    tenantBodies.push(JSON.parse(options.body));
+    tenantBodies.push(JSON.parse(init.body));
     return reply(201, { id: 'a1b2c3d4-0000-4000-8000-000000000001', name: 'Journey', schemaName: 'journey', apiKey: 'emit_journey_key', active: true });
   }
   if (method === 'POST' && path === '/v1/documents') {
@@ -32,10 +32,10 @@ window.fetch = function (url, options) {
     return reply(200, { id: DOC, title: 'Q3 Invoice', status: reads < 2 ? 'PROCESSING' : 'DONE', createdAt: new Date().toISOString() });
   }
   if (method === 'GET' && path === '/v1/documents/' + DOC + '/pdf') return reply(200, '%PDF-1.4 journey', 'application/pdf');
-  return realFetch.apply(this, arguments);
+  return realFetch.call(this, url, init);
 };
-var run = function () { return document.querySelector('.emit-journey-run'); };
-var count = function () { return document.querySelector('.emit-journey__count').textContent; };
+const run = function () { return document.querySelector('.emit-journey-run'); };
+const count = function () { return document.querySelector('.emit-journey__count').textContent; };
 
 V.until(function () { return !!run() && !!V.definition('bearerAuth'); }, function () {
   V.logoutHeld();

@@ -4,7 +4,7 @@ booted(function () {
   V.authorize('apiKeyAuth', 'emit_fidelity');
   replay();
   V.open('Documents', 'requestDocumentGeneration');
-  var land = function () { bringToTop('operations-Documents-requestDocumentGeneration'); };
+  const land = function () { bringToTop('operations-Documents-requestDocumentGeneration'); };
   // Again once the open sheet's margin transition has settled.
   setTimeout(land, 1500);
   setTimeout(function () { land(); measure(); }, 2500);

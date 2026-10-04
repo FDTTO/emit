@@ -20,7 +20,8 @@ export function mapEntries() {
       const operation = runtime.spec.paths[path][method];
       if (!operation || !operation.operationId) return;
       const tag = (operation.tags && operation.tags[0]) || 'default';
-      (byTag[tag] = byTag[tag] || []).push({ tag: tag, id: operation.operationId, method: method, path: path,
+      byTag[tag] ??= [];
+      byTag[tag].push({ tag: tag, id: operation.operationId, method: method, path: path,
         name: operation.summary || operation.operationId });
     });
   });

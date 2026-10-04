@@ -29,7 +29,8 @@ export function captureHistory() {
     historySeen[key] = response;
     const request = selectors.requestFor(path, method);
     const body = request && request.get('body');
-    const calls = callHistory[key] = callHistory[key] || [];
+    callHistory[key] ??= [];
+    const calls = callHistory[key];
     calls.unshift({
       at: new Date(), status: response.get('status'), duration: response.get('duration'),
       url: request ? String(request.get('url') || '').replace(/^https?:\/\/[^/]+/, '') : path,

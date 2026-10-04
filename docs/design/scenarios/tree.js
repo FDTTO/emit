@@ -3,16 +3,16 @@
 // how many keys or items it holds, levels from the third start folded, and
 // Alt+click folds or opens a node with all it contains. Open, the tree is
 // still the answer's JSON, word for word.
-var answer = {
+const answer = {
   content: [
     { id: 'a1', title: 'Q3 Invoice', meta: { tags: ['finance', 'q3'], pages: 2 } },
     { id: 'b2', title: 'Q4 Invoice', meta: { tags: ['finance'], pages: 1 } }
   ],
   page: { size: 20, number: 0, totalElements: 2 }
 };
-var q = function (selector) { return document.querySelector('#operations-Documents-listDocuments ' + selector); };
-var nodes = function () { return document.querySelectorAll('#operations-Documents-listDocuments .emit-json__node'); };
-var folded = function () { return document.querySelectorAll('#operations-Documents-listDocuments .emit-json__node.is-folded'); };
+const q = function (selector) { return document.querySelector('#operations-Documents-listDocuments ' + selector); };
+const nodes = function () { return document.querySelectorAll('#operations-Documents-listDocuments .emit-json__node'); };
+const folded = function () { return document.querySelectorAll('#operations-Documents-listDocuments .emit-json__node.is-folded'); };
 
 /* Opened once the window has arrived, as a reader can. A body alone is not
    enough: an operation Swagger is still resolving has one, but no responses
@@ -27,20 +27,20 @@ function answered() {
   /* The sheet can repaint as the answer settles: wait for a whole tree,
      its nodes and their folds, not for the first of them. */
   V.until(function () { return nodes().length === 9 && folded().length > 0; }, function () {
-    var meta = folded();
+    const meta = folded();
     check('levels from the third start folded, saying what they hold',
           meta.length === 4 && /2 keys \}/.test(meta[0].querySelector('.emit-json__summary').textContent), meta.length);
-    var first = meta[0];
+    const first = meta[0];
     first.querySelector('.emit-json__toggle').click();
     check('a folded node opens on its control, what it holds keeping its own fold',
           !first.classList.contains('is-folded') && folded().length === 3 && first.querySelector('.emit-json__node').classList.contains('is-folded'));
-    var root = nodes()[0];
+    const root = nodes()[0];
     root.querySelector('.emit-json__toggle').dispatchEvent(new MouseEvent('click', { altKey: true, bubbles: true }));
     check('Alt+click folds a node with all it contains', folded().length === nodes().length, { folded: folded().length, all: nodes().length });
     root.querySelector('.emit-json__toggle').dispatchEvent(new MouseEvent('click', { altKey: true, bubbles: true }));
-    var text = q('.emit-result .emit-json').textContent;
-    var same = false;
-    try { same = JSON.stringify(JSON.parse(text)) === JSON.stringify(answer); } catch (notJson) { same = false; }
+    const text = q('.emit-result .emit-json').textContent;
+    let same = false;
+    try { same = JSON.stringify(JSON.parse(text)) === JSON.stringify(answer); } catch { same = false; }
     check('open, the tree is still the JSON of the answer, word for word', same && folded().length === 0, text.slice(0, 80));
     done();
   }, 8000);
