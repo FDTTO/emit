@@ -23,22 +23,11 @@ public class RateLimiterService {
     private static final long WINDOW_MILLIS = 60_000L;
 
     /*
-     * Sliding window implemented as a Redis sorted set.
-     * Score = request timestamp in milliseconds; member = unique request ID.
-     * ZREMRANGEBYSCORE removes entries outside the window before each check so
-     * ZCARD always reflects only requests within the current rolling minute.
-     * PEXPIRE on the key means idle tenant keys expire automatically after one
-     * full window, keeping Redis memory clean without a separate cleanup job.
-     * The script runs atomically (Redis is single-threaded for Lua) so there is
-     * no race between the count check and the ZADD across concurrent requests.
-     *
-     * The time is Redis's own (TIME), never the calling instance's: every
-     * instance scores on one clock, so a fleet whose clocks drift apart still
-     * shares one window.
-     *
-     * It returns {allowed, count in window, oldest score, now}: the client is
-     * told what was read inside the same atomic step as the decision, so the
-     * numbers can never disagree with it.
+     * One atomic script prunes, counts and adds, so two concurrent requests
+     * cannot both take the last slot (docs/decisions/0003). The clock is
+     * Redis's TIME, shared by every instance. It returns {allowed, count,
+     * oldest score, now}, read in the same step as the decision, so the
+     * headers a client gets can never disagree with it.
      */
     @SuppressWarnings("rawtypes")
     private static final RedisScript<List> SLIDING_WINDOW_SCRIPT = RedisScript.of("""

@@ -37,9 +37,8 @@ public class PdfGenerationService {
         log.warn("Document generation permanently abandoned documentId={}", id);
     }
 
-    // Not @Transactional: PDF rendering can take seconds. Holding a DB connection
-    // for the entire render exhausts the pool under load. Two short transactions
-    // bracket the long I/O operation instead.
+    // Not @Transactional: two short transactions bracket the render, which can
+    // take seconds and would hold a pool connection all along.
     // A failed attempt leaves the document PROCESSING so the retry renders again;
     // only the dead-letter handler marks it FAILED. A finished document means a
     // duplicate request (generate called twice) and is skipped, not retried.

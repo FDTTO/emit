@@ -12,12 +12,8 @@ class ApiErrorWriterTest {
 
     private final ApiErrorWriter errorWriter = new ApiErrorWriter(new JsonMapper());
 
-    /**
-     * The charset assertion is the point of this test: {@code getWriter()} falls
-     * back to ISO-8859-1 when none is declared, which mangles accented text in
-     * error messages. It is the kind of default that regresses silently, since
-     * every ASCII-only message keeps working.
-     */
+    // The charset is the point: losing it breaks only non-ASCII messages, so
+    // nothing else would notice.
     @Test
     void shouldDeclareJsonWithUtf8Charset() throws Exception {
         MockHttpServletResponse response = new MockHttpServletResponse();

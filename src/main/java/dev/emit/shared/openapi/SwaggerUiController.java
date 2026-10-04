@@ -14,20 +14,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * Serves a replacement for the Swagger UI entry page.
+ * Serves a replacement for the Swagger UI entry page: the document, the
+ * webfonts, the stock Swagger bundles and the two theme assets. The theme and
+ * the console's modules stay static resources under {@code /swagger/}.
  *
- * <p>This class owns the document and nothing else: the webfonts, the stock
- * Swagger bundles, and references to the two theme assets.
- * The theme itself lives in {@code /swagger/theme.css} and the behaviour that
- * CSS cannot express in the console's ES modules, started by
- * {@code /swagger/emit.js} with this API's configuration, all served as
- * static resources so they stay lintable, cacheable, and reviewable as the
- * files they are rather than as string literals compiled into Java.
- *
- * <p>A runtime script is unavoidable because Swagger UI renders from React:
- * the operation rows, the title and the response tables only exist after
- * hydration and are replaced on every expand, so anything derived from them
- * has to be reapplied rather than declared once.
+ * <p>The console needs a runtime script because Swagger UI renders with React:
+ * operation rows and response tables exist only after hydration and are
+ * replaced on every expand, so whatever is derived from them is reapplied.
  */
 @Hidden
 @Controller

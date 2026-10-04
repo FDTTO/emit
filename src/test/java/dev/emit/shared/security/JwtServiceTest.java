@@ -35,7 +35,7 @@ class JwtServiceTest {
         JwtService shortLivedService = new JwtService("test-secret-minimum-32-characters-long-ok!", -1L);
         String token = shortLivedService.generateToken("admin");
 
-        // token expires in 1ms - by the time isValid runs it is already expired
+        // -1 ms: expired the moment it is issued, so nothing waits on the clock.
         assertThat(shortLivedService.isValid(token)).isFalse();
     }
 

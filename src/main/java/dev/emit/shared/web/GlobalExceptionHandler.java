@@ -95,11 +95,9 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * A URL that matches no handler and no static file is a client mistake, not
-     * a server fault. Without this, {@link #handleGeneric} catches Spring's
-     * {@code NoResourceFoundException} and every typo in a path comes back as
-     * `500 Internal server error`, logged at ERROR, which both misinforms the
-     * caller and fills the log with incidents that never happened.
+     * A URL that matches no handler and no static file is the caller's mistake.
+     * Unclaimed, {@code NoResourceFoundException} falls to {@link #handleGeneric}
+     * and every typo in a path becomes a 500 logged at ERROR.
      */
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException exception) {
@@ -124,18 +122,11 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * The same answer for the same question, arriving by a different route.
-     * Once a static resource has been served, its handle is cached, so a later
-     * request for it does not re-check that the file is still there: it asks
-     * the stale handle for its timestamp and gets a {@link FileNotFoundException}
-     * instead of Spring's {@code NoResourceFoundException}. The caller asked
-     * for something that is not there, which is a 404 however the framework
-     * found out.
-     *
-     * <p>Narrow on purpose. This only answers 404 when the request was being
-     * served by Spring's static resource handler; a {@code FileNotFoundException}
-     * anywhere else is a file the server expected to have, such as a PDF
-     * template or a font, and that is a genuine fault that must stay a 500.
+     * A static file served once and then removed: its cached handle reports a
+     * {@link FileNotFoundException} instead of {@code NoResourceFoundException}.
+     * Narrow on purpose: only under Spring's static resource handler is that a
+     * 404. Anywhere else it is a file the server expected, such as a PDF
+     * template or a font, and stays a 500.
      */
     @ExceptionHandler(FileNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleMissingStaticResource(

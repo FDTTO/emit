@@ -39,8 +39,7 @@ public class SecurityConfig {
                         // credentials, so it stays closed to every caller here.
                         .requestMatchers("/actuator/**")
                         .denyAll()
-                        // Admin-only: creating and managing tenants requires JWT with ROLE_ADMIN.
-                        // A tenant API key satisfies authenticated() but not hasRole("ADMIN").
+                        // A tenant API key is authenticated, but never ADMIN.
                         .requestMatchers("/v1/tenants/**")
                         .hasRole("ADMIN")
                         // Tenant data needs a resolved tenant, which only a tenant API
@@ -69,9 +68,8 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Prevent Spring Boot from auto-registering these filters directly in the
-    // Tomcat servlet filter chain. They must only run inside the Spring Security
-    // filter chain where ordering is controlled by SecurityFilterChain above.
+    // Boot registers every Filter bean in the servlet chain too; these run only
+    // inside the security chain, in the order set above.
     @Bean
     public FilterRegistrationBean<TenantFilter> tenantFilterRegistration(TenantFilter filter) {
         FilterRegistrationBean<TenantFilter> reg = new FilterRegistrationBean<>(filter);

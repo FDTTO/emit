@@ -20,7 +20,7 @@ class FlyingSaucerPdfRenderer implements PdfRenderer {
     private static final Logger log = LoggerFactory.getLogger(FlyingSaucerPdfRenderer.class);
 
     // Classpath resources, read by the PDF library itself rather than through the
-    // offline user agent below. Latin subsets: the coverage the built-in fonts had.
+    // offline user agent below. Latin subsets: the WinAnsi coverage of PDF's standard fonts.
     private static final List<String> FONTS = List.of(
             "fonts/Inter-400.ttf",
             "fonts/Inter-600.ttf",

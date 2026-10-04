@@ -29,8 +29,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String tenantSchema = TenantContext.getTenant();
 
-        // Only apply rate limiting when a tenant was identified from X-API-Key.
-        // Requests without a tenant (e.g., /auth/login, /swagger-ui) pass through.
+        // Only a tenant has a budget; login and the console pass through.
         if (tenantSchema == null) {
             filterChain.doFilter(request, response);
             return;

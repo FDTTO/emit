@@ -37,10 +37,9 @@ class KafkaDocumentEventPublisher implements DocumentEventPublisher, SmartInitia
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    // The producer is created before the app serves, so its handshake with the
-    // broker (its producer id, once measured at 3.4 s) happens in the background
-    // instead of inside the first request's acknowledgement budget. Creating it
-    // does not wait for a broker, so one that is down does not stop startup.
+    // Created before the app serves, so the producer's handshake with the broker,
+    // seconds on a cold start, runs outside the first request's acknowledgement
+    // budget. Creating it waits for no broker: one that is down does not stop startup.
     @Override
     public void afterSingletonsInstantiated() {
         kafkaTemplate.getProducerFactory().createProducer().close();
