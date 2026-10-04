@@ -132,7 +132,7 @@ The API documents itself in a console: Swagger UI redrawn as a cockpit, drawn to
 | Testcontainers | via Spring | PostgreSQL, Kafka, Redis for integration tests |
 | springdoc-openapi | 3.1.1 | OpenAPI 3.0 spec + Swagger UI at `/swagger-ui` |
 | Swagger UI | 5 | Redrawn as the console by a kit of ES modules, no build step |
-| Prumo | 0.1.2 | The console checked in a real browser: suite, coverage, mutation, fidelity |
+| Prumo | 0.1.3 | The console checked in a real browser: suite, coverage, mutation, fidelity |
 | Lombok | via Spring | Compile-time code generation, excluded from fat JAR |
 
 ---
