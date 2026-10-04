@@ -3,7 +3,8 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 COPY src ./src
-RUN mvn package -DskipTests -B
+# The format check reads biome.json, outside the build context; CI runs it.
+RUN mvn package -DskipTests -Dspotless.check.skip=true -B
 
 FROM amazoncorretto:25-alpine
 WORKDIR /app
