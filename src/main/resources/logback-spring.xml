@@ -1,25 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    logback-spring.xml - Logback configuration with Spring Boot integration.
-    Use this file instead of logback.xml to leverage <springProfile>
-    and <springProperty> (access to application.properties inside Logback).
-
-    MDC (Mapped Diagnostic Context): injects context into EVERY log line
-    without passing parameters through the code. The authentication filter sets:
-        MDC.put("tenantSchema", tenant);
-        MDC.put("requestId", UUID.randomUUID().toString());
-    And every log line in the request will include those values automatically.
+    tenantSchema and requestId come from the MDC (TenantFilter, RequestIdFilter).
+    Each pattern stays on one line: a line break inside the element is printed,
+    splitting every entry in two for any collector that reads line by line.
 -->
 <configuration>
 
-    <!-- Console pattern with MDC - dev only -->
     <springProfile name="dev">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
-                <pattern>
-                    %d{HH:mm:ss.SSS} %highlight(%-5level) [%cyan(%X{tenantSchema:-system})]
-                    [%magenta(%X{requestId:-no-req})] %logger{36} - %msg%n
-                </pattern>
+                <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) [%cyan(%X{tenantSchema:-system})] [%magenta(%X{requestId:-no-req})] %logger{36} - %msg%n</pattern>
             </encoder>
         </appender>
 
@@ -28,14 +18,10 @@
         </root>
     </springProfile>
 
-    <!-- Structured pattern for production (JSON would be ideal, but this is sufficient) -->
     <springProfile name="!dev">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
-                <pattern>
-                    %d{ISO8601} %-5level [%X{tenantSchema:-system}] [%X{requestId:-no-req}]
-                    %logger{36} - %msg%n
-                </pattern>
+                <pattern>%d{ISO8601} %-5level [%X{tenantSchema:-system}] [%X{requestId:-no-req}] %logger{36} - %msg%n</pattern>
             </encoder>
         </appender>
 
