@@ -88,16 +88,16 @@ def run_document(key, body):
     sys.exit('document %s did not reach DONE within a minute' % created['id'])
 
 
-MODULE_IMPORT = re.compile(r"""^import [^'"]*from '(\.[^']+)';$""", re.M)
-STYLE_IMPORT = re.compile(r"""^@import url\('([^'/][^']*)'\)""", re.M)
-ROOTED_URL = re.compile(r"""url\('/""")
+MODULE_IMPORT = re.compile(r"""^import [^'"]*from ['"](\.[^'"]+)['"];$""", re.M)
+STYLE_IMPORT = re.compile(r"""^@import url\(['"]([^'"/][^'"]*)['"]\)""", re.M)
+ROOTED_URL = re.compile(r"""(url\(['"]?)/(?!/)""")
 
 
 def export_graph(entry, imports):
     """A file and everything it imports by relative path, as served.
 
-    The site is published under a project path, so a stylesheet's url('/...')
-    is made relative to where the stylesheet sits."""
+    The site is published under a project path, so a stylesheet's rooted
+    url(/...) is made relative to where the stylesheet sits."""
     seen, queue = set(), [entry]
     while queue:
         path = queue.pop()
@@ -106,7 +106,7 @@ def export_graph(entry, imports):
         seen.add(path)
         source = fetched('/' + path).decode('utf-8')
         if path.endswith('.css'):
-            source = ROOTED_URL.sub("url('" + '../' * path.count('/'), source)
+            source = ROOTED_URL.sub(lambda m: m.group(1) + '../' * path.count('/'), source)
         write(path, source)
         folder = posixpath.dirname(path)
         queue.extend(posixpath.normpath(posixpath.join(folder, spec)) for spec in imports.findall(source))
