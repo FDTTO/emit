@@ -17,7 +17,9 @@ V.until(function () { return !!document.querySelector('.emit-skel'); }, function
     var waited = Date.now() - seen;
     check('with every section folded, the page still arrives',
           !loading() && !document.querySelector('.opblock') && !!document.querySelector('h3.opblock-tag[data-is-open="false"]'));
-    check('a font host that never answers holds it only to the faces ceiling', !loading() && waited < 4000, waited);
+    /* Between the faces' 2.5 s and the page's 8 s ceiling: only the first can
+       release it this early, however slow the rest of the render runs. */
+    check('a font host that never answers holds it only to the faces ceiling', !loading() && waited < 6000, waited);
     done();
   }, 10000);
 }, 10000);
