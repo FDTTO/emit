@@ -1,0 +1,8 @@
+# Formatting only: git blame skips these (GitHub reads this file; locally,
+# git config blame.ignoreRevsFile .git-blame-ignore-revs).
+
+# chore: format the scripts and styles with Biome, checked at validate
+c469c3f65915ebe755302654252cab7c9dc99859
+
+# chore: format the Java sources with palantir-java-format, checked by the build
+847b63dbd2ff23359e0f50097c50f4423b678872
