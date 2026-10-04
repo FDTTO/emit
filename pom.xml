@@ -24,6 +24,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jjwt.version>0.12.5</jjwt.version>
+        <biome.version>2.5.15</biome.version>
     </properties>
 
     <dependencies>
@@ -186,6 +187,26 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!-- Resolves ${org.mockito:mockito-core:jar} for surefire's argLine. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Mockito as an agent from the start: a future JDK refuses agents attached at runtime. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -236,7 +257,7 @@
                             <include>demo/**/*.js</include>
                         </includes>
                         <biome>
-                            <version>2.5.15</version>
+                            <version>${biome.version}</version>
                             <configPath>${project.basedir}</configPath>
                         </biome>
                     </javascript>
@@ -246,7 +267,7 @@
                             <include>docs/design/**/*.css</include>
                         </includes>
                         <biome>
-                            <version>2.5.15</version>
+                            <version>${biome.version}</version>
                             <configPath>${project.basedir}</configPath>
                         </biome>
                     </css>
