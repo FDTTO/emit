@@ -17,6 +17,7 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 class RateLimiterServiceTest {
 
+    @SuppressWarnings("resource")
     @Container
     static GenericContainer<?> redis =
             new GenericContainer<>(DockerImageName.parse("redis:7-alpine")).withExposedPorts(6379);

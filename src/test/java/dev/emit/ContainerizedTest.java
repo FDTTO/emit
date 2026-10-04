@@ -17,6 +17,7 @@ import org.testcontainers.utility.DockerImageName;
  */
 abstract class ContainerizedTest {
 
+    @SuppressWarnings("resource")
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16")
             .withDatabaseName("emit_test")
             .withUsername("emit_user")
@@ -25,6 +26,7 @@ abstract class ContainerizedTest {
     static final ConfluentKafkaContainer KAFKA =
             new ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
 
+    @SuppressWarnings("resource")
     static final GenericContainer<?> REDIS =
             new GenericContainer<>(DockerImageName.parse("redis:7-alpine")).withExposedPorts(6379);
 
