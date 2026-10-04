@@ -73,15 +73,21 @@ export function paintActionBars() {
     paintHistoryTool(block, bar, button);
   });
   if (running && !runTicker) runTicker = setInterval(paintActionBars, 50);
-  if (!running && runTicker) { clearInterval(runTicker); runTicker = null; }
+  if (!running && runTicker) {
+    clearInterval(runTicker);
+    runTicker = null;
+  }
 }
 
 function paintCredentialSent(sends, operation) {
   const schemes = operation ? requiredSchemes(operation) : [];
   if (!schemes.length) return paintSends(sends, 'public', null, 'Sends no credential');
   const scheme = schemes[0];
-  const definition = (runtime.spec.components && runtime.spec.components.securitySchemes || {})[scheme] || {};
-  const header = definition.type === 'http' ? 'Authorization: ' + (definition.scheme === 'bearer' ? 'Bearer' : definition.scheme) : definition.name || scheme;
+  const definition = ((runtime.spec.components && runtime.spec.components.securitySchemes) || {})[scheme] || {};
+  const header =
+    definition.type === 'http'
+      ? 'Authorization: ' + (definition.scheme === 'bearer' ? 'Bearer' : definition.scheme)
+      : definition.name || scheme;
   const value = heldCredential(scheme);
   const expiresAt = value ? expiryOf(value) : null;
   const state = !value ? 'missing' : expiresAt !== null && expiresAt <= Date.now() ? 'expired' : 'held';
@@ -107,7 +113,8 @@ function paintSends(sends, state, header, words) {
 /* Ctrl+Enter executes the operation being worked on: the one holding
    focus, otherwise the first open one in view with Execute showing. */
 export function executeTarget() {
-  const here = document.activeElement && document.activeElement.closest && document.activeElement.closest('.opblock.is-open');
+  const here =
+    document.activeElement && document.activeElement.closest && document.activeElement.closest('.opblock.is-open');
   const blocks = here ? [here] : Array.prototype.slice.call(document.querySelectorAll('.opblock.is-open'));
   for (let i = 0; i < blocks.length; i++) {
     const bar = actionBarOf(blocks[i]);

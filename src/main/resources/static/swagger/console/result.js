@@ -12,9 +12,21 @@ import { config, runtime } from './state.js';
    the source of the curl and of a binary body's download link. An operation
    with a request body then shows the request as it was sent, and Edit
    brings the editor back. */
-const REASONS = { 200: 'OK', 201: 'Created', 202: 'Accepted', 204: 'No Content', 400: 'Bad Request',
-  401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found', 409: 'Conflict', 415: 'Unsupported Media Type',
-  429: 'Too Many Requests', 500: 'Internal Server Error', 503: 'Service Unavailable' };
+const REASONS = {
+  200: 'OK',
+  201: 'Created',
+  202: 'Accepted',
+  204: 'No Content',
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  403: 'Forbidden',
+  404: 'Not Found',
+  409: 'Conflict',
+  415: 'Unsupported Media Type',
+  429: 'Too Many Requests',
+  500: 'Internal Server Error',
+  503: 'Service Unavailable',
+};
 
 /* Amber is "wait, then retry": a 429 or a server error. */
 /* A call that got no answer at all (the API down, the connection
@@ -34,13 +46,16 @@ export function apiAddress() {
 
 export function routeOf(block) {
   const path = block.querySelector('.opblock-summary-path');
-  const method = HTTP_METHODS.filter(function (m) { return block.classList.contains('opblock-' + m); })[0];
+  const method = HTTP_METHODS.filter(function (m) {
+    return block.classList.contains('opblock-' + m);
+  })[0];
   return path && method ? { path: path.getAttribute('data-path'), method: method } : null;
 }
 
 /* JSON drawn with keys, strings and numbers told apart, built as nodes so
    nothing the API returns is ever parsed as markup. */
-const JSON_TOKEN = /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null)/g;
+const JSON_TOKEN =
+  /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null)/g;
 
 export function highlightJson(target, text) {
   target.textContent = '';
@@ -69,11 +84,19 @@ function headerList(response) {
   const headers = response.get('headers');
   const list = headers && headers.toJS ? headers.toJS() : headers || {};
   const names = Object.keys(list);
-  const own = config.ownHeaders.filter(function (name) { return names.indexOf(name) !== -1; });
-  return own.concat(names.filter(function (name) { return own.indexOf(name) === -1; })).map(function (name) {
-    const value = list[name];
-    return { name: name, value: Array.isArray(value) ? value.join(', ') : String(value) };
+  const own = config.ownHeaders.filter(function (name) {
+    return names.indexOf(name) !== -1;
   });
+  return own
+    .concat(
+      names.filter(function (name) {
+        return own.indexOf(name) === -1;
+      }),
+    )
+    .map(function (name) {
+      const value = list[name];
+      return { name: name, value: Array.isArray(value) ? value.join(', ') : String(value) };
+    });
 }
 
 export function tool(glyph, label, action) {
@@ -90,7 +113,9 @@ function copyTool(text) {
     if (!navigator.clipboard) return;
     navigator.clipboard.writeText(text()).then(function () {
       button.lastChild.textContent = 'Copied';
-      setTimeout(function () { button.lastChild.textContent = 'Copy'; }, 1200);
+      setTimeout(function () {
+        button.lastChild.textContent = 'Copy';
+      }, 1200);
     });
   });
   return button;
@@ -102,21 +127,41 @@ function saveBody(block, body, type) {
   link.href = URL.createObjectURL(body instanceof Blob ? body : new Blob([body], { type: type }));
   link.download = id + (/json/.test(type) ? '.json' : /pdf/.test(type) ? '.pdf' : '');
   link.click();
-  setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+  setTimeout(function () {
+    URL.revokeObjectURL(link.href);
+  }, 1000);
 }
 
 function resultSheet(block, response, openTab) {
   const status = response.get('status');
   const body = response.get('text');
-  const type = (headerList(response).filter(function (h) { return h.name === 'content-type'; })[0] || {}).value || '';
+  const type =
+    (
+      headerList(response).filter(function (h) {
+        return h.name === 'content-type';
+      })[0] || {}
+    ).value || '';
   const size = body instanceof Blob ? body.size : new Blob([body || '']).size;
-  const requestId = (headerList(response).filter(function (h) { return h.name === 'x-request-id'; })[0] || {}).value;
+  const requestId = (
+    headerList(response).filter(function (h) {
+      return h.name === 'x-request-id';
+    })[0] || {}
+  ).value;
 
   const sheet = el('div', 'emit-result');
   const head = el('div', 'emit-result__head');
-  head.appendChild(el('span', 'emit-result__status emit-result__status--' + toneOf(status), statusWords(status) + (REASONS[status] ? ' ' + REASONS[status] : '')));
+  head.appendChild(
+    el(
+      'span',
+      'emit-result__status emit-result__status--' + toneOf(status),
+      statusWords(status) + (REASONS[status] ? ' ' + REASONS[status] : ''),
+    ),
+  );
   const meta = el('span', 'emit-result__meta');
-  [[response.get('duration'), 'ms'], [status ? size : null, 'B']].forEach(function (pair) {
+  [
+    [response.get('duration'), 'ms'],
+    [status ? size : null, 'B'],
+  ].forEach(function (pair) {
     if (pair[0] == null) return;
     const item = el('span');
     item.appendChild(el('b', null, String(pair[0])));
@@ -135,7 +180,9 @@ function resultSheet(block, response, openTab) {
       if (!navigator.clipboard) return;
       navigator.clipboard.writeText(requestId).then(function () {
         label.textContent = 'Copied';
-        setTimeout(function () { label.textContent = shown; }, 1200);
+        setTimeout(function () {
+          label.textContent = shown;
+        }, 1200);
       });
     });
     head.appendChild(rid);
@@ -145,13 +192,19 @@ function resultSheet(block, response, openTab) {
   const tabs = el('div', 'emit-tabs');
   tabs.setAttribute('role', 'tablist');
   const panels = {};
-  [['body', 'Body'], ['headers', 'Headers', headers.length], ['curl', 'curl']].forEach(function (tab) {
+  [
+    ['body', 'Body'],
+    ['headers', 'Headers', headers.length],
+    ['curl', 'curl'],
+  ].forEach(function (tab) {
     const button = el('button', null, tab[1]);
     button.type = 'button';
     button.setAttribute('role', 'tab');
     button.dataset.tab = tab[0];
     if (tab[2]) button.appendChild(el('small', null, String(tab[2])));
-    button.addEventListener('click', function () { choose(tab[0]); });
+    button.addEventListener('click', function () {
+      choose(tab[0]);
+    });
     tabs.appendChild(button);
   });
   head.appendChild(tabs);
@@ -162,16 +215,28 @@ function resultSheet(block, response, openTab) {
   const pre = el('pre', 'emit-well');
   if (!status) {
     pre.classList.add('emit-well--words');
-    pre.textContent = 'The API did not answer. The request never reached it at ' + apiAddress()
-      + ': the application is not running there, or the connection was refused. Start it and Execute again.';
-  }
-  else if (pretty) renderJsonTree(pre, JSON.parse(body));
-  else if (body instanceof Blob || !/json|text/.test(type)) pre.textContent = (type || 'binary') + ', ' + size + ' B. Save it to open it.';
+    pre.textContent =
+      'The API did not answer. The request never reached it at ' +
+      apiAddress() +
+      ': the application is not running there, or the connection was refused. Start it and Execute again.';
+  } else if (pretty) renderJsonTree(pre, JSON.parse(body));
+  else if (body instanceof Blob || !/json|text/.test(type))
+    pre.textContent = (type || 'binary') + ', ' + size + ' B. Save it to open it.';
   else pre.textContent = body || 'No body.';
   bodyPanel.appendChild(pre);
   const bodyTools = el('div', 'emit-result__tools');
-  if (typeof body === 'string' && body) bodyTools.appendChild(copyTool(function () { return pretty || body; }));
-  if (body && size) bodyTools.appendChild(tool('download', 'Save', function () { saveBody(block, body, type); }));
+  if (typeof body === 'string' && body)
+    bodyTools.appendChild(
+      copyTool(function () {
+        return pretty || body;
+      }),
+    );
+  if (body && size)
+    bodyTools.appendChild(
+      tool('download', 'Save', function () {
+        saveBody(block, body, type);
+      }),
+    );
   bodyPanel.appendChild(bodyTools);
   panels.body = bodyPanel;
 
@@ -183,8 +248,9 @@ function resultSheet(block, response, openTab) {
     grid.appendChild(el('div', 'emit-kv__value' + hot, header.value));
   });
   headersPanel.appendChild(grid);
-  headersPanel.appendChild(el('p', 'emit-result__explain',
-    'The API’s own headers first, then the server’s standard ones.'));
+  headersPanel.appendChild(
+    el('p', 'emit-result__explain', 'The API’s own headers first, then the server’s standard ones.'),
+  );
   panels.headers = headersPanel;
 
   const curlPanel = el('div', 'emit-result__panel');
@@ -196,17 +262,25 @@ function resultSheet(block, response, openTab) {
   });
   curlPanel.appendChild(curlPre);
   const curlTools = el('div', 'emit-result__tools');
-  curlTools.appendChild(copyTool(function () { return curlText; }));
+  curlTools.appendChild(
+    copyTool(function () {
+      return curlText;
+    }),
+  );
   curlPanel.appendChild(curlTools);
   panels.curl = curlPanel;
 
-  Object.keys(panels).forEach(function (key) { sheet.appendChild(panels[key]); });
+  Object.keys(panels).forEach(function (key) {
+    sheet.appendChild(panels[key]);
+  });
   function choose(key) {
     sheet.dataset.tab = key;
     Array.prototype.forEach.call(tabs.children, function (button) {
       button.setAttribute('aria-selected', String(button.dataset.tab === key));
     });
-    Object.keys(panels).forEach(function (name) { panels[name].hidden = name !== key; });
+    Object.keys(panels).forEach(function (name) {
+      panels[name].hidden = name !== key;
+    });
   }
   choose(openTab || 'body');
   return sheet;
@@ -216,7 +290,8 @@ export function paintResults() {
   if (!window.ui || !window.ui.specSelectors) return;
   document.querySelectorAll('.opblock').forEach(function (block) {
     const route = routeOf(block);
-    const response = route && block.classList.contains('is-open') && window.ui.specSelectors.responseFor(route.path, route.method);
+    const response =
+      route && block.classList.contains('is-open') && window.ui.specSelectors.responseFor(route.path, route.method);
     let sheet = block.querySelector('.emit-result');
     const wrapper = block.querySelector('.responses-wrapper');
     if (!response || !response.get || !wrapper) {
@@ -224,7 +299,15 @@ export function paintResults() {
       block.classList.remove('emit-has-result', 'emit-editing');
       return;
     }
-    const signature = [response.get('status'), response.get('duration'), headerList(response).map(function (h) { return h.value; }).join('|')].join(':');
+    const signature = [
+      response.get('status'),
+      response.get('duration'),
+      headerList(response)
+        .map(function (h) {
+          return h.value;
+        })
+        .join('|'),
+    ].join(':');
     if (sheet && sheet.dataset.signature === signature) return;
     const openTab = sheet && sheet.dataset.tab;
     if (sheet) sheet.remove();
@@ -249,6 +332,6 @@ function paintSentBody(block, route) {
   }
   const request = window.ui.specSelectors.mutatedRequestFor(route.path, route.method);
   const body = request && request.get('body');
-  const text = typeof body === 'string' ? (prettyJson(body, true) || body) : '';
+  const text = typeof body === 'string' ? prettyJson(body, true) || body : '';
   highlightJson(sent, text);
 }

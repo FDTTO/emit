@@ -9,21 +9,46 @@ window.fetch = function (url, init) {
   return realFetch.call(this, url, init);
 };
 allowErrors(/Failed to fetch/);
-const q = function (selector) { return document.querySelector('#operations-Authentication-login ' + selector); };
+const q = function (selector) {
+  return document.querySelector('#operations-Authentication-login ' + selector);
+};
 
-V.until(function () { return !!V.definition('bearerAuth'); }, function () {
-  V.execute('Authentication', 'login', null, 300);
-  V.until(function () { return !!q('.emit-result__status'); }, function () {
-    const status = q('.emit-result__status');
-    check('the result says no answer came, in the wait-then-retry tone',
-          status.textContent === 'No answer' && status.classList.contains('emit-result__status--wait'), status.className + ' ' + status.textContent);
-    check('and in words where it tried and what to do', /did not answer.*at http.*Start it and Execute again/.test(q('.emit-result .emit-well').textContent),
-          q('.emit-result .emit-well').textContent);
-    check('the row, the map and the statusbar agree',
-          q('.emit-last').textContent === 'No answer' && q('.emit-last').classList.contains('is-wait')
-          && document.querySelector('.emit-map__item[data-target="operations-Authentication-login"] .emit-map__ran').classList.contains('is-wait')
-          && document.getElementById('emit-status-last').textContent === 'Last no answer');
-    check('and nothing reads "undefined"', !/undefined/.test(document.getElementById('emit-window').textContent));
-    done();
-  }, 10000);
-}, 20000);
+V.until(
+  function () {
+    return !!V.definition('bearerAuth');
+  },
+  function () {
+    V.execute('Authentication', 'login', null, 300);
+    V.until(
+      function () {
+        return !!q('.emit-result__status');
+      },
+      function () {
+        const status = q('.emit-result__status');
+        check(
+          'the result says no answer came, in the wait-then-retry tone',
+          status.textContent === 'No answer' && status.classList.contains('emit-result__status--wait'),
+          status.className + ' ' + status.textContent,
+        );
+        check(
+          'and in words where it tried and what to do',
+          /did not answer.*at http.*Start it and Execute again/.test(q('.emit-result .emit-well').textContent),
+          q('.emit-result .emit-well').textContent,
+        );
+        check(
+          'the row, the map and the statusbar agree',
+          q('.emit-last').textContent === 'No answer' &&
+            q('.emit-last').classList.contains('is-wait') &&
+            document
+              .querySelector('.emit-map__item[data-target="operations-Authentication-login"] .emit-map__ran')
+              .classList.contains('is-wait') &&
+            document.getElementById('emit-status-last').textContent === 'Last no answer',
+        );
+        check('and nothing reads "undefined"', !/undefined/.test(document.getElementById('emit-window').textContent));
+        done();
+      },
+      10000,
+    );
+  },
+  20000,
+);

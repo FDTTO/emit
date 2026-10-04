@@ -15,7 +15,9 @@ export function operationCountByTag() {
     HTTP_METHODS.forEach(function (method) {
       const op = item[method];
       if (!op || !op.tags) return;
-      op.tags.forEach(function (tag) { counts[tag] = (counts[tag] || 0) + 1; });
+      op.tags.forEach(function (tag) {
+        counts[tag] = (counts[tag] || 0) + 1;
+      });
     });
   });
   return counts;
@@ -71,9 +73,11 @@ export function operationFor(block) {
 export function examplesOf(response) {
   const media = response && response.content && response.content['application/json'];
   const examples = media && media.examples;
-  return examples ? Object.keys(examples).map(function (name) {
-    return { name: name, summary: examples[name].summary || name, value: examples[name].value || {} };
-  }) : [];
+  return examples
+    ? Object.keys(examples).map(function (name) {
+        return { name: name, summary: examples[name].summary || name, value: examples[name].value || {} };
+      })
+    : [];
 }
 
 /* The models read like operations: a row each until chosen, the fields as
@@ -94,20 +98,30 @@ function usesModel(schema, name) {
 
 export function usersOf(name) {
   const users = [];
-  Object.keys(runtime.spec.paths).sort().forEach(function (path) {
-    HTTP_METHODS.forEach(function (method) {
-      const operation = runtime.spec.paths[path][method];
-      if (!operation || !operation.operationId) return;
-      const bodies = [operation.requestBody].concat(Object.keys(operation.responses || {}).map(function (code) {
-        return operation.responses[code];
-      }));
-      const used = bodies.some(function (body) {
-        const media = body && body.content && body.content['application/json'];
-        return media && usesModel(media.schema, name);
+  Object.keys(runtime.spec.paths)
+    .sort()
+    .forEach(function (path) {
+      HTTP_METHODS.forEach(function (method) {
+        const operation = runtime.spec.paths[path][method];
+        if (!operation || !operation.operationId) return;
+        const bodies = [operation.requestBody].concat(
+          Object.keys(operation.responses || {}).map(function (code) {
+            return operation.responses[code];
+          }),
+        );
+        const used = bodies.some(function (body) {
+          const media = body && body.content && body.content['application/json'];
+          return media && usesModel(media.schema, name);
+        });
+        if (used)
+          users.push({
+            method: method,
+            path: path,
+            tag: (operation.tags && operation.tags[0]) || 'default',
+            id: operation.operationId,
+          });
       });
-      if (used) users.push({ method: method, path: path, tag: (operation.tags && operation.tags[0]) || 'default', id: operation.operationId });
     });
-  });
   return users;
 }
 
@@ -116,7 +130,10 @@ export function usersOf(name) {
    JSON said as you type. Swagger's textarea stays the editor, so React
    keeps the value; the page adds the gutter and the tools around it. */
 export function requestSchemaOf(operation) {
-  const media = operation && operation.requestBody && operation.requestBody.content &&
+  const media =
+    operation &&
+    operation.requestBody &&
+    operation.requestBody.content &&
     operation.requestBody.content['application/json'];
   const ref = media && media.schema && media.schema.$ref;
   const name = ref ? ref.split('/').pop() : null;
@@ -145,15 +162,26 @@ export function operationIndex() {
    button sits inside the heading, whose own click folds the section. */
 export function operationsOfTag(tag) {
   const index = operationIndex();
-  return Object.keys(index).filter(function (key) { return index[key].tag === tag; })
-    .map(function (key) { return index[key].id; });
+  return Object.keys(index)
+    .filter(function (key) {
+      return index[key].tag === tag;
+    })
+    .map(function (key) {
+      return index[key].id;
+    });
 }
 
 /* The description Swagger loaded, read from its store once it has: one
    source, so a page whose description failed draws nothing from it. */
 export function readSpec() {
   const selectors = window.ui && window.ui.specSelectors;
-  if (runtime.spec || !selectors || typeof selectors.loadingStatus !== 'function' || selectors.loadingStatus() !== 'success') return;
+  if (
+    runtime.spec ||
+    !selectors ||
+    typeof selectors.loadingStatus !== 'function' ||
+    selectors.loadingStatus() !== 'success'
+  )
+    return;
   const json = selectors.specJson();
   runtime.spec = json && json.toJS ? json.toJS() : null;
 }

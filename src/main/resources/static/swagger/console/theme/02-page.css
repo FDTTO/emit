@@ -10,15 +10,55 @@ body {
 
 /* The light behind the glass: monochrome glows and the diagonal streaks of
    the brand's imagery, fixed behind everything. */
-.emit-scene { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.emit-scene__glow { position: absolute; border-radius: 50%; filter: blur(90px); }
-.emit-scene__glow--a { width: 900px; height: 640px; right: -160px; top: -220px; background: radial-gradient(circle, rgba(150,175,220,0.42), transparent 65%); }
-.emit-scene__glow--b { width: 760px; height: 700px; left: -240px; bottom: -300px; background: radial-gradient(circle, rgba(110,130,170,0.32), transparent 65%); }
-.emit-scene__streak { position: absolute; top: -35%; right: 18%; width: 200px; height: 170%; transform: rotate(28deg); filter: blur(26px);
-  background: linear-gradient(90deg, transparent, rgba(210,222,245,0.12), transparent); }
-.emit-scene__streak--thin { right: 6%; width: 90px; opacity: .6; }
-.emit-scene__grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .035; mix-blend-mode: overlay; }
-
+.emit-scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.emit-scene__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+.emit-scene__glow--a {
+  width: 900px;
+  height: 640px;
+  right: -160px;
+  top: -220px;
+  background: radial-gradient(circle, rgba(150, 175, 220, 0.42), transparent 65%);
+}
+.emit-scene__glow--b {
+  width: 760px;
+  height: 700px;
+  left: -240px;
+  bottom: -300px;
+  background: radial-gradient(circle, rgba(110, 130, 170, 0.32), transparent 65%);
+}
+.emit-scene__streak {
+  position: absolute;
+  top: -35%;
+  right: 18%;
+  width: 200px;
+  height: 170%;
+  transform: rotate(28deg);
+  filter: blur(26px);
+  background: linear-gradient(90deg, transparent, rgba(210, 222, 245, 0.12), transparent);
+}
+.emit-scene__streak--thin {
+  right: 6%;
+  width: 90px;
+  opacity: 0.6;
+}
+.emit-scene__grain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+}
 
 /* Swagger's skip link: out of sight until the keyboard reaches it, then the
    interaction's own material at the top of the page. One shape in both
@@ -30,7 +70,7 @@ body {
   background: linear-gradient(var(--ui-bg), var(--ui-bg)), var(--e-bg);
   box-shadow: inset 0 0 0 1px var(--ui-b);
   color: var(--ui-c);
-  font: 500 var(--t-lg)/1.55 var(--f-body);
+  font: 500 var(--t-lg) / 1.55 var(--f-body);
   text-decoration: none;
 }
 #emit-swagger .swagger-ui .swagger-ui__skip-link:focus {

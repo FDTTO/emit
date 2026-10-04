@@ -17,11 +17,17 @@ function stepOperation(by) {
   if (at < 0) {
     const pane = contentPane();
     const top = pane && !PHONE.matches ? pane.getBoundingClientRect().top : 0;
-    at = rows.findIndex(function (row) { return row.getBoundingClientRect().bottom > top; }) - (by > 0 ? 1 : 0);
+    at =
+      rows.findIndex(function (row) {
+        return row.getBoundingClientRect().bottom > top;
+      }) - (by > 0 ? 1 : 0);
   }
   const next = rows[Math.max(0, Math.min(rows.length - 1, at + by))];
   next.focus({ preventScroll: true });
-  next.closest('.opblock').scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  next.closest('.opblock').scrollIntoView({
+    block: 'nearest',
+    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+  });
 }
 
 export function typing(target) {
@@ -32,8 +38,14 @@ export function bindShortcuts() {
   document.addEventListener('keydown', function (event) {
     const win = document.getElementById('emit-window');
     const modal = document.querySelector('.emit-palette:not([hidden]), #emit-auth:not([hidden])');
-    if (!event.ctrlKey && !event.metaKey && !event.altKey && !typing(event.target) && !modal
-        && (event.key === 'j' || event.key === 'k')) {
+    if (
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      !typing(event.target) &&
+      !modal &&
+      (event.key === 'j' || event.key === 'k')
+    ) {
       event.preventDefault();
       stepOperation(event.key === 'j' ? 1 : -1);
       return;
@@ -42,11 +54,20 @@ export function bindShortcuts() {
     if (event.key === 'Escape') closeHistory();
     if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
     const key = event.key.toLowerCase();
-    if (key === 'k') { event.preventDefault(); openPalette(); }
-    if (key === 'b' && document.getElementById('emit-window')) { event.preventDefault(); toggleRail(); }
+    if (key === 'k') {
+      event.preventDefault();
+      openPalette();
+    }
+    if (key === 'b' && document.getElementById('emit-window')) {
+      event.preventDefault();
+      toggleRail();
+    }
     if (key === 'enter') {
       const target = executeTarget();
-      if (target) { event.preventDefault(); target.click(); }
+      if (target) {
+        event.preventDefault();
+        target.click();
+      }
     }
   });
 }

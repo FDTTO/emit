@@ -17,16 +17,26 @@ export function setAreaValue(area, value) {
 /* What the reader has typed, against the schema the body must match. */
 function validity(text, target) {
   let value;
-  try { value = JSON.parse(text); } catch (error) { return { ok: false, words: 'Not valid JSON', detail: error.message.replace(/^JSON\.parse: /, '') }; }
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return { ok: false, words: 'Not an object', detail: 'the body is one JSON object' };
+  try {
+    value = JSON.parse(text);
+  } catch (error) {
+    return { ok: false, words: 'Not valid JSON', detail: error.message.replace(/^JSON\.parse: /, '') };
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    return { ok: false, words: 'Not an object', detail: 'the body is one JSON object' };
   const fields = Object.keys(value);
   const detail = fields.length + (fields.length === 1 ? ' field' : ' fields');
   if (!target) return { ok: true, words: 'Valid JSON', detail: detail };
   const properties = target.schema.properties || {};
-  const missing = (target.schema.required || []).filter(function (name) { return !(name in value); });
-  const unknown = fields.filter(function (name) { return !properties[name]; });
+  const missing = (target.schema.required || []).filter(function (name) {
+    return !(name in value);
+  });
+  const unknown = fields.filter(function (name) {
+    return !properties[name];
+  });
   if (missing.length) return { ok: false, words: 'Valid JSON', detail: detail + ' · missing ' + missing.join(', ') };
-  if (unknown.length) return { ok: false, words: 'Valid JSON', detail: detail + ' · ' + target.name + ' has no ' + unknown.join(', ') };
+  if (unknown.length)
+    return { ok: false, words: 'Valid JSON', detail: detail + ' · ' + target.name + ' has no ' + unknown.join(', ') };
   return { ok: true, words: 'Valid JSON', detail: detail + ' · matches ' + target.name };
 }
 
@@ -51,23 +61,33 @@ export function paintBodyEditors() {
         button.setAttribute('aria-selected', String(name === 'Edit'));
         button.addEventListener('click', function () {
           section.dataset.view = button.dataset.tab;
-          Array.prototype.forEach.call(tabs.children, function (b) { b.setAttribute('aria-selected', String(b === button)); });
+          Array.prototype.forEach.call(tabs.children, function (b) {
+            b.setAttribute('aria-selected', String(b === button));
+          });
         });
         tabs.appendChild(button);
       });
       tools.appendChild(tabs);
-      tools.appendChild(tool('format', 'Format', function () {
-        const pretty = prettyJson(area.value);
-        if (pretty) setAreaValue(area, pretty);
-      }));
-      tools.appendChild(tool('reset', 'Reset to example', function () {
-        const reset = block.querySelector('.try-out__btn.reset');
-        if (reset) reset.click();
-      }));
-      tools.appendChild(tool('pencil', 'Edit', function () {
-        block.classList.add('emit-editing');
-        area.focus();
-      })).classList.add('emit-tool--edit');
+      tools.appendChild(
+        tool('format', 'Format', function () {
+          const pretty = prettyJson(area.value);
+          if (pretty) setAreaValue(area, pretty);
+        }),
+      );
+      tools.appendChild(
+        tool('reset', 'Reset to example', function () {
+          const reset = block.querySelector('.try-out__btn.reset');
+          if (reset) reset.click();
+        }),
+      );
+      tools
+        .appendChild(
+          tool('pencil', 'Edit', function () {
+            block.classList.add('emit-editing');
+            area.focus();
+          }),
+        )
+        .classList.add('emit-tool--edit');
       header.appendChild(tools);
       if (target) section.appendChild(fieldRows(target.schema, 'emit-body-schema'));
     }
@@ -79,13 +99,17 @@ export function paintBodyEditors() {
       gutter.setAttribute('aria-hidden', 'true');
       param.insertBefore(gutter, area);
       area.setAttribute('spellcheck', 'false');
-      area.addEventListener('input', function () { paintBodyState(area, gutter, target); });
+      area.addEventListener('input', function () {
+        paintBodyState(area, gutter, target);
+      });
       /* The colours are a layer under the textarea, whose own text is
          transparent: typing, selection and undo stay the browser's. */
       const paint = el('pre', 'emit-paint');
       paint.setAttribute('aria-hidden', 'true');
       param.insertBefore(paint, area);
-      area.addEventListener('scroll', function () { paint.scrollLeft = area.scrollLeft; });
+      area.addEventListener('scroll', function () {
+        paint.scrollLeft = area.scrollLeft;
+      });
     }
     paintBodyState(area, gutter, target);
   });
@@ -102,7 +126,11 @@ function paintBodyState(area, gutter, target) {
   const lines = area.value.split('\n').length;
   if (gutter.dataset.lines !== String(lines)) {
     gutter.dataset.lines = String(lines);
-    gutter.textContent = Array.apply(null, { length: lines }).map(function (_, i) { return i + 1; }).join('\n');
+    gutter.textContent = Array.apply(null, { length: lines })
+      .map(function (_, i) {
+        return i + 1;
+      })
+      .join('\n');
     area.style.height = 'auto';
     area.style.height = area.scrollHeight + 'px';
   }
@@ -137,17 +165,23 @@ export function fieldRows(schema, className) {
     const kind = el('div', 'emit-field__type');
     /* A field of another model's type names it and opens it. */
     const model = modelOf(property);
-    const typed = property.$ref ? model
-      : property.type === 'array' ? (model || (property.items && property.items.type) || 'item') + '[]'
-      : property.type || 'object';
+    const typed = property.$ref
+      ? model
+      : property.type === 'array'
+        ? (model || (property.items && property.items.type) || 'item') + '[]'
+        : property.type || 'object';
     const chip = kind.appendChild(el(model ? 'button' : 'span', 'emit-chip emit-chip--type', typed));
     if (model) {
       chip.type = 'button';
       chip.title = 'Open ' + model;
-      chip.addEventListener('click', function () { openModel(model); });
+      chip.addEventListener('click', function () {
+        openModel(model);
+      });
     }
     if (property.format) kind.appendChild(el('span', 'emit-chip emit-chip--format', property.format));
-    constraintsOf(property).forEach(function (rule) { kind.appendChild(el('span', 'emit-constraint', rule)); });
+    constraintsOf(property).forEach(function (rule) {
+      kind.appendChild(el('span', 'emit-constraint', rule));
+    });
     about.appendChild(kind);
     if (property.description) about.appendChild(el('p', 'emit-field__about', property.description));
     if (property.example !== undefined) {
@@ -165,9 +199,13 @@ export function fieldRows(schema, className) {
 function constraintsOf(property) {
   const rules = [];
   if (property.minLength != null || property.maxLength != null) {
-    rules.push(property.minLength != null && property.maxLength != null
-      ? property.minLength + ' to ' + property.maxLength + ' characters'
-      : property.minLength != null ? 'at least ' + property.minLength + ' characters' : 'up to ' + property.maxLength + ' characters');
+    rules.push(
+      property.minLength != null && property.maxLength != null
+        ? property.minLength + ' to ' + property.maxLength + ' characters'
+        : property.minLength != null
+          ? 'at least ' + property.minLength + ' characters'
+          : 'up to ' + property.maxLength + ' characters',
+    );
   }
   if (property.pattern) rules.push('matches ' + property.pattern);
   if (property.enum) rules.push(property.enum.join(' | '));
@@ -189,7 +227,9 @@ export function paintCarriedFields() {
     if (!chip) {
       chip = el('span', 'emit-carried');
       cell.appendChild(chip);
-      input.addEventListener('input', function () { chip.hidden = input.value !== carriedIds[key]; });
+      input.addEventListener('input', function () {
+        chip.hidden = input.value !== carriedIds[key];
+      });
     }
     chip.textContent = 'from ' + carriedFrom[key];
     const path = key.slice(key.indexOf(' ') + 1);

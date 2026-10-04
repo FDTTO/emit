@@ -17,10 +17,16 @@
   font-size: var(--t-xs);
   font-weight: 500;
 }
-#emit-swagger .swagger-ui .tab li:first-of-type { padding-right: 0; }
+#emit-swagger .swagger-ui .tab li:first-of-type {
+  padding-right: 0;
+}
 /* First tab label aligns with the block gutter. */
-#emit-swagger .swagger-ui .tab li:first-of-type button.tablinks { padding-left: 0; }
-#emit-swagger .swagger-ui .tab li:first-of-type::after { display: none; }
+#emit-swagger .swagger-ui .tab li:first-of-type button.tablinks {
+  padding-left: 0;
+}
+#emit-swagger .swagger-ui .tab li:first-of-type::after {
+  display: none;
+}
 #emit-swagger .swagger-ui .tab li button.tablinks {
   padding: 5px 12px;
   font-family: var(--f-body);
@@ -31,17 +37,23 @@
   /* Square: the bottom border is the active underline. */
   border-radius: 0;
   font-weight: 500;
-  transition: color 0.14s, border-color 0.14s;
+  transition:
+    color 0.14s,
+    border-color 0.14s;
 }
 #emit-swagger .swagger-ui .tab li.active button.tablinks {
   color: var(--e-text);
   border-bottom-color: var(--ui-b);
   font-weight: 600;
 }
-#emit-swagger .swagger-ui .tab li button.tablinks:hover { color: var(--e-body); }
+#emit-swagger .swagger-ui .tab li button.tablinks:hover {
+  color: var(--e-body);
+}
 /* The wrapper owns the gutter; no side padding here. */
 #emit-swagger .swagger-ui .opblock-body .tab,
-#emit-swagger .swagger-ui .model-example .tab { margin: 0; }
+#emit-swagger .swagger-ui .model-example .tab {
+  margin: 0;
+}
 
 /* Section-header tabs. Counter: .tab-header .tab-item{padding:0 40px} and the
    4px active bar in the upstream palette, replaced by weight and colour. */
@@ -59,17 +71,25 @@
 /* A single tab has no active state to show. */
 #emit-swagger .swagger-ui .opblock .tab-header .tab-item h4 {
   margin: 0;
-  font: 600 var(--t-xs)/1 var(--f-body);
+  font: 600 var(--t-xs) / 1 var(--f-body);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--e-faint);
   transition: color 0.14s;
 }
-#emit-swagger .swagger-ui .opblock .tab-header .tab-item:hover h4 { color: var(--e-dim); }
-#emit-swagger .swagger-ui .opblock .tab-header .tab-item.active h4 { color: var(--e-dim); }
-#emit-swagger .swagger-ui .opblock .tab-header .tab-item.active h4 span { position: static; }
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item:hover h4 {
+  color: var(--e-dim);
+}
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item.active h4 {
+  color: var(--e-dim);
+}
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item.active h4 span {
+  position: static;
+}
 #emit-swagger .swagger-ui .opblock .tab-header .tab-item h4 span::after,
-#emit-swagger .swagger-ui .opblock .tab-header .tab-item.active h4 span::after { content: none; }
+#emit-swagger .swagger-ui .opblock .tab-header .tab-item.active h4 span::after {
+  content: none;
+}
 
 /* Example pickers. Counter: .examples__title{font-size:1.1em;font-weight:700}
    and sibling headers at .9rem bold - all far heavier than this page's labels. */
@@ -87,25 +107,44 @@
   color: var(--e-faint);
 }
 #emit-swagger .swagger-ui .examples__section,
-#emit-swagger .swagger-ui .example__section { margin-top: var(--sp-4); }
-#emit-swagger .swagger-ui .examples-select { margin: 0 0 var(--sp-2); }
-#emit-swagger .swagger-ui .model-example { margin-top: 0; }
+#emit-swagger .swagger-ui .example__section {
+  margin-top: var(--sp-4);
+}
+#emit-swagger .swagger-ui .examples-select {
+  margin: 0 0 var(--sp-2);
+}
+#emit-swagger .swagger-ui .model-example {
+  margin-top: 0;
+}
 /* The section owns the gap before RESPONSES, whichever tab is showing. */
 #emit-swagger .swagger-ui .body-param,
-#emit-swagger .swagger-ui .body-param-options { margin-bottom: 0; padding-bottom: 0; }
-#emit-swagger .swagger-ui .opblock-section { padding-bottom: 0; }
+#emit-swagger .swagger-ui .body-param-options {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+#emit-swagger .swagger-ui .opblock-section {
+  padding-bottom: 0;
+}
 
 /* Hairline frame; the leading edge takes the response's status colour. */
 #emit-swagger .swagger-ui .responses-table .highlight-code {
   border-color: var(--e-hair);
   border-left-width: 2px;
 }
-#emit-swagger .swagger-ui tr.resp-s2 .highlight-code { border-left-color: var(--s2-b); }
-#emit-swagger .swagger-ui tr.resp-s4 .highlight-code { border-left-color: var(--s4-b); }
-#emit-swagger .swagger-ui tr.resp-s5 .highlight-code { border-left-color: var(--s5-b); }
+#emit-swagger .swagger-ui tr.resp-s2 .highlight-code {
+  border-left-color: var(--s2-b);
+}
+#emit-swagger .swagger-ui tr.resp-s4 .highlight-code {
+  border-left-color: var(--s4-b);
+}
+#emit-swagger .swagger-ui tr.resp-s5 .highlight-code {
+  border-left-color: var(--s5-b);
+}
 /* Inside a table cell the block spans the cell, so it needs no side gutter. */
 #emit-swagger .swagger-ui .responses-table .highlight-code,
-#emit-swagger .swagger-ui .parameters .highlight-code { margin: var(--sp-2) 0 var(--sp-3); }
+#emit-swagger .swagger-ui .parameters .highlight-code {
+  margin: var(--sp-2) 0 var(--sp-3);
+}
 
 /* Code block. Counter: pre.microlight{background:#333 !important;padding:10px !important;font-size:12px}
    and .highlight-code{position:relative} which anchors the copy button. */
@@ -137,8 +176,12 @@
 /* Stock `code{font-family:Consolas,...}` matches the child directly, so the
    family is set on the code element too. */
 #emit-swagger .swagger-ui code,
-#emit-swagger .swagger-ui pre { font-family: var(--f-mono); }
-#emit-swagger .swagger-ui .microlight code { color: inherit !important; }
+#emit-swagger .swagger-ui pre {
+  font-family: var(--f-mono);
+}
+#emit-swagger .swagger-ui .microlight code {
+  color: inherit !important;
+}
 /* The highlighter writes a background on every token span; cleared here.
    Token colours are kept. */
 #emit-swagger .swagger-ui .highlight-code pre,
@@ -157,8 +200,12 @@
   text-decoration: none;
 }
 #emit-swagger .swagger-ui .highlight-code pre,
-#emit-swagger .swagger-ui pre.microlight { padding: var(--sp-3) var(--sp-4) !important; }
-#emit-swagger .swagger-ui .highlight-code .headerline { display: block; }
+#emit-swagger .swagger-ui pre.microlight {
+  padding: var(--sp-3) var(--sp-4) !important;
+}
+#emit-swagger .swagger-ui .highlight-code .headerline {
+  display: block;
+}
 /* Counter: .copy-to-clipboard{background:#7d8293;position:absolute;
    right:100px;bottom:10px;width:30px;height:30px} - it is a floating
    square, not a toolbar. Moved to the top-right corner of the block. */
@@ -168,20 +215,27 @@
   bottom: auto;
   width: 26px;
   height: 26px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--e-edge);
   border-radius: var(--r-sm);
   opacity: 0.5;
-  transition: opacity 0.14s, background 0.14s;
+  transition:
+    opacity 0.14s,
+    background 0.14s;
 }
-#emit-swagger .swagger-ui .highlight-code:hover .copy-to-clipboard { opacity: 1; }
+#emit-swagger .swagger-ui .highlight-code:hover .copy-to-clipboard {
+  opacity: 1;
+}
 #emit-swagger .swagger-ui .copy-to-clipboard:hover,
-#emit-swagger .swagger-ui .copy-to-clipboard:active { background: rgba(255,255,255,0.1); }
+#emit-swagger .swagger-ui .copy-to-clipboard:active {
+  background: rgba(255, 255, 255, 0.1);
+}
 /* The stock copy icon is a data URI with fill="#fff" baked in. currentColor
    cannot reach a background-image, so the icon is replaced wholesale. */
 #emit-swagger .swagger-ui .copy-to-clipboard button {
   height: 20px;
-  background: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23a8badc" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"%3E%3Crect x="9" y="9" width="12" height="12" rx="2"/%3E%3Cpath d="M5 15V5a2 2 0 0 1 2-2h10"/%3E%3C/svg%3E') 50% no-repeat;
+  background: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23a8badc" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"%3E%3Crect x="9" y="9" width="12" height="12" rx="2"/%3E%3Cpath d="M5 15V5a2 2 0 0 1 2-2h10"/%3E%3C/svg%3E')
+    50% no-repeat;
   background-size: 14px 14px;
 }
 
@@ -199,9 +253,14 @@
   grid-template-columns: minmax(0, 1fr);
   background: transparent;
 }
-#emit-swagger .swagger-ui .curl-command > h4 { grid-row: 1; }
+#emit-swagger .swagger-ui .curl-command > h4 {
+  grid-row: 1;
+}
 #emit-swagger .swagger-ui .curl-command > div:last-child,
-#emit-swagger .swagger-ui .curl-command > .copy-to-clipboard { grid-row: 2; grid-column: 1; }
+#emit-swagger .swagger-ui .curl-command > .copy-to-clipboard {
+  grid-row: 2;
+  grid-column: 1;
+}
 #emit-swagger .swagger-ui .curl-command > .copy-to-clipboard {
   position: relative;
   top: auto;
@@ -211,7 +270,9 @@
   margin: var(--sp-2);
   z-index: 1;
 }
-#emit-swagger .swagger-ui .curl-command:hover > .copy-to-clipboard { opacity: 1; }
+#emit-swagger .swagger-ui .curl-command:hover > .copy-to-clipboard {
+  opacity: 1;
+}
 #emit-swagger .swagger-ui .curl-command > div:last-child,
 #emit-swagger .swagger-ui .opblock-body .request-url pre.microlight {
   background: var(--e-well) !important;
@@ -242,10 +303,13 @@
   text-decoration: none;
 }
 #emit-swagger .swagger-ui .live-responses-table a[download]::before {
-  content: '';
-  width: 13px; height: 13px;
+  content: "";
+  width: 13px;
+  height: 13px;
   flex: 0 0 auto;
-  background: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%239cdcfe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpath d="M12 3v12M7 11l5 5 5-5M4 20h16"/%3E%3C/svg%3E') 50% / contain no-repeat;
+  background:
+    url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%239cdcfe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpath d="M12 3v12M7 11l5 5 5-5M4 20h16"/%3E%3C/svg%3E')
+    50% / contain no-repeat;
 }
 #emit-swagger .swagger-ui .live-responses-table a[download]::after {
   content: attr(download);
@@ -289,31 +353,66 @@
   padding: 10px var(--sp-4);
   border: 0;
   border-radius: var(--r-code);
-  font: 400 var(--t-md)/1.55 var(--f-body);
+  font: 400 var(--t-md) / 1.55 var(--f-body);
   color: var(--e-body);
   background: color-mix(in srgb, var(--c) 8%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, transparent);
 }
-#emit-swagger .swagger-ui .emit-note svg { width: 14px; height: 14px; flex: 0 0 auto; color: var(--c); }
+#emit-swagger .swagger-ui .emit-note svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--c);
+}
 /* Refusal explained. */
-#emit-swagger .swagger-ui .emit-note--denied { --c: var(--s4-c); }
-#emit-swagger .swagger-ui .emit-note__action { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; cursor: pointer; }
-#emit-swagger .swagger-ui .emit-note__action svg { width: 12px; height: 12px; }
+#emit-swagger .swagger-ui .emit-note--denied {
+  --c: var(--s4-c);
+}
+#emit-swagger .swagger-ui .emit-note__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  cursor: pointer;
+}
+#emit-swagger .swagger-ui .emit-note__action svg {
+  width: 12px;
+  height: 12px;
+}
 /* Followed run; the trail colours match the lifecycle figure. */
-#emit-swagger .swagger-ui .emit-note--follow { --c: var(--run-c); }
+#emit-swagger .swagger-ui .emit-note--follow {
+  --c: var(--run-c);
+}
 #emit-swagger .swagger-ui .emit-note__trail {
   font-family: var(--f-mono);
   font-size: var(--t-xs);
   font-weight: 700;
   letter-spacing: 0.06em;
 }
-#emit-swagger .swagger-ui .emit-note__state--pending    { color: var(--s5-c); }
-#emit-swagger .swagger-ui .emit-note__state--processing { color: var(--pt-c); }
-#emit-swagger .swagger-ui .emit-note__state--done       { color: var(--s2-c); }
-#emit-swagger .swagger-ui .emit-note__state--failed     { color: var(--s4-c); }
-#emit-swagger .swagger-ui .emit-note__state.is-past     { color: var(--e-dim); font-weight: 500; }
-#emit-swagger .swagger-ui .emit-note__sep { margin: 0 5px; color: var(--e-faint); font-weight: 400; }
-#emit-swagger .swagger-ui .emit-note__quiet { color: var(--e-dim); }
+#emit-swagger .swagger-ui .emit-note__state--pending {
+  color: var(--s5-c);
+}
+#emit-swagger .swagger-ui .emit-note__state--processing {
+  color: var(--pt-c);
+}
+#emit-swagger .swagger-ui .emit-note__state--done {
+  color: var(--s2-c);
+}
+#emit-swagger .swagger-ui .emit-note__state--failed {
+  color: var(--s4-c);
+}
+#emit-swagger .swagger-ui .emit-note__state.is-past {
+  color: var(--e-dim);
+  font-weight: 500;
+}
+#emit-swagger .swagger-ui .emit-note__sep {
+  margin: 0 5px;
+  color: var(--e-faint);
+  font-weight: 400;
+}
+#emit-swagger .swagger-ui .emit-note__quiet {
+  color: var(--e-dim);
+}
 /* The request id of a refusal: machine output, quiet until pointed at. */
 #emit-swagger .swagger-ui .emit-note__ref {
   background: none;
@@ -324,7 +423,9 @@
   color: var(--e-dim);
   cursor: copy;
 }
-#emit-swagger .swagger-ui .emit-note__ref:hover { color: var(--e-body); }
+#emit-swagger .swagger-ui .emit-note__ref:hover {
+  color: var(--e-body);
+}
 #emit-swagger .swagger-ui .emit-note__link {
   background: none;
   border: 0;
@@ -336,5 +437,6 @@
   text-decoration-color: var(--ui-b);
   text-underline-offset: 3px;
 }
-#emit-swagger .swagger-ui .emit-note__link:hover { text-decoration-color: var(--ui-c); }
-
+#emit-swagger .swagger-ui .emit-note__link:hover {
+  text-decoration-color: var(--ui-c);
+}

@@ -8,9 +8,15 @@
     --gutter: var(--sp-4);
     --page-gutter: var(--sp-3);
   }
-  #emit-swagger .swagger-ui .information-container > section { padding: var(--sp-5) var(--sp-4) var(--sp-4); }
-  #emit-swagger .swagger-ui .info .title { font-size: var(--t-3xl); }
-  #emit-swagger .swagger-ui .errors-wrapper { padding: var(--sp-5) var(--sp-4); }
+  #emit-swagger .swagger-ui .information-container > section {
+    padding: var(--sp-5) var(--sp-4) var(--sp-4);
+  }
+  #emit-swagger .swagger-ui .info .title {
+    font-size: var(--t-3xl);
+  }
+  #emit-swagger .swagger-ui .errors-wrapper {
+    padding: var(--sp-5) var(--sp-4);
+  }
   /* Stock turns this into a column and keeps align-items:center, which then
      centres horizontally. */
   #emit-swagger .swagger-ui .opblock-summary-path-description-wrapper {
@@ -29,7 +35,9 @@
      name or code above its description. The nested headers table scrolls in
      place. */
   #emit-swagger .swagger-ui .responses-table > thead,
-  #emit-swagger .swagger-ui table.parameters > thead { display: none; }
+  #emit-swagger .swagger-ui table.parameters > thead {
+    display: none;
+  }
   #emit-swagger .swagger-ui .responses-table,
   #emit-swagger .swagger-ui .responses-table > tbody,
   #emit-swagger .swagger-ui .responses-table > tbody > tr,
@@ -37,41 +45,78 @@
   #emit-swagger .swagger-ui table.parameters,
   #emit-swagger .swagger-ui table.parameters > tbody,
   #emit-swagger .swagger-ui table.parameters > tbody > tr,
-  #emit-swagger .swagger-ui table.parameters > tbody > tr > td { display: block; width: auto; }
+  #emit-swagger .swagger-ui table.parameters > tbody > tr > td {
+    display: block;
+    width: auto;
+  }
   #emit-swagger .swagger-ui .responses-table > tbody > tr > td.response-col_status,
   #emit-swagger .swagger-ui table.parameters > tbody > tr > td.parameters-col_name {
     padding-bottom: 0;
     border-bottom: 0;
   }
-  #emit-swagger .swagger-ui .headers-wrapper { overflow-x: auto; }
+  #emit-swagger .swagger-ui .headers-wrapper {
+    overflow-x: auto;
+  }
 }
-
 
 /* Narrow overrides of cockpit parts live here, last in the file: an override
    written before the rule it overrides loses to it at equal specificity. */
 @media (max-width: 900px) {
   /* A long path would push Authorize off the bar. */
-  .emit-crumb { display: none; }
+  .emit-crumb {
+    display: none;
+  }
 }
 @media (max-width: 720px) {
   /* The label rows and the result's bar wrap: tools and tabs take a line of
      their own, and the result's tools stand over its code instead of on it. */
   #emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header,
-  .emit-result__head { flex-wrap: wrap; }
-  .emit-body-tools { flex-wrap: wrap; margin-left: 0; width: 100%; }
-  .emit-result__head .emit-tabs { margin-left: 0; }
-  .emit-result__tools { position: static; justify-content: flex-end; margin-bottom: var(--sp-2); }
-  .emit-result__panel { display: flex; flex-direction: column-reverse; }
-  .emit-result__panel > .emit-well { padding-right: var(--sp-4); }
-  .emit-kv { grid-template-columns: minmax(0, 1fr); }
-  .emit-kv > div:nth-child(2) { box-shadow: none; }
-  .emit-kv__value { padding-top: 0; box-shadow: none; }
+  .emit-result__head {
+    flex-wrap: wrap;
+  }
+  .emit-body-tools {
+    flex-wrap: wrap;
+    margin-left: 0;
+    width: 100%;
+  }
+  .emit-result__head .emit-tabs {
+    margin-left: 0;
+  }
+  .emit-result__tools {
+    position: static;
+    justify-content: flex-end;
+    margin-bottom: var(--sp-2);
+  }
+  .emit-result__panel {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .emit-result__panel > .emit-well {
+    padding-right: var(--sp-4);
+  }
+  .emit-kv {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .emit-kv > div:nth-child(2) {
+    box-shadow: none;
+  }
+  .emit-kv__value {
+    padding-top: 0;
+    box-shadow: none;
+  }
 }
 @media (max-width: 560px) {
   /* A field's name goes over its rules instead of beside them. */
-  .emit-field { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+  .emit-field {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-2);
+  }
   /* The proof moves under its step's words instead of reserving a column. */
-  #emit-swagger .swagger-ui .info .renderedMarkdown ol > li { grid-template-columns: 20px 1fr; row-gap: var(--sp-1); }
-  .emit-step-proof { grid-column: 2; }
+  #emit-swagger .swagger-ui .info .renderedMarkdown ol > li {
+    grid-template-columns: 20px 1fr;
+    row-gap: var(--sp-1);
+  }
+  .emit-step-proof {
+    grid-column: 2;
+  }
 }
-

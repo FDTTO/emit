@@ -2,7 +2,15 @@
  * The operations as Swagger lists them, dressed: the topbar and title,
  * icons and scopes per row, counts per section, and opening one.
  */
-import { armExpiry, authorizedScopes, isExpired, openCredentialSource, scopeBadge, scopeColor, scopesFor } from './auth.js';
+import {
+  armExpiry,
+  authorizedScopes,
+  isExpired,
+  openCredentialSource,
+  scopeBadge,
+  scopeColor,
+  scopesFor,
+} from './auth.js';
 import { openCredentials } from './credentials.js';
 import { el, icon, iconFor, plural } from './dom.js';
 import { specFailed } from './failure.js';
@@ -82,8 +90,15 @@ export function paintTopbar() {
       /* Only expired credentials held: the way back is logging in again. */
       const held = authorizedScopes();
       const now = Date.now();
-      if (held.length && held.every(function (h) { return isExpired(h, now); })) {
-        const scheme = Object.keys(config.scopes).filter(function (s) { return config.scopes[s] === held[0].scope; })[0];
+      if (
+        held.length &&
+        held.every(function (h) {
+          return isExpired(h, now);
+        })
+      ) {
+        const scheme = Object.keys(config.scopes).filter(function (s) {
+          return config.scopes[s] === held[0].scope;
+        })[0];
         if (openCredentialSource(scheme)) return;
       }
       openCredentials();
@@ -96,10 +111,22 @@ export function paintTopbar() {
      mutation would restart the transitions. */
   const now = Date.now();
   const held = authorizedScopes();
-  const live = held.filter(function (h) { return !isExpired(h, now); });
-  const expired = held.filter(function (h) { return isExpired(h, now); });
-  const labels = function (list) { return list.map(function (h) { return h.scope.label; }); };
-  const key = held.map(function (h) { return h.scope.label + (isExpired(h, now) ? ':expired' : ''); }).join(',');
+  const live = held.filter(function (h) {
+    return !isExpired(h, now);
+  });
+  const expired = held.filter(function (h) {
+    return isExpired(h, now);
+  });
+  const labels = function (list) {
+    return list.map(function (h) {
+      return h.scope.label;
+    });
+  };
+  const key = held
+    .map(function (h) {
+      return h.scope.label + (isExpired(h, now) ? ':expired' : '');
+    })
+    .join(',');
   armExpiry(held, now);
   if (mirror.dataset.key === key) return;
   mirror.dataset.key = key;
@@ -129,11 +156,14 @@ export function paintTopbar() {
 
   const said = [];
   if (live.length) said.push('Authorized as ' + labels(live).join(', ') + '.');
-  expired.forEach(function (h) { said.push(h.scope.label + ' token expired.'); });
+  expired.forEach(function (h) {
+    said.push(h.scope.label + ' token expired.');
+  });
   const summary = said.join(' ');
   // Only a JWT carries an expiry, so "only expired" always means a token
   // from a login, and the click leads to logging in again.
-  const next = expired.length && !live.length ? 'log in again.' : expired.length ? 'authorize again.' : 'manage credentials.';
+  const next =
+    expired.length && !live.length ? 'log in again.' : expired.length ? 'authorize again.' : 'manage credentials.';
   mirror.setAttribute('aria-label', summary + ' ' + next.charAt(0).toUpperCase() + next.slice(1));
   mirror.title = summary + ' Click to ' + next;
 }
@@ -169,10 +199,16 @@ export function paintResponseRows() {
     const cell = rows[i].querySelector('.response-col_status');
     if (!cell) continue;
     const code = parseInt(cell.textContent, 10);
-    const band = code >= 200 && code < 300 ? 'resp-s2'
-             : code === 429 ? 'resp-s5'
-             : code >= 400 && code < 500 ? 'resp-s4'
-             : code >= 500 ? 'resp-s5' : '';
+    const band =
+      code >= 200 && code < 300
+        ? 'resp-s2'
+        : code === 429
+          ? 'resp-s5'
+          : code >= 400 && code < 500
+            ? 'resp-s4'
+            : code >= 500
+              ? 'resp-s5'
+              : '';
     rows[i].classList.remove('resp-s2', 'resp-s4', 'resp-s5');
     if (band) rows[i].classList.add(band);
   }
@@ -272,7 +308,9 @@ export function bringIntoView(block) {
   const inputs = ['wheel', 'touchmove', 'keydown'];
   const stop = function () {
     pane.removeEventListener('scrollend', settle);
-    inputs.forEach(function (type) { document.removeEventListener(type, stop, true); });
+    inputs.forEach(function (type) {
+      document.removeEventListener(type, stop, true);
+    });
   };
   const settle = function () {
     const margin = parseFloat(getComputedStyle(block).scrollMarginTop) || 0;
@@ -284,7 +322,9 @@ export function bringIntoView(block) {
     stop();
   };
   pane.addEventListener('scrollend', settle);
-  inputs.forEach(function (type) { document.addEventListener(type, stop, { capture: true, passive: true }); });
+  inputs.forEach(function (type) {
+    document.addEventListener(type, stop, { capture: true, passive: true });
+  });
 }
 
 /* Endpoint counts on group headers, from the spec: a collapsed tag renders
@@ -309,12 +349,20 @@ export function paintGroupCounts() {
 export function allShown(tag) {
   const layout = window.ui && window.ui.layoutSelectors;
   const ids = operationsOfTag(tag);
-  return !!layout && ids.length > 0 && ids.every(function (id) { return layout.isShown(['operations', tag, id]); });
+  return (
+    !!layout &&
+    ids.length > 0 &&
+    ids.every(function (id) {
+      return layout.isShown(['operations', tag, id]);
+    })
+  );
 }
 
 export function showAllOf(tag, open) {
   window.ui.layoutActions.show(['operations-tag', tag], true);
-  operationsOfTag(tag).forEach(function (id) { window.ui.layoutActions.show(['operations', tag, id], open); });
+  operationsOfTag(tag).forEach(function (id) {
+    window.ui.layoutActions.show(['operations', tag, id], open);
+  });
 }
 
 function paintTagTools() {
@@ -372,7 +420,9 @@ export function paintLastAnswers() {
       }
     }
 
-    const link = document.querySelector('.emit-map__item[data-target="operations-' + target.tag + '-' + target.id + '"]');
+    const link = document.querySelector(
+      '.emit-map__item[data-target="operations-' + target.tag + '-' + target.id + '"]',
+    );
     if (link) {
       let dot = link.querySelector('.emit-map__ran');
       if (!dot) {

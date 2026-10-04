@@ -12,29 +12,79 @@
   overflow-y: auto;
   padding: var(--sp-5);
   border-radius: var(--r-panel);
-  background: linear-gradient(150deg, rgba(40,46,58,0.92), rgba(20,23,30,0.96));
+  background: linear-gradient(150deg, rgba(40, 46, 58, 0.92), rgba(20, 23, 30, 0.96));
   backdrop-filter: blur(30px);
-  box-shadow: 0 24px 60px rgba(0,0,0,0.55), var(--e-spec);
-  animation: emit-rise .25s var(--ease);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    var(--e-spec);
+  animation: emit-rise 0.25s var(--ease);
 }
-.emit-legend[hidden] { display: none; }
-.emit-legend h3 { margin: 0 0 var(--sp-4); font: 600 var(--t-lg)/1 var(--f-body); color: var(--e-text); }
-.emit-legend section + section { margin-top: var(--sp-4); padding-top: var(--sp-4); box-shadow: inset 0 1px 0 var(--e-hair); }
-.emit-legend .emit-rail__label { margin-bottom: var(--sp-3); }
+.emit-legend[hidden] {
+  display: none;
+}
+.emit-legend h3 {
+  margin: 0 0 var(--sp-4);
+  font: 600 var(--t-lg) / 1 var(--f-body);
+  color: var(--e-text);
+}
+.emit-legend section + section {
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-4);
+  box-shadow: inset 0 1px 0 var(--e-hair);
+}
+.emit-legend .emit-rail__label {
+  margin-bottom: var(--sp-3);
+}
 /* One first column across the sections, so every description starts on
    the same line: each section is a grid of its own, so the width is set,
    as wide as the widest mark (Ctrl Enter). */
-.emit-legend__grid { display: grid; grid-template-columns: 148px 1fr; gap: 9px var(--sp-3); align-items: center; font-size: var(--t-md); color: var(--e-body); }
-.emit-legend__grid small { font-size: var(--t-sm); color: var(--e-faint); }
+.emit-legend__grid {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  gap: 9px var(--sp-3);
+  align-items: center;
+  font-size: var(--t-md);
+  color: var(--e-body);
+}
+.emit-legend__grid small {
+  font-size: var(--t-sm);
+  color: var(--e-faint);
+}
 /* Keys start their column like the chips above them; the jump field's
    rule pushes its kbd to the end. */
-.emit-legend__grid kbd { justify-self: start; margin-left: 0; }
-.emit-legend__outcome { display: inline-flex; align-items: center; gap: 7px; font: 600 var(--t-md)/1 var(--f-mono); }
-.emit-legend__outcome::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.emit-legend__outcome--ok { color: var(--s2-c); }
-.emit-legend__outcome--bad { color: var(--s4-c); }
-.emit-legend__outcome--wait { color: var(--s5-c); }
-.emit-legend__outcome--run { color: var(--run-c); }
-.emit-legend .emit-field__name { line-height: 1; }
-#emit-statusbar > .emit-legend-btn.is-on { color: var(--e-body); background: var(--e-raised); }
-
+.emit-legend__grid kbd {
+  justify-self: start;
+  margin-left: 0;
+}
+.emit-legend__outcome {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: 600 var(--t-md) / 1 var(--f-mono);
+}
+.emit-legend__outcome::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.emit-legend__outcome--ok {
+  color: var(--s2-c);
+}
+.emit-legend__outcome--bad {
+  color: var(--s4-c);
+}
+.emit-legend__outcome--wait {
+  color: var(--s5-c);
+}
+.emit-legend__outcome--run {
+  color: var(--run-c);
+}
+.emit-legend .emit-field__name {
+  line-height: 1;
+}
+#emit-statusbar > .emit-legend-btn.is-on {
+  color: var(--e-body);
+  background: var(--e-raised);
+}

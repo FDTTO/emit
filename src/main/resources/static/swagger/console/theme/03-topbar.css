@@ -5,15 +5,20 @@
    -------------------------------------------------------------------------- */
 /* The window's titlebar: brand over the rail, where you are, who you are. */
 #emit-swagger .swagger-ui .topbar {
-  background: rgba(255,255,255,0.022);
+  background: rgba(255, 255, 255, 0.022);
   box-shadow: inset 0 -1px 0 var(--e-hair);
   padding: 0;
   height: var(--titlebar-h);
   display: flex;
   align-items: center;
-  position: relative; z-index: 10;
+  position: relative;
+  z-index: 10;
 }
-#emit-swagger .swagger-ui .topbar > .wrapper { max-width: none; padding: 0; width: 100%; }
+#emit-swagger .swagger-ui .topbar > .wrapper {
+  max-width: none;
+  padding: 0;
+  width: 100%;
+}
 /* flex-direction counters stock, which stacks this into a column below 550px. */
 #emit-swagger .swagger-ui .topbar .topbar-wrapper {
   width: 100%;
@@ -38,7 +43,9 @@
 }
 /* An operation brought into view lands with its header clear of whatever
    sits above it: a gap in the pane, the sticky topbar on a phone. */
-#emit-swagger .swagger-ui .opblock { scroll-margin-top: var(--sp-4); }
+#emit-swagger .swagger-ui .opblock {
+  scroll-margin-top: var(--sp-4);
+}
 .emit-crumb {
   display: flex;
   align-items: center;
@@ -46,19 +53,28 @@
   min-width: 0;
   flex: 1 1 auto;
   margin-left: var(--sp-2);
-  font: 500 var(--t-md)/1 var(--f-mono);
+  font: 500 var(--t-md) / 1 var(--f-mono);
   color: var(--e-dim);
   white-space: nowrap;
 }
-.emit-crumb b { font-weight: 500; color: var(--e-text); overflow: hidden; text-overflow: ellipsis; }
-.emit-crumb i { font-style: normal; color: var(--e-faint); }
+.emit-crumb b {
+  font-weight: 500;
+  color: var(--e-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.emit-crumb i {
+  font-style: normal;
+  color: var(--e-faint);
+}
 
 /* Fold control, at the right end of the brand cell. */
 .emit-rail-toggle {
   position: absolute;
   left: calc(var(--rail) - 38px);
   top: calc((var(--titlebar-h) - 26px) / 2);
-  width: 26px; height: 26px;
+  width: 26px;
+  height: 26px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -67,11 +83,22 @@
   background: none;
   color: var(--e-faint);
   cursor: pointer;
-  transition: transform .3s var(--ease), color .15s, background .15s;
+  transition:
+    transform 0.3s var(--ease),
+    color 0.15s,
+    background 0.15s;
 }
-.emit-rail-toggle svg { width: 14px; height: 14px; }
-.emit-rail-toggle:hover { color: var(--e-body); background: var(--e-raised); }
-#emit-swagger .swagger-ui .topbar .topbar-wrapper { position: relative; }
+.emit-rail-toggle svg {
+  width: 14px;
+  height: 14px;
+}
+.emit-rail-toggle:hover {
+  color: var(--e-body);
+  background: var(--e-raised);
+}
+#emit-swagger .swagger-ui .topbar .topbar-wrapper {
+  position: relative;
+}
 
 /* Jump: the command palette's door, in the titlebar. */
 .emit-jump {
@@ -86,18 +113,26 @@
   background: var(--e-raised);
   box-shadow: inset 0 0 0 1px var(--e-hair);
   color: var(--e-faint);
-  font: 400 var(--t-md)/1.55 var(--f-body);
+  font: 400 var(--t-md) / 1.55 var(--f-body);
   cursor: pointer;
 }
-.emit-jump:hover { background: var(--e-hover); color: var(--e-dim); }
-.emit-jump svg { width: 14px; height: 14px; }
-.emit-jump kbd, .emit-palette kbd, .emit-legend kbd {
+.emit-jump:hover {
+  background: var(--e-hover);
+  color: var(--e-dim);
+}
+.emit-jump svg {
+  width: 14px;
+  height: 14px;
+}
+.emit-jump kbd,
+.emit-palette kbd,
+.emit-legend kbd {
   margin-left: auto;
   padding: 3px 6px;
   border-radius: var(--r-sm);
   background: var(--e-raised);
   box-shadow: inset 0 0 0 1px var(--e-hair);
-  font: 500 var(--t-xs)/1 var(--f-mono);
+  font: 500 var(--t-xs) / 1 var(--f-mono);
   color: var(--e-dim);
 }
 
@@ -106,38 +141,98 @@
    uncovered or covered by the edge instead of rewrapping every frame; it is
    hidden only once the column has closed. */
 @media (min-width: 901px) {
-  #emit-rail { transition: visibility 0s; }
-  #emit-rail > * { flex-shrink: 0; width: var(--rail); }
-  #emit-rail > .emit-map { flex-shrink: 1; }
-  #emit-swagger .swagger-ui .topbar .topbar-wrapper > a.link { overflow: hidden; transition: width .3s var(--ease), padding .3s var(--ease); }
-  .emit-brand { transition: opacity .2s var(--ease); }
-  .emit-rail-toggle { transition: transform .3s var(--ease), left .3s var(--ease), color .15s, background .15s; }
-  #emit-window[data-rail="closed"] { grid-template-columns: 0 minmax(0, 1fr); }
-  #emit-window[data-rail="closed"] #emit-rail { visibility: hidden; transition: visibility 0s linear .3s; }
-  #emit-window[data-rail="closed"] .topbar .topbar-wrapper > a.link { width: 52px; padding-left: 0; }
-  #emit-window[data-rail="closed"] .topbar .topbar-wrapper > a.link .emit-brand { opacity: 0; }
-  #emit-window[data-rail="closed"] .emit-rail-toggle { left: 13px; transform: rotate(180deg); }
-  #emit-window[data-rail="closed"] #emit-statusbar > .emit-status__server { width: auto; }
+  #emit-rail {
+    transition: visibility 0s;
+  }
+  #emit-rail > * {
+    flex-shrink: 0;
+    width: var(--rail);
+  }
+  #emit-rail > .emit-map {
+    flex-shrink: 1;
+  }
+  #emit-swagger .swagger-ui .topbar .topbar-wrapper > a.link {
+    overflow: hidden;
+    transition:
+      width 0.3s var(--ease),
+      padding 0.3s var(--ease);
+  }
+  .emit-brand {
+    transition: opacity 0.2s var(--ease);
+  }
+  .emit-rail-toggle {
+    transition:
+      transform 0.3s var(--ease),
+      left 0.3s var(--ease),
+      color 0.15s,
+      background 0.15s;
+  }
+  #emit-window[data-rail="closed"] {
+    grid-template-columns: 0 minmax(0, 1fr);
+  }
+  #emit-window[data-rail="closed"] #emit-rail {
+    visibility: hidden;
+    transition: visibility 0s linear 0.3s;
+  }
+  #emit-window[data-rail="closed"] .topbar .topbar-wrapper > a.link {
+    width: 52px;
+    padding-left: 0;
+  }
+  #emit-window[data-rail="closed"] .topbar .topbar-wrapper > a.link .emit-brand {
+    opacity: 0;
+  }
+  #emit-window[data-rail="closed"] .emit-rail-toggle {
+    left: 13px;
+    transform: rotate(180deg);
+  }
+  #emit-window[data-rail="closed"] #emit-statusbar > .emit-status__server {
+    width: auto;
+  }
 }
 @media (max-width: 900px) {
-  .emit-rail-toggle, .emit-jump { display: none; }
+  .emit-rail-toggle,
+  .emit-jump {
+    display: none;
+  }
 }
 
 /* The palette: a sheet of glass over the window. */
-.emit-palette { position: fixed; inset: 0; z-index: 9500; background: rgba(4,6,9,0.5); backdrop-filter: blur(4px); }
+.emit-palette {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  background: rgba(4, 6, 9, 0.5);
+  backdrop-filter: blur(4px);
+}
 /* Operations and actions in one list, each group under a quiet label. */
-.emit-palette__group { padding: var(--sp-3) var(--sp-3) var(--sp-1); font: 600 var(--t-xs)/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--e-faint); list-style: none; }
-.emit-palette__empty { padding: var(--sp-4) var(--sp-3); font-size: var(--t-md); color: var(--e-dim); list-style: none; }
-.emit-palette[hidden] { display: none; }
+.emit-palette__group {
+  padding: var(--sp-3) var(--sp-3) var(--sp-1);
+  font: 600 var(--t-xs) / 1 var(--f-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--e-faint);
+  list-style: none;
+}
+.emit-palette__empty {
+  padding: var(--sp-4) var(--sp-3);
+  font-size: var(--t-md);
+  color: var(--e-dim);
+  list-style: none;
+}
+.emit-palette[hidden] {
+  display: none;
+}
 .emit-palette__box {
   width: min(560px, calc(100vw - 32px));
   margin: 12vh auto 0;
   overflow: hidden;
   border-radius: var(--r-panel);
-  background: linear-gradient(150deg, rgba(40,46,58,0.92), rgba(20,23,30,0.96));
+  background: linear-gradient(150deg, rgba(40, 46, 58, 0.92), rgba(20, 23, 30, 0.96));
   backdrop-filter: blur(30px);
-  box-shadow: 0 30px 80px rgba(0,0,0,0.6), var(--e-spec);
-  animation: emit-rise .25s var(--ease);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    var(--e-spec);
+  animation: emit-rise 0.25s var(--ease);
 }
 .emit-palette__input {
   width: 100%;
@@ -147,10 +242,16 @@
   background: transparent;
   box-shadow: inset 0 -1px 0 var(--e-hair);
   color: var(--e-text);
-  font: 400 var(--t-xl)/1 var(--f-body);
+  font: 400 var(--t-xl) / 1 var(--f-body);
   outline: none;
 }
-.emit-palette__list { list-style: none; margin: 0; padding: var(--sp-2); max-height: 340px; overflow-y: auto; }
+.emit-palette__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--sp-2);
+  max-height: 340px;
+  overflow-y: auto;
+}
 .emit-palette__item {
   display: flex;
   align-items: center;
@@ -161,13 +262,36 @@
   font-size: var(--t-lg);
   cursor: pointer;
 }
-.emit-palette__item svg { width: 14px; height: 14px; color: var(--e-faint); }
-.emit-palette__item[aria-selected="true"] { background: var(--ui-bg); color: var(--e-text); }
-.emit-palette__item[aria-selected="true"] svg { color: var(--ui-c); }
-.emit-palette__path { margin-left: auto; font: 400 var(--t-sm)/1 var(--f-mono); color: var(--e-faint); white-space: nowrap; }
-.emit-palette__foot { display: flex; gap: var(--sp-4); padding: 10px var(--sp-5); box-shadow: inset 0 1px 0 var(--e-hair); font-size: var(--t-sm); color: var(--e-faint); }
+.emit-palette__item svg {
+  width: 14px;
+  height: 14px;
+  color: var(--e-faint);
+}
+.emit-palette__item[aria-selected="true"] {
+  background: var(--ui-bg);
+  color: var(--e-text);
+}
+.emit-palette__item[aria-selected="true"] svg {
+  color: var(--ui-c);
+}
+.emit-palette__path {
+  margin-left: auto;
+  font: 400 var(--t-sm) / 1 var(--f-mono);
+  color: var(--e-faint);
+  white-space: nowrap;
+}
+.emit-palette__foot {
+  display: flex;
+  gap: var(--sp-4);
+  padding: 10px var(--sp-5);
+  box-shadow: inset 0 1px 0 var(--e-hair);
+  font-size: var(--t-sm);
+  color: var(--e-faint);
+}
 #emit-swagger .swagger-ui .topbar img,
-#emit-swagger .swagger-ui .topbar .download-url-wrapper { display: none; }
+#emit-swagger .swagger-ui .topbar .download-url-wrapper {
+  display: none;
+}
 #emit-swagger .swagger-ui .topbar a {
   flex: 0 0 auto;
   max-width: none;
@@ -180,7 +304,10 @@
   display: flex;
   align-items: center;
 }
-#emit-swagger .swagger-ui .topbar a span { margin: 0; padding: 0; }
+#emit-swagger .swagger-ui .topbar a span {
+  margin: 0;
+  padding: 0;
+}
 #emit-swagger .swagger-ui .topbar a .emit-brand {
   font-family: var(--f-body);
   font-size: 20px;
@@ -190,7 +317,9 @@
   color: var(--e-text);
   white-space: nowrap;
 }
-#emit-swagger .swagger-ui .topbar a .emit-brand__dot { color: var(--ui-c); }
+#emit-swagger .swagger-ui .topbar a .emit-brand__dot {
+  color: var(--ui-c);
+}
 
 /* Mirror of the scheme-bar Authorize, injected into the topbar by JS. */
 /* Credential tag: the open padlock invites, the closed one lists held scopes. */
@@ -208,15 +337,22 @@
   background: none;
   border: 0;
   border-radius: var(--r-pill);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10), inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   cursor: pointer;
-  transition: filter 0.12s, box-shadow 0.15s;
+  transition:
+    filter 0.12s,
+    box-shadow 0.15s;
 }
 /* Hover via filter: the state rules below set background and border at the
    same specificity and would beat a plain :hover by source order. */
-#emit-topbar-auth:hover { filter: brightness(1.18); }
-#emit-topbar-auth:active { filter: brightness(0.94); }
-
+#emit-topbar-auth:hover {
+  filter: brightness(1.18);
+}
+#emit-topbar-auth:active {
+  filter: brightness(0.94);
+}
 
 /* Holding nothing: a quiet pill, its word in the interaction colour. */
 #emit-topbar-auth[data-state=""] {
@@ -225,8 +361,12 @@
   background: var(--e-raised);
   box-shadow: inset 0 0 0 1px var(--e-hair);
 }
-#emit-topbar-auth[data-state=""] .emit-auth-cta { color: var(--ui-c); }
-.emit-auth-cta { font: 500 var(--t-md)/1 var(--f-body); }
+#emit-topbar-auth[data-state=""] .emit-auth-cta {
+  color: var(--ui-c);
+}
+.emit-auth-cta {
+  font: 500 var(--t-md) / 1 var(--f-body);
+}
 
 /* Held scopes are segments of the capsule, each tinted by its scope. */
 .emit-auth-seg {
@@ -243,10 +383,16 @@
   color: var(--c);
   background: color-mix(in srgb, var(--c) 9%, transparent);
 }
-.emit-auth-seg svg { width: 11px; height: 11px; flex: 0 0 auto; }
+.emit-auth-seg svg {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+}
 /* Expired credential: keeps its segment, loses its colour. Must stay after the
    scope colours (same specificity, wins by order). */
-.emit-auth-seg--expired { --c: var(--e-dim); }
+.emit-auth-seg--expired {
+  --c: var(--e-dim);
+}
 .emit-auth-seg__flag {
   font-family: var(--f-body);
   font-size: var(--t-3xs);
@@ -259,5 +405,6 @@
 #emit-topbar-auth[data-state="EXPIRED"] {
   box-shadow: inset 0 0 0 1px var(--s4-b);
 }
-.emit-auth-seg + .emit-auth-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.10); }
-
+.emit-auth-seg + .emit-auth-seg {
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.1);
+}

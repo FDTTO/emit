@@ -32,7 +32,9 @@ export function setDrawer(open) {
     /* A hidden drawer cannot take focus. Reading its computed visibility
        applies the open state now, where waiting for a frame could wait
        long in a throttled tab. */
-    const here = document.querySelector('#emit-map .emit-map__item.is-current') || document.querySelector('#emit-map .emit-map__item');
+    const here =
+      document.querySelector('#emit-map .emit-map__item.is-current') ||
+      document.querySelector('#emit-map .emit-map__item');
     if (here && getComputedStyle(document.getElementById('emit-rail')).visibility === 'visible') here.focus();
   } else if (menu && document.getElementById('emit-rail').contains(document.activeElement)) {
     menu.focus();
@@ -47,13 +49,17 @@ export function paintStrip(state) {
     strip = el('div', 'emit-strip');
     strip.id = 'emit-strip';
     const bar = strip.appendChild(el('div', 'emit-strip__bar'));
-    config.journey.forEach(function () { bar.appendChild(el('i')); });
+    config.journey.forEach(function () {
+      bar.appendChild(el('i'));
+    });
     const next = strip.appendChild(el('button', 'emit-strip__next'));
     next.type = 'button';
     next.appendChild(el('small', null, 'NEXT'));
     next.appendChild(el('span', 'emit-strip__step'));
     next.appendChild(icon('goTo'));
-    next.addEventListener('click', function () { document.querySelector('.emit-journey__next').click(); });
+    next.addEventListener('click', function () {
+      document.querySelector('.emit-journey__next').click();
+    });
     topbar.parentNode.insertBefore(strip, topbar.nextSibling);
   }
   strip.querySelectorAll('.emit-strip__bar i').forEach(function (segment, index) {
@@ -86,7 +92,20 @@ export function paintLivePill(follow, stages, at, elapsed) {
     pill.appendChild(document.createTextNode(follow.id.slice(0, 8)));
     const dots = pill.appendChild(el('span', 'emit-live-pill__stages'));
     stages.forEach(function (state, index) {
-      dots.appendChild(el('i', index < at ? 'is-past' : index === at ? (kindOf(state) === 'done' ? 'is-good' : kindOf(state) === 'failed' ? 'is-bad' : 'is-current') : ''));
+      dots.appendChild(
+        el(
+          'i',
+          index < at
+            ? 'is-past'
+            : index === at
+              ? kindOf(state) === 'done'
+                ? 'is-good'
+                : kindOf(state) === 'failed'
+                  ? 'is-bad'
+                  : 'is-current'
+              : '',
+        ),
+      );
     });
     pill.appendChild(el('em', 'emit-live-pill__state is-' + follow.state.toLowerCase(), follow.state));
     pill.appendChild(el('span', 'emit-live-pill__elapsed'));
@@ -97,7 +116,9 @@ export function paintLivePill(follow, stages, at, elapsed) {
       download.setAttribute('aria-label', 'Download the ' + config.lifecycle.result);
       download.appendChild(icon('download'));
       download.appendChild(document.createTextNode(config.lifecycle.result));
-      download.addEventListener('click', function () { openFollowed('result', follow.id); });
+      download.addEventListener('click', function () {
+        openFollowed('result', follow.id);
+      });
     }
   }
   pill.querySelector('.emit-live-pill__elapsed').textContent = elapsed;

@@ -5,35 +5,102 @@
    everything has arrived the content rises over them in turn and a glint
    runs along the window's rim.
    -------------------------------------------------------------------------- */
-#emit-rail { position: relative; }
+#emit-rail {
+  position: relative;
+}
 /* An animation, not a transition, so it leaves the elements' own
    transitions alone. */
-#emit-window[data-loading] :is(#emit-rail > :not(.emit-skel), .swagger-container > .swagger-ui, .topbar-wrapper > *, #emit-statusbar > *) { opacity: 0; }
-#emit-window[data-revealing] :is(#emit-rail > :not(.emit-skel), .swagger-container > .swagger-ui, .topbar-wrapper > *, #emit-statusbar > *) { animation: emit-appear .3s var(--ease); }
-#emit-window[data-revealing] :is(#emit-rail > :not(.emit-skel), .information-container, .opblock-tag-section, .emit-schemas) { animation: emit-arrive .55s var(--ease) both; }
+#emit-window[data-loading]
+:is(#emit-rail > :not(.emit-skel), .swagger-container > .swagger-ui, .topbar-wrapper > *, #emit-statusbar > *) {
+  opacity: 0;
+}
+#emit-window[data-revealing]
+  :is(#emit-rail > :not(.emit-skel), .swagger-container > .swagger-ui, .topbar-wrapper > *, #emit-statusbar > *) {
+  animation: emit-appear 0.3s var(--ease);
+}
+#emit-window[data-revealing]
+  :is(#emit-rail > :not(.emit-skel), .information-container, .opblock-tag-section, .emit-schemas) {
+  animation: emit-arrive 0.55s var(--ease) both;
+}
 #emit-window[data-revealing] #emit-rail > :nth-child(2),
-#emit-window[data-revealing] .opblock-tag-section:nth-child(1) { animation-delay: .07s; }
+#emit-window[data-revealing] .opblock-tag-section:nth-child(1) {
+  animation-delay: 0.07s;
+}
 #emit-window[data-revealing] #emit-rail > :nth-child(3),
-#emit-window[data-revealing] .opblock-tag-section:nth-child(2) { animation-delay: .14s; }
-#emit-window[data-revealing] .opblock-tag-section:nth-child(n+3),
-#emit-window[data-revealing] .emit-schemas { animation-delay: .21s; }
-@keyframes emit-appear { from { opacity: 0; } }
-@keyframes emit-arrive { from { opacity: 0; transform: translateY(10px); } }
+#emit-window[data-revealing] .opblock-tag-section:nth-child(2) {
+  animation-delay: 0.14s;
+}
+#emit-window[data-revealing] .opblock-tag-section:nth-child(n + 3),
+#emit-window[data-revealing] .emit-schemas {
+  animation-delay: 0.21s;
+}
+@keyframes emit-appear {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes emit-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
 /* The glint: a band of light travelling once along the 1px rim. */
 #emit-window::before {
-  content: ""; position: absolute; inset: 0; z-index: 31; border-radius: inherit; padding: 1px; pointer-events: none; opacity: 0;
-  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.75) 50%, transparent 62%) -200% 0 / 300% 100% no-repeat;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 31;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.75) 50%, transparent 62%) -200% 0 / 300% 100%
+    no-repeat;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
 }
-#emit-window[data-revealing]::before { animation: emit-glint 1s var(--ease) .1s; }
-@keyframes emit-glint { from { opacity: 1; background-position: -200% 0; } to { opacity: 1; background-position: 150% 0; } }
-.emit-skel { position: absolute; z-index: 2; pointer-events: none; transition: opacity .3s var(--ease); }
-#emit-window:not([data-loading]) .emit-skel { opacity: 0; }
-.emit-skel--rail { inset: 0; padding: var(--sp-5) var(--sp-6); }
-.emit-skel--main { grid-area: main; inset: 0; overflow: hidden; padding: var(--sp-7) var(--page-gutter); }
-.emit-skel__column { display: flex; flex-direction: column; gap: var(--sp-3); }
+#emit-window[data-revealing]::before {
+  animation: emit-glint 1s var(--ease) 0.1s;
+}
+@keyframes emit-glint {
+  from {
+    opacity: 1;
+    background-position: -200% 0;
+  }
+  to {
+    opacity: 1;
+    background-position: 150% 0;
+  }
+}
+.emit-skel {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease);
+}
+#emit-window:not([data-loading]) .emit-skel {
+  opacity: 0;
+}
+.emit-skel--rail {
+  inset: 0;
+  padding: var(--sp-5) var(--sp-6);
+}
+.emit-skel--main {
+  grid-area: main;
+  inset: 0;
+  overflow: hidden;
+  padding: var(--sp-7) var(--page-gutter);
+}
+.emit-skel__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
 .emit-skel--main .emit-skel__column {
   max-width: calc(var(--page-column) - 2 * var(--page-gutter));
   margin: 0 auto;
@@ -47,41 +114,112 @@
   display: block;
   flex: 0 0 auto;
   border-radius: var(--r-sm);
-  background-color: rgba(255,255,255,0.035);
-  background-image: linear-gradient(105deg, transparent 40%, rgba(143,220,255,0.10) 47%, rgba(255,255,255,0.15) 50%, rgba(143,220,255,0.10) 53%, transparent 60%);
+  background-color: rgba(255, 255, 255, 0.035);
+  background-image: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(143, 220, 255, 0.1) 47%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(143, 220, 255, 0.1) 53%,
+    transparent 60%
+  );
   background-size: 220vw 100%;
   background-attachment: fixed;
   background-repeat: no-repeat;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   animation: emit-sweep 2.2s linear infinite;
 }
-.emit-skel__label { height: 8px; margin-top: var(--sp-3); }
-.emit-skel__bar { height: 3px; margin-bottom: var(--sp-2); }
-.emit-skel i.emit-skel__card { height: 50px; margin-bottom: var(--sp-4); border-radius: var(--r-code); }
-.emit-skel__gap { height: 0; }
-.emit-skel__item { height: 12px; margin: 5px 0 5px var(--sp-3); }
-.emit-skel__title { height: 30px; margin-bottom: var(--sp-3); }
-.emit-skel__line { height: 11px; }
-.emit-skel i.emit-skel__figure { display: flex; align-items: center; justify-content: center; height: 180px; border-radius: var(--r-code); }
+.emit-skel__label {
+  height: 8px;
+  margin-top: var(--sp-3);
+}
+.emit-skel__bar {
+  height: 3px;
+  margin-bottom: var(--sp-2);
+}
+.emit-skel i.emit-skel__card {
+  height: 50px;
+  margin-bottom: var(--sp-4);
+  border-radius: var(--r-code);
+}
+.emit-skel__gap {
+  height: 0;
+}
+.emit-skel__item {
+  height: 12px;
+  margin: 5px 0 5px var(--sp-3);
+}
+.emit-skel__title {
+  height: 30px;
+  margin-bottom: var(--sp-3);
+}
+.emit-skel__line {
+  height: 11px;
+}
+.emit-skel i.emit-skel__figure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+  border-radius: var(--r-code);
+}
 /* The figure boots: its stages light in turn, as a run passes. */
-.emit-skel__node { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.12); animation: emit-boot 2.4s var(--ease) infinite; }
-.emit-skel__node:nth-child(3) { animation-delay: .8s; }
-.emit-skel__node:nth-child(5) { animation-delay: 1.6s; }
-.emit-skel__edge { position: relative; width: 22%; height: 1px; overflow: hidden; background: rgba(255,255,255,0.08); }
-.emit-skel__edge::after { content: ""; position: absolute; top: -1px; left: -30%; width: 30%; height: 3px; border-radius: 3px; background: linear-gradient(90deg, transparent, var(--ui-c), transparent); animation: emit-pass 2.4s linear infinite; }
-.emit-skel__edge:nth-child(4)::after { animation-delay: .8s; }
+.emit-skel__node {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.12);
+  animation: emit-boot 2.4s var(--ease) infinite;
+}
+.emit-skel__node:nth-child(3) {
+  animation-delay: 0.8s;
+}
+.emit-skel__node:nth-child(5) {
+  animation-delay: 1.6s;
+}
+.emit-skel__edge {
+  position: relative;
+  width: 22%;
+  height: 1px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+.emit-skel__edge::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -30%;
+  width: 30%;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, var(--ui-c), transparent);
+  animation: emit-pass 2.4s linear infinite;
+}
+.emit-skel__edge:nth-child(4)::after {
+  animation-delay: 0.8s;
+}
 /* Swagger's own spinners never show. An operation opened for the first
    time, while Swagger resolves it (its rolling SVG), holds the shape of its
    description; a call that is out holds the shape of the result it will
    draw, in the place of the stale one. All under the same light as the
    page's placeholders. */
-#emit-swagger .swagger-ui .opblock-body > .opblock-loading-animation { display: none; }
+#emit-swagger .swagger-ui .opblock-body > .opblock-loading-animation {
+  display: none;
+}
 /* Swagger draws the action bar before the operation is resolved: it stays,
    so nothing moves when it resolves, but as a ghost of itself, with no
    Execute to press before there is anything to send. */
-#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) { display: flex; flex-direction: column; }
-#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group) { order: 1; }
-#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group) > * { visibility: hidden; }
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) {
+  display: flex;
+  flex-direction: column;
+}
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group) {
+  order: 1;
+}
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group) > * {
+  visibility: hidden;
+}
 #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::before,
 #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::after,
 #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation)::before,
@@ -92,14 +230,24 @@
   height: 12px;
   margin: var(--sp-6) var(--gutter) var(--sp-3);
   border-radius: var(--r-sm);
-  background-color: rgba(255,255,255,0.035);
-  background-image: linear-gradient(105deg, transparent 40%, rgba(143,220,255,0.10) 47%, rgba(255,255,255,0.15) 50%, rgba(143,220,255,0.10) 53%, transparent 60%);
+  background-color: rgba(255, 255, 255, 0.035);
+  background-image: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(143, 220, 255, 0.1) 47%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(143, 220, 255, 0.1) 53%,
+    transparent 60%
+  );
   background-size: 220vw 100%;
   background-attachment: fixed;
   background-repeat: no-repeat;
   animation: emit-sweep 2.2s linear infinite;
 }
-#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation)::after { width: calc(88% - 2 * var(--gutter)); margin: 0 var(--gutter) var(--sp-6); }
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation)::after {
+  width: calc(88% - 2 * var(--gutter));
+  margin: 0 var(--gutter) var(--sp-6);
+}
 #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::before,
 #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::after {
   position: absolute;
@@ -107,11 +255,30 @@
   margin: 0;
   transform: translateY(-50%);
 }
-#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::before { left: var(--gutter); width: 22%; height: 10px; }
-#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::after { right: var(--gutter); width: 112px; height: 38px; border-radius: var(--r-code); }
-#emit-swagger .swagger-ui .opblock-body:has(> .loading-container) > :is(.emit-notes, .emit-result) { display: none; }
-#emit-swagger .swagger-ui .opblock-body .loading-container { display: block; min-height: 0; margin: 0; padding: 0 var(--gutter) var(--sp-6); }
-#emit-swagger .swagger-ui .opblock-body .loading-container .loading { position: relative; height: 52px; }
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::before {
+  left: var(--gutter);
+  width: 22%;
+  height: 10px;
+}
+#emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::after {
+  right: var(--gutter);
+  width: 112px;
+  height: 38px;
+  border-radius: var(--r-code);
+}
+#emit-swagger .swagger-ui .opblock-body:has(> .loading-container) > :is(.emit-notes, .emit-result) {
+  display: none;
+}
+#emit-swagger .swagger-ui .opblock-body .loading-container {
+  display: block;
+  min-height: 0;
+  margin: 0;
+  padding: 0 var(--gutter) var(--sp-6);
+}
+#emit-swagger .swagger-ui .opblock-body .loading-container .loading {
+  position: relative;
+  height: 52px;
+}
 #emit-swagger .swagger-ui .opblock-body .loading-container .loading::before,
 #emit-swagger .swagger-ui .opblock-body .loading-container .loading::after {
   content: "";
@@ -125,8 +292,15 @@
   border-radius: var(--r-sm);
   opacity: 1;
   transform: none;
-  background-color: rgba(255,255,255,0.035);
-  background-image: linear-gradient(105deg, transparent 40%, rgba(143,220,255,0.10) 47%, rgba(255,255,255,0.15) 50%, rgba(143,220,255,0.10) 53%, transparent 60%);
+  background-color: rgba(255, 255, 255, 0.035);
+  background-image: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(143, 220, 255, 0.1) 47%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(143, 220, 255, 0.1) 53%,
+    transparent 60%
+  );
   background-size: 220vw 100%;
   background-attachment: fixed;
   background-repeat: no-repeat;
@@ -134,28 +308,97 @@
   font-size: 0;
   letter-spacing: 0;
 }
-#emit-swagger .swagger-ui .opblock-body .loading-container .loading::after { top: 24px; width: 88%; }
-#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) ~ .loading-container .loading { height: 168px; }
-#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) ~ .loading-container .loading::before { width: 34%; height: 28px; border-radius: var(--r-pill); }
-#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) ~ .loading-container .loading::after { top: 44px; width: 100%; height: 124px; border-radius: var(--r-code); }
-@keyframes emit-sweep { from { background-position: 120vw 0; } to { background-position: -120vw 0; } }
-@keyframes emit-boot { 0%, 100% { box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.12); } 12% { box-shadow: inset 0 0 0 1.5px var(--ui-c), 0 0 14px rgba(143,220,255,0.7); } 40% { box-shadow: inset 0 0 0 1.5px rgba(143,220,255,0.35); } }
-@keyframes emit-pass { 0% { left: -30%; } 33%, 100% { left: 100%; } }
+#emit-swagger .swagger-ui .opblock-body .loading-container .loading::after {
+  top: 24px;
+  width: 88%;
+}
+#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) ~ .loading-container .loading {
+  height: 168px;
+}
+#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) ~ .loading-container .loading::before {
+  width: 34%;
+  height: 28px;
+  border-radius: var(--r-pill);
+}
+#emit-swagger .swagger-ui .opblock-body > :is(.execute-wrapper, .btn-group) ~ .loading-container .loading::after {
+  top: 44px;
+  width: 100%;
+  height: 124px;
+  border-radius: var(--r-code);
+}
+@keyframes emit-sweep {
+  from {
+    background-position: 120vw 0;
+  }
+  to {
+    background-position: -120vw 0;
+  }
+}
+@keyframes emit-boot {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.12);
+  }
+  12% {
+    box-shadow:
+      inset 0 0 0 1.5px var(--ui-c),
+      0 0 14px rgba(143, 220, 255, 0.7);
+  }
+  40% {
+    box-shadow: inset 0 0 0 1.5px rgba(143, 220, 255, 0.35);
+  }
+}
+@keyframes emit-pass {
+  0% {
+    left: -30%;
+  }
+  33%,
+  100% {
+    left: 100%;
+  }
+}
 @media (max-width: 900px) {
-  .emit-skel--rail { display: none; }
-  .emit-skel--main { position: fixed; top: 56px; left: 0; right: 0; bottom: 0; padding: var(--sp-4) var(--page-gutter); }
-  .emit-skel--main .emit-skel__column { padding: var(--sp-6) var(--sp-5); }
+  .emit-skel--rail {
+    display: none;
+  }
+  .emit-skel--main {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: var(--sp-4) var(--page-gutter);
+  }
+  .emit-skel--main .emit-skel__column {
+    padding: var(--sp-6) var(--sp-5);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .emit-skel i, .emit-skel__node, .emit-skel__edge::after,
+  .emit-skel i,
+  .emit-skel__node,
+  .emit-skel__edge::after,
   #emit-swagger .swagger-ui .opblock-body .loading-container .loading::before,
   #emit-swagger .swagger-ui .opblock-body .loading-container .loading::after,
   #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation)::before,
   #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation)::after,
   #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::before,
-  #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::after { animation: none; }
-  .emit-skel { transition: none; }
-  #emit-window[data-revealing] :is(#emit-rail > :not(.emit-skel), .swagger-container > .swagger-ui, .topbar-wrapper > *, #emit-statusbar > *, .information-container, .opblock-tag-section, .emit-schemas),
-  #emit-window[data-revealing]::before { animation: none; }
+  #emit-swagger .swagger-ui .opblock-body:has(> .opblock-loading-animation) > :is(.execute-wrapper, .btn-group)::after {
+    animation: none;
+  }
+  .emit-skel {
+    transition: none;
+  }
+  #emit-window[data-revealing]
+    :is(
+      #emit-rail > :not(.emit-skel),
+      .swagger-container > .swagger-ui,
+      .topbar-wrapper > *,
+      #emit-statusbar > *,
+      .information-container,
+      .opblock-tag-section,
+      .emit-schemas
+    ),
+  #emit-window[data-revealing]::before {
+    animation: none;
+  }
 }
-

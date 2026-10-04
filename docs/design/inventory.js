@@ -12,16 +12,31 @@ const ready = function (id) {
   const op = document.getElementById('operations-' + id);
   return !!op && op.classList.contains('is-open') && !!op.querySelector('.responses-wrapper');
 };
-V.until(function () { return !!document.querySelector('.models-control'); }, function () {
-  const models = document.querySelector('.models-control');
-  if (models.getAttribute('aria-expanded') !== 'true') models.click();
-  V.until(function () {
-    return !!document.querySelector('#operations-Authentication-login .emit-result')
-      && ready('Documents-getDocument') && ready('Tenants-createTenant')
-      && document.querySelector('.models-control').getAttribute('aria-expanded') === 'true';
-  }, function () {
-    const found = V.inventory();
-    Object.keys(found).forEach(function (kind) { L(kind, found[kind]); });
-    done();
-  }, 25000);
-}, 15000);
+V.until(
+  function () {
+    return !!document.querySelector('.models-control');
+  },
+  function () {
+    const models = document.querySelector('.models-control');
+    if (models.getAttribute('aria-expanded') !== 'true') models.click();
+    V.until(
+      function () {
+        return (
+          !!document.querySelector('#operations-Authentication-login .emit-result') &&
+          ready('Documents-getDocument') &&
+          ready('Tenants-createTenant') &&
+          document.querySelector('.models-control').getAttribute('aria-expanded') === 'true'
+        );
+      },
+      function () {
+        const found = V.inventory();
+        Object.keys(found).forEach(function (kind) {
+          L(kind, found[kind]);
+        });
+        done();
+      },
+      25000,
+    );
+  },
+  15000,
+);

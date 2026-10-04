@@ -32,14 +32,22 @@ export function followOperation(role) {
 
 export function lifecycleStep(state) {
   if (!config.lifecycle) return null;
-  return config.lifecycle.run.concat(config.lifecycle.outcomes).filter(function (step) {
-    return step.state === state;
-  })[0] || null;
+  return (
+    config.lifecycle.run.concat(config.lifecycle.outcomes).filter(function (step) {
+      return step.state === state;
+    })[0] || null
+  );
 }
 
 /* The run's states in order, and what a state is for: its kind. */
 export function runStates() {
-  return config.lifecycle.run.filter(function (step) { return step.state; }).map(function (step) { return step.state; });
+  return config.lifecycle.run
+    .filter(function (step) {
+      return step.state;
+    })
+    .map(function (step) {
+      return step.state;
+    });
 }
 
 export function kindOf(state) {
@@ -59,7 +67,12 @@ function summaryOf(target) {
 }
 
 export function isTerminal(state) {
-  return !!config.lifecycle && config.lifecycle.outcomes.some(function (step) { return step.state === state; });
+  return (
+    !!config.lifecycle &&
+    config.lifecycle.outcomes.some(function (step) {
+      return step.state === state;
+    })
+  );
 }
 
 /* Starts at the first state without a read: the start call is accepted
@@ -72,8 +85,16 @@ export function startFollow(source, response) {
   if (!id) return null;
   /* startedAt and endedAt are the browser's clock, for the timer that ticks
      while the run is followed; the spans reported come from the server. */
-  const follow = { id: id, state: runStates()[0], phase: 'following', reads: 0, run: 0,
-                 startedAt: Date.now(), endedAt: null, stamps: null };
+  const follow = {
+    id: id,
+    state: runStates()[0],
+    phase: 'following',
+    reads: 0,
+    run: 0,
+    startedAt: Date.now(),
+    endedAt: null,
+    stamps: null,
+  };
   restartFollow(follow);
   return follow;
 }
@@ -83,14 +104,24 @@ export function startFollow(source, response) {
    offers its result instead of leaving the reader on a refusal. */
 export function resumeFollow(source, response) {
   const start = followOperation('start');
-  if (!start || source.method !== start.method || source.path !== start.path || response.get('status') !== 409) return null;
+  if (!start || source.method !== start.method || source.path !== start.path || response.get('status') !== 409)
+    return null;
   const id = idFromUrl(start.path, response.get('url'));
   if (!id) return null;
   const body = jsonBody(response);
   const named = body && config.lifecycle.conflictState ? config.lifecycle.conflictState(body) : null;
   const state = named && lifecycleStep(named) ? named : runStates()[1];
-  const follow = { id: id, state: state, phase: 'following', reads: 0, run: ++followRun,
-                 startedAt: Date.now(), endedAt: null, stamps: null, resumed: true };
+  const follow = {
+    id: id,
+    state: state,
+    phase: 'following',
+    reads: 0,
+    run: ++followRun,
+    startedAt: Date.now(),
+    endedAt: null,
+    stamps: null,
+    resumed: true,
+  };
   readState(follow, 0);
   return follow;
 }
@@ -147,10 +178,12 @@ function readState(follow, attempt) {
     .then(function (response) {
       const budget = {
         remaining: headerNumber(response, 'RateLimit-Remaining'),
-        retryAfter: headerNumber(response, 'Retry-After')
+        retryAfter: headerNumber(response, 'Retry-After'),
       };
       if (response.status !== 200) return { status: response.status, budget: budget };
-      return response.json().then(function (body) { return { status: 200, body: body, budget: budget }; });
+      return response.json().then(function (body) {
+        return { status: 200, body: body, budget: budget };
+      });
     })
     .then(function (result) {
       if (follow.run !== run) return;
@@ -203,20 +236,22 @@ function authHeaders(target) {
   for (let i = 0; i < requirements.length; i++) {
     const names = Object.keys(requirements[i]);
     const headers = {};
-    const complete = names.length > 0 && names.every(function (name) {
-      const scheme = schemes[name];
-      const value = heldCredential(name);
-      if (!scheme || !value) return false;
-      if (scheme.type === 'apiKey' && scheme.in === 'header') {
-        headers[scheme.name] = value;
-        return true;
-      }
-      if (scheme.type === 'http' && /^bearer$/i.test(scheme.scheme || '')) {
-        headers.Authorization = 'Bearer ' + value;
-        return true;
-      }
-      return false;
-    });
+    const complete =
+      names.length > 0 &&
+      names.every(function (name) {
+        const scheme = schemes[name];
+        const value = heldCredential(name);
+        if (!scheme || !value) return false;
+        if (scheme.type === 'apiKey' && scheme.in === 'header') {
+          headers[scheme.name] = value;
+          return true;
+        }
+        if (scheme.type === 'http' && /^bearer$/i.test(scheme.scheme || '')) {
+          headers.Authorization = 'Bearer ' + value;
+          return true;
+        }
+        return false;
+      });
     if (complete) return headers;
   }
   return null;
@@ -226,9 +261,15 @@ function authHeaders(target) {
    unreached states are not drawn. */
 function stateTrail(state) {
   const trail = el('span', 'emit-note__trail');
-  let order = config.lifecycle.run.filter(function (step) { return step.state; });
+  let order = config.lifecycle.run.filter(function (step) {
+    return step.state;
+  });
   if (isTerminal(state)) order = order.concat([lifecycleStep(state)]);
-  const reached = order.map(function (step) { return step.state; }).indexOf(state);
+  const reached = order
+    .map(function (step) {
+      return step.state;
+    })
+    .indexOf(state);
   order.slice(0, reached + 1).forEach(function (step, position) {
     if (position) trail.appendChild(el('span', 'emit-note__sep', '\u2192'));
     const mark = el('span', 'emit-note__state emit-note__state--' + step.kind, step.state);
@@ -248,7 +289,9 @@ export function followNote(follow) {
   const named = el('button', 'emit-note__link', follow.id.slice(0, 8));
   named.type = 'button';
   named.title = 'Open ' + summaryOf(followOperation('read')) + ' for ' + follow.id;
-  named.addEventListener('click', function () { openFollowed('read', follow.id); });
+  named.addEventListener('click', function () {
+    openFollowed('read', follow.id);
+  });
   text.appendChild(named);
   text.appendChild(document.createTextNode(' '));
   text.appendChild(stateTrail(follow.state));
@@ -261,17 +304,23 @@ export function followNote(follow) {
   } else if (follow.phase === 'ended' && kindOf(follow.state) === 'done' && followOperation('result')) {
     const took = stageSpans(follow).total;
     const done = lifecycleStep(follow.state).said;
-    said = (follow.resumed ? config.lifecycle.already + ': ' : '')
-      + (took !== null ? done + ' ' + formatSpan(took) + ' after ' + startVerb() + '.' : done + '.');
+    said =
+      (follow.resumed ? config.lifecycle.already + ': ' : '') +
+      (took !== null ? done + ' ' + formatSpan(took) + ' after ' + startVerb() + '.' : done + '.');
     action = el('button', 'emit-note__action');
     action.appendChild(icon('download'));
     action.appendChild(document.createTextNode('Download ' + config.lifecycle.result));
-    action.addEventListener('click', function () { openFollowed('result', follow.id); });
+    action.addEventListener('click', function () {
+      openFollowed('result', follow.id);
+    });
   } else if (follow.phase === 'ended') {
     const failedAfter = stageSpans(follow).total;
     const failed = kindOf(follow.state) === 'failed' ? lifecycleStep(follow.state).said : null;
-    said = !failed ? null
-      : failedAfter !== null ? failed + ' ' + formatSpan(failedAfter) + ' after ' + startVerb() + '.' : failed + '.';
+    said = !failed
+      ? null
+      : failedAfter !== null
+        ? failed + ' ' + formatSpan(failedAfter) + ' after ' + startVerb() + '.'
+        : failed + '.';
   } else if (follow.phase === 'paused') {
     said = 'Still ' + follow.state + ' after ' + follow.reads + ' checks.';
   } else if (follow.phase === 'rate-limited') {
@@ -279,9 +328,10 @@ export function followNote(follow) {
       ? 'Rate limit reached; resuming in ' + follow.retryAfter + 's.'
       : 'Stopped: the rate limit was reached.';
   } else if (follow.phase === 'saving-budget') {
-    said = follow.remaining === 1
-      ? 'Paused to leave your last request this minute.'
-      : 'Paused to leave your last ' + follow.remaining + ' requests this minute.';
+    said =
+      follow.remaining === 1
+        ? 'Paused to leave your last request this minute.'
+        : 'Paused to leave your last ' + follow.remaining + ' requests this minute.';
   } else if (follow.phase === 'error') {
     said = 'Stopped: reading it back returned ' + (follow.httpStatus || 'no response') + '.';
   } else if (follow.phase === 'no-credential') {
@@ -312,9 +362,11 @@ export function openFollowed(role, id) {
   if (!operation) return;
   const ui = window.ui;
   const parameters = ui.specSelectors.specJson().getIn(['paths', operation.path, operation.method, 'parameters']);
-  const parameter = parameters && parameters.find(function (candidate) {
-    return candidate.get('name') === 'id' && candidate.get('in') === 'path';
-  });
+  const parameter =
+    parameters &&
+    parameters.find(function (candidate) {
+      return candidate.get('name') === 'id' && candidate.get('in') === 'path';
+    });
   if (parameter) {
     ui.specActions.changeParamByIdentity([operation.path, operation.method], parameter, id);
     carriedIds[operation.method + ' ' + operation.path] = id;

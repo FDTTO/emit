@@ -3,7 +3,9 @@
    What failed, where, and what to try; the parts drawn from the description
    say why they are empty.
    -------------------------------------------------------------------------- */
-#emit-window[data-spec="failed"] .swagger-ui > .loading-container { display: none; }
+#emit-window[data-spec="failed"] .swagger-ui > .loading-container {
+  display: none;
+}
 .emit-failure {
   max-width: 560px;
   margin: calc(var(--sp-7) + 80px) auto 0;
@@ -14,18 +16,32 @@
   box-shadow: var(--e-lift);
 }
 .emit-failure__mark {
-  width: 52px; height: 52px;
+  width: 52px;
+  height: 52px;
   margin: 0 auto var(--sp-5);
   display: grid;
   place-items: center;
   border-radius: 50%;
   color: var(--s4-c);
   background: color-mix(in srgb, var(--s4-c) 10%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--s4-c) 26%, transparent), 0 0 30px -8px var(--s4-c);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--s4-c) 26%, transparent),
+    0 0 30px -8px var(--s4-c);
 }
-.emit-failure__mark svg { width: 22px; height: 22px; }
-.emit-failure h2 { margin: 0 0 var(--sp-3); font: 600 20px/1.3 var(--f-body); color: var(--e-text); }
-.emit-failure p { margin: 0 auto var(--sp-5); max-width: 44ch; color: var(--e-body); }
+.emit-failure__mark svg {
+  width: 22px;
+  height: 22px;
+}
+.emit-failure h2 {
+  margin: 0 0 var(--sp-3);
+  font: 600 20px / 1.3 var(--f-body);
+  color: var(--e-text);
+}
+.emit-failure p {
+  margin: 0 auto var(--sp-5);
+  max-width: 44ch;
+  color: var(--e-body);
+}
 .emit-failure__call {
   display: inline-flex;
   gap: var(--sp-3);
@@ -34,14 +50,40 @@
   border-radius: var(--r-code);
   background: var(--e-well);
   box-shadow: var(--e-well-edge);
-  font: 400 var(--t-md)/1 var(--f-mono);
+  font: 400 var(--t-md) / 1 var(--f-mono);
   color: var(--e-body);
 }
-.emit-failure__call b { font-weight: 600; color: var(--s4-c); }
-.emit-failure__actions { display: flex; justify-content: center; gap: var(--sp-2); }
-#emit-swagger a.emit-quiet { display: inline-flex; align-items: center; text-decoration: none; }
-.emit-failure small { display: block; margin-top: var(--sp-5); font-size: var(--t-sm); color: var(--e-faint); }
-.emit-rail__empty { padding: var(--sp-5) var(--sp-6); font-size: var(--t-md); color: var(--e-faint); }
-#emit-window[data-spec="failed"] .emit-status__led { background: var(--s4-c); }
-.emit-auth__empty { margin: 0; padding: var(--sp-5) var(--sp-6); font-size: var(--t-md); color: var(--e-dim); }
-
+.emit-failure__call b {
+  font-weight: 600;
+  color: var(--s4-c);
+}
+.emit-failure__actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-2);
+}
+#emit-swagger a.emit-quiet {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+.emit-failure small {
+  display: block;
+  margin-top: var(--sp-5);
+  font-size: var(--t-sm);
+  color: var(--e-faint);
+}
+.emit-rail__empty {
+  padding: var(--sp-5) var(--sp-6);
+  font-size: var(--t-md);
+  color: var(--e-faint);
+}
+#emit-window[data-spec="failed"] .emit-status__led {
+  background: var(--s4-c);
+}
+.emit-auth__empty {
+  margin: 0;
+  padding: var(--sp-5) var(--sp-6);
+  font-size: var(--t-md);
+  color: var(--e-dim);
+}

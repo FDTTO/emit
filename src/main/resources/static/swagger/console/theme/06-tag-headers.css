@@ -14,15 +14,18 @@
   margin: var(--sp-8) 0 var(--sp-3);
   min-height: 0;
   color: var(--e-label);
-  font: 600 var(--t-sm)/1 var(--f-body);
+  font: 600 var(--t-sm) / 1 var(--f-body);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   transition: color 0.15s;
 }
-#emit-swagger .swagger-ui .opblock-tag:hover { background: transparent; color: var(--e-body); }
+#emit-swagger .swagger-ui .opblock-tag:hover {
+  background: transparent;
+  color: var(--e-body);
+}
 /* The rule fills the gap between the count and the chevron. */
 #emit-swagger .swagger-ui .opblock-tag::after {
-  content: '';
+  content: "";
   order: 1;
   flex: 1 1 auto;
   height: 1px;
@@ -40,11 +43,14 @@
   overflow: visible;
 }
 #emit-swagger .swagger-ui .opblock-tag small,
-#emit-swagger .swagger-ui .opblock-tag .info__externaldocs { display: none; }
+#emit-swagger .swagger-ui .opblock-tag .info__externaldocs {
+  display: none;
+}
 /* The chevron floats over the rule's end, so the rule runs the full width. */
 #emit-swagger .swagger-ui .opblock-tag .expand-operation {
   position: absolute;
-  right: var(--sp-2); top: 50%;
+  right: var(--sp-2);
+  top: 50%;
   transform: translateY(-50%);
   padding-left: var(--sp-2);
   background: none;
@@ -72,7 +78,9 @@
   text-transform: none;
   color: var(--e-faint);
 }
-#emit-swagger .swagger-ui .opblock-tag svg { fill: var(--e-faint); }
+#emit-swagger .swagger-ui .opblock-tag svg {
+  fill: var(--e-faint);
+}
 /* Open all / Close all: after the rule, clear of the section's chevron. */
 #emit-swagger .swagger-ui .opblock-tag > .emit-tag-all {
   order: 2;
@@ -87,13 +95,21 @@
   border: 0;
   border-radius: var(--r-sm);
   background: none;
-  font: 500 var(--t-sm)/1 var(--f-body);
+  font: 500 var(--t-sm) / 1 var(--f-body);
   letter-spacing: 0;
   text-transform: none;
   color: var(--e-faint);
   cursor: pointer;
-  transition: color .15s, background .15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
-#emit-swagger .swagger-ui .opblock-tag > .emit-tag-all:hover { color: var(--e-body); background: var(--e-raised); }
-#emit-swagger .swagger-ui .opblock-tag > .emit-tag-all svg { width: 12px; height: 12px; fill: none; }
-
+#emit-swagger .swagger-ui .opblock-tag > .emit-tag-all:hover {
+  color: var(--e-body);
+  background: var(--e-raised);
+}
+#emit-swagger .swagger-ui .opblock-tag > .emit-tag-all svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+}

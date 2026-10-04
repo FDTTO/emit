@@ -35,7 +35,9 @@ export function paintSteps() {
       /* A step that has just been done marks itself with a short pulse. */
       if (state.done[index] && item.dataset.emitDone === 'false') {
         item.classList.add('emit-step--fresh');
-        setTimeout(function () { item.classList.remove('emit-step--fresh'); }, 600);
+        setTimeout(function () {
+          item.classList.remove('emit-step--fresh');
+        }, 600);
       }
       item.dataset.emitDone = String(state.done[index]);
       item.classList.toggle('emit-step--done', state.done[index]);
@@ -61,7 +63,9 @@ export function paintSteps() {
     chip.setAttribute('role', 'link');
     chip.setAttribute('tabindex', '0');
     chip.setAttribute('title', 'Open this operation');
-    chip.addEventListener('click', function () { openOperation(target); });
+    chip.addEventListener('click', function () {
+      openOperation(target);
+    });
     chip.addEventListener('keydown', function (event) {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
@@ -109,15 +113,14 @@ export function paintAuthMatrix() {
 const SCROLLER_LABELS = [
   ['.emit-matrix-frame', 'Authentication table'],
   ['pre.curl', 'curl command'],
-  ['pre', 'Code']
+  ['pre', 'Code'],
 ];
 
 export function paintScrollers() {
   SCROLLER_LABELS.forEach(function (entry) {
     document.querySelectorAll('#swagger-ui ' + entry[0]).forEach(function (region) {
       const overflowX = getComputedStyle(region).overflowX;
-      const scrolls = (overflowX === 'auto' || overflowX === 'scroll')
-        && region.scrollWidth > region.clientWidth + 1;
+      const scrolls = (overflowX === 'auto' || overflowX === 'scroll') && region.scrollWidth > region.clientWidth + 1;
       const marked = region.hasAttribute('data-emit-scroller');
       if (scrolls && !marked) {
         region.setAttribute('data-emit-scroller', '');

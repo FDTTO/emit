@@ -5,8 +5,15 @@
    Below 0.8 device pixels per CSS pixel, a browser zoom has shrunk the
    smallest steps past legibility, so they and the hairlines rise a step.
    -------------------------------------------------------------------------- */
-#emit-statusbar > .emit-status__density { display: flex; align-items: center; gap: 6px; }
-#emit-statusbar > .emit-status__density svg { width: 12px; height: 12px; }
+#emit-statusbar > .emit-status__density {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#emit-statusbar > .emit-status__density svg {
+  width: 12px;
+  height: 12px;
+}
 @media (min-width: 901px) {
   :root[data-density="compact"] {
     --titlebar-h: 40px;
@@ -15,24 +22,61 @@
     --gutter: 20px;
     --page-gutter: var(--sp-6);
   }
-  :root[data-density="compact"] body#emit-swagger { padding: var(--sp-2) var(--sp-3) var(--sp-3); }
-  :root[data-density="compact"] #emit-swagger .swagger-ui .information-container.wrapper { margin-top: var(--sp-5); }
-  :root[data-density="compact"] #emit-swagger .swagger-ui .information-container > section { padding: 28px 28px var(--sp-6); }
-  :root[data-density="compact"] #emit-swagger .swagger-ui .info .title { font-size: 30px; }
-  :root[data-density="compact"] #emit-swagger .swagger-ui .emit-flow { padding: var(--sp-5); }
-  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock-tag { margin: 28px 0 var(--sp-2); }
-  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock { margin-bottom: 4px; }
-  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock.is-open { margin: var(--sp-4) 0 var(--sp-5); }
-  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock .opblock-summary { padding: 8px var(--sp-4); }
-  :root[data-density="compact"] #emit-swagger .swagger-ui .emit-op-icon { width: 24px; height: 24px; }
-  :root[data-density="compact"] .emit-journey { padding: var(--sp-4) var(--sp-5); }
-  :root[data-density="compact"] .emit-map { padding: var(--sp-3) var(--sp-3); }
-  :root[data-density="compact"] .emit-map__item { padding: 5px var(--sp-3); }
-  :root[data-density="compact"] .emit-schemas__head { margin: 28px 0 var(--sp-2); }
-  :root[data-density="compact"] .emit-model { margin-bottom: 4px; }
-  :root[data-density="compact"] .emit-model.is-open { margin: var(--sp-4) 0 var(--sp-5); }
-  :root[data-density="compact"] .emit-model__head { padding: 8px var(--sp-4); }
-  :root[data-density="compact"] .emit-field { padding: var(--sp-2) 0; }
+  :root[data-density="compact"] body#emit-swagger {
+    padding: var(--sp-2) var(--sp-3) var(--sp-3);
+  }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .information-container.wrapper {
+    margin-top: var(--sp-5);
+  }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .information-container > section {
+    padding: 28px 28px var(--sp-6);
+  }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .info .title {
+    font-size: 30px;
+  }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .emit-flow {
+    padding: var(--sp-5);
+  }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock-tag {
+    margin: 28px 0 var(--sp-2);
+  }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock {
+    margin-bottom: 4px;
+  }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock.is-open {
+    margin: var(--sp-4) 0 var(--sp-5);
+  }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .opblock .opblock-summary {
+    padding: 8px var(--sp-4);
+  }
+  :root[data-density="compact"] #emit-swagger .swagger-ui .emit-op-icon {
+    width: 24px;
+    height: 24px;
+  }
+  :root[data-density="compact"] .emit-journey {
+    padding: var(--sp-4) var(--sp-5);
+  }
+  :root[data-density="compact"] .emit-map {
+    padding: var(--sp-3) var(--sp-3);
+  }
+  :root[data-density="compact"] .emit-map__item {
+    padding: 5px var(--sp-3);
+  }
+  :root[data-density="compact"] .emit-schemas__head {
+    margin: 28px 0 var(--sp-2);
+  }
+  :root[data-density="compact"] .emit-model {
+    margin-bottom: 4px;
+  }
+  :root[data-density="compact"] .emit-model.is-open {
+    margin: var(--sp-4) 0 var(--sp-5);
+  }
+  :root[data-density="compact"] .emit-model__head {
+    padding: 8px var(--sp-4);
+  }
+  :root[data-density="compact"] .emit-field {
+    padding: var(--sp-2) 0;
+  }
 }
 @media (max-resolution: 0.8dppx) {
   :root {
@@ -40,40 +84,115 @@
     --t-2xs: 10px;
     --t-xs: 11px;
     --e-faint: #5d6879;
-    --e-hair: rgba(255,255,255,0.09);
-    --e-line: rgba(255,255,255,0.11);
+    --e-hair: rgba(255, 255, 255, 0.09);
+    --e-line: rgba(255, 255, 255, 0.11);
   }
 }
 
 /* Credentials on a phone: a sheet from the bottom edge, over the bar and
    the strip, scrolling on its own when the cards outgrow the screen. */
 @media (max-width: 900px) {
-  .emit-auth { position: fixed; z-index: 220; place-items: end stretch; padding: 0; }
+  .emit-auth {
+    position: fixed;
+    z-index: 220;
+    place-items: end stretch;
+    padding: 0;
+  }
   .emit-auth__box {
     width: 100%;
     max-height: calc(100vh - var(--sp-7));
     overflow-y: auto;
     border-radius: var(--r-panel) var(--r-panel) 0 0;
-    animation: emit-sheet .3s var(--ease);
+    animation: emit-sheet 0.3s var(--ease);
   }
-  .emit-auth__head { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-2) var(--sp-3); padding: var(--sp-5); }
-  .emit-auth__head p { grid-column: 1 / -1; grid-row: 2; }
-  .emit-auth__cred, .emit-auth__foot { padding-left: var(--sp-5); padding-right: var(--sp-5); }
-  .emit-auth__top { flex-wrap: wrap; row-gap: var(--sp-1); }
-  .emit-auth__kind { flex: 1 0 100%; }
-  .emit-auth__state { flex-wrap: wrap; }
-  .emit-auth__source { margin-left: 0; flex: 1 0 100%; text-align: left; }
+  .emit-auth__head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--sp-2) var(--sp-3);
+    padding: var(--sp-5);
+  }
+  .emit-auth__head p {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .emit-auth__cred,
+  .emit-auth__foot {
+    padding-left: var(--sp-5);
+    padding-right: var(--sp-5);
+  }
+  .emit-auth__top {
+    flex-wrap: wrap;
+    row-gap: var(--sp-1);
+  }
+  .emit-auth__kind {
+    flex: 1 0 100%;
+  }
+  .emit-auth__state {
+    flex-wrap: wrap;
+  }
+  .emit-auth__source {
+    margin-left: 0;
+    flex: 1 0 100%;
+    text-align: left;
+  }
   /* Each credential a card of its own, its way to a credential a button a
      thumb can take, the field and Authorize at touch height. */
-  .emit-auth__cred { margin: 0 var(--sp-4) var(--sp-3); padding: var(--sp-4); border-radius: var(--r-code); background: rgba(255,255,255,0.025); box-shadow: inset 0 0 0 1px var(--e-hair); }
-  .emit-auth__cred + .emit-auth__cred { box-shadow: inset 0 0 0 1px var(--e-hair); }
-  .emit-auth__head { box-shadow: none; padding-bottom: var(--sp-4); }
-  .emit-auth__source { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 var(--sp-3); border-radius: var(--r-sm); background: var(--ui-bg); box-shadow: inset 0 0 0 1px var(--ui-b); line-height: 1; }
-  .emit-auth__state small { flex: 1 0 100%; padding-left: 14px; }
-  .emit-auth__state small::before { content: none; }
-  .emit-auth__row > * { height: 44px; }
-  .emit-auth__close { display: grid; place-items: center; width: 36px; height: 36px; margin: -8px -8px -8px auto; border-radius: var(--r-sm); }
-  .emit-auth__foot { margin-top: var(--sp-2); }
+  .emit-auth__cred {
+    margin: 0 var(--sp-4) var(--sp-3);
+    padding: var(--sp-4);
+    border-radius: var(--r-code);
+    background: rgba(255, 255, 255, 0.025);
+    box-shadow: inset 0 0 0 1px var(--e-hair);
+  }
+  .emit-auth__cred + .emit-auth__cred {
+    box-shadow: inset 0 0 0 1px var(--e-hair);
+  }
+  .emit-auth__head {
+    box-shadow: none;
+    padding-bottom: var(--sp-4);
+  }
+  .emit-auth__source {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 var(--sp-3);
+    border-radius: var(--r-sm);
+    background: var(--ui-bg);
+    box-shadow: inset 0 0 0 1px var(--ui-b);
+    line-height: 1;
+  }
+  .emit-auth__state small {
+    flex: 1 0 100%;
+    padding-left: 14px;
+  }
+  .emit-auth__state small::before {
+    content: none;
+  }
+  .emit-auth__row > * {
+    height: 44px;
+  }
+  .emit-auth__close {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin: -8px -8px -8px auto;
+    border-radius: var(--r-sm);
+  }
+  .emit-auth__foot {
+    margin-top: var(--sp-2);
+  }
 }
-@keyframes emit-sheet { from { transform: translateY(24px); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .emit-auth__box { animation: none; } }
+@keyframes emit-sheet {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .emit-auth__box {
+    animation: none;
+  }
+}

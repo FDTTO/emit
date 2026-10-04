@@ -16,7 +16,15 @@ import { bindShortcuts } from './keyboard.js';
 import { paintLifecycle, paintLifecycleCurrent } from './lifecycle.js';
 import { paintLive } from './live.js';
 import { paintMap, spyScroll } from './map.js';
-import { paintGroupCounts, paintLastAnswers, paintOperations, paintParameterTypes, paintResponseRows, paintTitle, paintTopbar } from './operations.js';
+import {
+  paintGroupCounts,
+  paintLastAnswers,
+  paintOperations,
+  paintParameterTypes,
+  paintResponseRows,
+  paintTitle,
+  paintTopbar,
+} from './operations.js';
 import { paintAuthMatrix, paintScrollers, paintSteps } from './overview.js';
 import { PHONE, placeStatusbar } from './phone.js';
 import { paintResponseIndex } from './response-index.js';
@@ -27,7 +35,14 @@ import { paintSchemas } from './schemas.js';
 import { buildShell, contentPane, restoreRail, settleLoading, watchLoading } from './shell.js';
 import { readSpec } from './spec.js';
 import { config } from './state.js';
-import { HEALTH_EVERY_MS, SHORT_SCREEN, applyDensity, checkHealth, paintStatusTelemetry, paintStatusbar } from './statusbar.js';
+import {
+  HEALTH_EVERY_MS,
+  SHORT_SCREEN,
+  applyDensity,
+  checkHealth,
+  paintStatusTelemetry,
+  paintStatusbar,
+} from './statusbar.js';
 
 /* What a page that says nothing gets: a console over its OpenAPI document,
    with no lifecycle figure, no walkthrough and no health light. */
@@ -43,7 +58,7 @@ const DEFAULTS = {
   resourceIcons: {},
   sharedRefusals: [],
   failureHint: '',
-  ownHeaders: []
+  ownHeaders: [],
 };
 
 export function start(options) {
@@ -110,16 +125,26 @@ function boot() {
 
   /* The content pane scrolls, not the page. Capture, because the pane is
      created by React after this runs. */
-  document.addEventListener('scroll', function (event) {
-    if (event.target === contentPane() || event.target === document) { spyScroll(); closeHistory(); }
-  }, true);
+  document.addEventListener(
+    'scroll',
+    function (event) {
+      if (event.target === contentPane() || event.target === document) {
+        spyScroll();
+        closeHistory();
+      }
+    },
+    true,
+  );
 
   const root = document.getElementById('swagger-ui');
   if (root) new MutationObserver(schedule).observe(root, { childList: true, subtree: true });
 
   /* Background tabs throttle timers; repaint when the tab comes back. */
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) { schedule(); checkHealth(); }
+    if (!document.hidden) {
+      schedule();
+      checkHealth();
+    }
   });
   if (config.healthPath) setInterval(checkHealth, HEALTH_EVERY_MS);
 

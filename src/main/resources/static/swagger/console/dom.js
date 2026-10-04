@@ -5,15 +5,15 @@ import { config } from './state.js';
 
 /* 24 grid, 1.8 stroke, no fills. */
 const PATHS = {
-  list:     ['M4 6h16M4 12h16M4 18h10'],
-  doc:      ['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z', 'M14 3v5h5'],
-  docPlus:  ['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z', 'M14 3v5h5', 'M12 11v6M9 14h6'],
-  bolt:     ['M13 2L4 14h7l-1 8 9-12h-7z'],
+  list: ['M4 6h16M4 12h16M4 18h10'],
+  doc: ['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z', 'M14 3v5h5'],
+  docPlus: ['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z', 'M14 3v5h5', 'M12 11v6M9 14h6'],
+  bolt: ['M13 2L4 14h7l-1 8 9-12h-7z'],
   download: ['M12 3v12M7 11l5 5 5-5', 'M4 20h16'],
-  key:      ['M14 7a4 4 0 1 0-3.5 4L12 12.5V15h2v2h2v2h3v-3.5L14 11z'],
+  key: ['M14 7a4 4 0 1 0-3.5 4L12 12.5V15h2v2h2v2h3v-3.5L14 11z'],
   powerOff: ['M12 4v8', 'M7.5 7a7 7 0 1 0 9 0'],
-  restore:  ['M20 12a8 8 0 1 1-2.34-5.66', 'M20 4v5h-5'],
-  trash:    ['M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13'],
+  restore: ['M20 12a8 8 0 1 1-2.34-5.66', 'M20 4v5h-5'],
+  trash: ['M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13'],
   building: ['M4 21V6l7-3 7 3v15', 'M9 21v-5h6v5', 'M8 10h2M14 10h2'],
   buildingPlus: ['M3 21V7l6-3 6 3v14', 'M7 21v-4h4v4', 'M6 11h2M12 11h2', 'M16 6h6M19 3v6'],
   /* Scope marks: a shield for a token, a key for an API key. */
@@ -42,11 +42,15 @@ const PATHS = {
   stop: ['M7 7h10v10H7z'],
   comfortable: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
   compact: ['M4 5h16', 'M4 9.7h16', 'M4 14.3h16', 'M4 19h16'],
-  fold: ['M8 5l4 4 4-4', 'M8 19l4-4 4 4']
+  fold: ['M8 5l4 4 4-4', 'M8 19l4-4 4 4'],
 };
 
 const ICON_BY_METHOD = {
-  get: 'doc', post: 'docPlus', put: 'pencil', patch: 'pencil', delete: 'trash'
+  get: 'doc',
+  post: 'docPlus',
+  put: 'pencil',
+  patch: 'pencil',
+  delete: 'trash',
 };
 
 const SVG_NS = 'http://www.w3.org/2000/svg';

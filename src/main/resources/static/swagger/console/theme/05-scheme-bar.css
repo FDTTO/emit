@@ -3,9 +3,12 @@
    The server is named in the statusbar and credentials live in the
    titlebar's capsule and the page's own dialog, so Swagger's bar is not drawn.
    -------------------------------------------------------------------------- */
-#emit-swagger .swagger-ui .scheme-container { display: none; }
+#emit-swagger .swagger-ui .scheme-container {
+  display: none;
+}
 
 /* Filter box is not part of the mockup. */
 #emit-swagger .swagger-ui .filter-container,
-#emit-swagger .swagger-ui .filter { display: none; }
-
+#emit-swagger .swagger-ui .filter {
+  display: none;
+}

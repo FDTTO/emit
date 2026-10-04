@@ -2,7 +2,15 @@
  * What answers leave behind: credentials captured, ids carried, refusals
  * explained and runs started, as notes under the response.
  */
-import { authorizeScheme, captureCredential, credentialSourceFor, expiryOf, heldCredential, openCredentialSource, scopeColor } from './auth.js';
+import {
+  authorizeScheme,
+  captureCredential,
+  credentialSourceFor,
+  expiryOf,
+  heldCredential,
+  openCredentialSource,
+  scopeColor,
+} from './auth.js';
 import { el, icon } from './dom.js';
 import { followNote, followOperation, resumeFollow, startFollow } from './follow.js';
 import { openOperation } from './operations.js';
@@ -27,9 +35,16 @@ export const responseNotes = {};
 export function watchStore() {
   if (storeWatched) return;
   const ui = window.ui;
-  if (!ui || typeof ui.getStore !== 'function' || !ui.specSelectors ||
-      typeof ui.specSelectors.responseFor !== 'function' || !ui.authActions ||
-      !ui.specActions || typeof ui.specActions.changeParamByIdentity !== 'function') return;
+  if (
+    !ui ||
+    typeof ui.getStore !== 'function' ||
+    !ui.specSelectors ||
+    typeof ui.specSelectors.responseFor !== 'function' ||
+    !ui.authActions ||
+    !ui.specActions ||
+    typeof ui.specActions.changeParamByIdentity !== 'function'
+  )
+    return;
   storeWatched = true;
   ui.getStore().subscribe(captureResponses);
 }
@@ -87,7 +102,7 @@ function captureResponses() {
       credential: body ? captureCredential(source.key, body) : null,
       carry: body ? carryId(source.path, body) : null,
       follow: ok ? startFollow(source, response) : resumeFollow(source, response),
-      denied: ok ? null : captureDenial(source, response)
+      denied: ok ? null : captureDenial(source, response),
     };
     responseNotes[source.key] = notes.credential || notes.carry || notes.follow || notes.denied ? notes : null;
     schedule();
@@ -105,7 +120,7 @@ function rememberAnswer(key, response) {
     duration: response.get('duration'),
     requestId: responseHeader(response, 'x-request-id'),
     limit: parseInt(responseHeader(response, 'ratelimit-limit'), 10),
-    remaining: parseInt(responseHeader(response, 'ratelimit-remaining'), 10)
+    remaining: parseInt(responseHeader(response, 'ratelimit-remaining'), 10),
   };
   lastAnswers[key] = answer;
   runtime.latestAnswer = answer;
@@ -128,7 +143,7 @@ function captureDenial(source, response) {
     scheme: schemes[0],
     sentWith: heldCredential(schemes[0]),
     message: body && typeof body.message === 'string' ? body.message : null,
-    requestId: responseHeader(response, 'x-request-id')
+    requestId: responseHeader(response, 'x-request-id'),
   };
 }
 
@@ -161,7 +176,7 @@ function carryTargets(collection) {
         method: method,
         summary: operation.summary || operation.operationId,
         tag: (operation.tags && operation.tags[0]) || 'default',
-        id: operation.operationId
+        id: operation.operationId,
       });
     });
   });
@@ -189,9 +204,11 @@ function carryId(collection, body) {
   const kept = [];
   targets.forEach(function (target) {
     const parameters = ui.specSelectors.specJson().getIn(['paths', target.path, target.method, 'parameters']);
-    const parameter = parameters && parameters.find(function (candidate) {
-      return candidate.get('name') === 'id' && candidate.get('in') === 'path';
-    });
+    const parameter =
+      parameters &&
+      parameters.find(function (candidate) {
+        return candidate.get('name') === 'id' && candidate.get('in') === 'path';
+      });
     if (!parameter) return;
 
     const key = target.method + ' ' + target.path;
@@ -243,7 +260,7 @@ export function paintResponseNotes() {
       deniedState || '',
       credentialState || '',
       carry ? carry.id : '',
-      follow ? follow.id + ':' + follow.state + ':' + follow.phase + ':' + follow.reads : ''
+      follow ? follow.id + ':' + follow.state + ':' + follow.phase + ':' + follow.reads : '',
     ].join('|');
     if (slot && slot.dataset.signature === signature) return;
     if (slot) slot.remove();
@@ -274,7 +291,9 @@ function requestRef(requestId) {
     if (!navigator.clipboard) return;
     navigator.clipboard.writeText(requestId).then(function () {
       ref.textContent = 'copied';
-      setTimeout(function () { ref.textContent = shown; }, 1200);
+      setTimeout(function () {
+        ref.textContent = shown;
+      }, 1200);
     });
   });
   return ref;
@@ -311,7 +330,9 @@ function denialNote(denied, state) {
   if (action) {
     const button = el('button', 'emit-note__action', action);
     button.type = 'button';
-    button.addEventListener('click', function () { openCredentialSource(denied.scheme); });
+    button.addEventListener('click', function () {
+      openCredentialSource(denied.scheme);
+    });
     bar.appendChild(button);
   }
   return bar;
@@ -326,14 +347,24 @@ function credentialNote(note, state) {
 
   if (state === 'applied') {
     const senders = sendersOf(note.source.scheme);
-    bar.appendChild(el('span', 'emit-note__text',
-      'Authorized as ' + scope.label + ' with this ' + note.source.noun + '.' +
-      (senders ? ' ' + senders + ' operations will send it.' : '')));
+    bar.appendChild(
+      el(
+        'span',
+        'emit-note__text',
+        'Authorized as ' +
+          scope.label +
+          ' with this ' +
+          note.source.noun +
+          '.' +
+          (senders ? ' ' + senders + ' operations will send it.' : ''),
+      ),
+    );
     return bar;
   }
 
-  bar.appendChild(el('span', 'emit-note__text',
-    'Authorize already holds a different ' + scope.label + ' ' + note.source.noun + '.'));
+  bar.appendChild(
+    el('span', 'emit-note__text', 'Authorize already holds a different ' + scope.label + ' ' + note.source.noun + '.'),
+  );
   const action = el('button', 'emit-note__action', 'Use this ' + note.source.noun);
   action.type = 'button';
   action.addEventListener('click', function () {
@@ -371,8 +402,11 @@ function carryNote(carry) {
     text.appendChild(document.createTextNode('.'));
   }
   if (carry.kept.length) {
-    text.appendChild(document.createTextNode((carry.filled.length ? ' ' : '') +
-      (carry.kept.length > 1 ? 'Kept your own ids in ' : 'Kept your own id in ')));
+    text.appendChild(
+      document.createTextNode(
+        (carry.filled.length ? ' ' : '') + (carry.kept.length > 1 ? 'Kept your own ids in ' : 'Kept your own id in '),
+      ),
+    );
     appendOperationLinks(text, carry.kept);
     text.appendChild(document.createTextNode('.'));
   }
@@ -385,7 +419,9 @@ function appendOperationLinks(parent, targets) {
     if (position) parent.appendChild(document.createTextNode(position === targets.length - 1 ? ' and ' : ', '));
     const link = el('button', 'emit-note__link', target.summary);
     link.type = 'button';
-    link.addEventListener('click', function () { openOperation(target); });
+    link.addEventListener('click', function () {
+      openOperation(target);
+    });
     parent.appendChild(link);
   });
 }

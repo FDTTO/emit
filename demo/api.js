@@ -22,11 +22,14 @@
   const UUID_RULE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   /* Marks a token this page issued; the demo verifies nothing a server would. */
   const SIGNATURE = 'ZW1pdC1kZW1v';
-  const WRONG_CREDENTIAL = 'This credential cannot access this route. '
-    + 'Tenant management needs an admin token; documents need a tenant API key.';
+  const WRONG_CREDENTIAL =
+    'This credential cannot access this route. ' +
+    'Tenant management needs an admin token; documents need a tenant API key.';
 
   const networkFetch = window.fetch.bind(window);
-  const facts = networkFetch(ROOT + 'demo/facts.json').then(function (response) { return response.json(); });
+  const facts = networkFetch(ROOT + 'demo/facts.json').then(function (response) {
+    return response.json();
+  });
   const hits = {};
   const state = load();
 
@@ -34,16 +37,24 @@
     try {
       const saved = JSON.parse(localStorage.getItem(STATE_KEY));
       if (saved && Array.isArray(saved.tenants) && Array.isArray(saved.documents)) return saved;
-    } catch { /* a private window: the demo starts empty */ }
+    } catch {
+      /* a private window: the demo starts empty */
+    }
     return { tenants: [], documents: [] };
   }
 
   function save() {
-    try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch { /* kept in memory */ }
+    try {
+      localStorage.setItem(STATE_KEY, JSON.stringify(state));
+    } catch {
+      /* kept in memory */
+    }
   }
 
   // ------------------------------------------------------------- answers
-  function iso(ms) { return new Date(ms).toISOString(); }
+  function iso(ms) {
+    return new Date(ms).toISOString();
+  }
 
   function answer(status, body, headers) {
     const all = Object.assign({ 'X-Request-Id': crypto.randomUUID() }, headers || {});
@@ -70,7 +81,8 @@
   }
 
   function longest(errors, value, field, max) {
-    if (value !== null && value.length > max) errors.push(field + ': ' + field + ' must not exceed ' + max + ' characters');
+    if (value !== null && value.length > max)
+      errors.push(field + ': ' + field + ' must not exceed ' + max + ' characters');
   }
 
   // ---------------------------------------------------------- credentials
@@ -80,8 +92,13 @@
 
   function issueToken() {
     const now = Math.floor(Date.now() / 1000);
-    return base64url(JSON.stringify({ alg: 'HS256' })) + '.'
-      + base64url(JSON.stringify({ sub: ADMIN.username, iat: now, exp: now + TOKEN_TTL_S })) + '.' + SIGNATURE;
+    return (
+      base64url(JSON.stringify({ alg: 'HS256' })) +
+      '.' +
+      base64url(JSON.stringify({ sub: ADMIN.username, iat: now, exp: now + TOKEN_TTL_S })) +
+      '.' +
+      SIGNATURE
+    );
   }
 
   function tokenValid(token) {
@@ -103,7 +120,11 @@
     const key = headers.get('X-API-Key');
     if (!bearer && !key) return { refusal: refuse(401, 'Authentication required.') };
     if (bearer && !tokenValid(bearer[1])) return { refusal: refuse(401, 'Invalid or expired token.') };
-    const tenant = bearer ? null : state.tenants.filter(function (t) { return t.apiKey === key; })[0];
+    const tenant = bearer
+      ? null
+      : state.tenants.filter(function (t) {
+          return t.apiKey === key;
+        })[0];
     if (!bearer && !tenant) return { refusal: refuse(401, 'Invalid API key.') };
     if ((route === 'admin') !== !!bearer) return { refusal: refuse(403, WRONG_CREDENTIAL) };
     if (tenant && !tenant.active) return { refusal: refuse(403, 'Tenant is inactive.') };
@@ -113,27 +134,50 @@
   /* A rolling minute per tenant, counted before the route answers. */
   function budget(tenant, limit) {
     const now = Date.now();
-    const times = (hits[tenant.id] || []).filter(function (t) { return now - t < WINDOW_MS; });
+    const times = (hits[tenant.id] || []).filter(function (t) {
+      return now - t < WINDOW_MS;
+    });
     hits[tenant.id] = times;
-    const reset = function () { return times.length ? Math.ceil((times[0] + WINDOW_MS - now) / 1000) : 0; };
+    const reset = function () {
+      return times.length ? Math.ceil((times[0] + WINDOW_MS - now) / 1000) : 0;
+    };
     if (times.length >= limit) {
       const wait = reset();
-      return { refusal: refuse(429, 'Rate limit exceeded. Try again in ' + wait + ' seconds.',
-        { 'RateLimit-Limit': limit, 'RateLimit-Remaining': 0, 'RateLimit-Reset': wait, 'Retry-After': wait }) };
+      return {
+        refusal: refuse(429, 'Rate limit exceeded. Try again in ' + wait + ' seconds.', {
+          'RateLimit-Limit': limit,
+          'RateLimit-Remaining': 0,
+          'RateLimit-Reset': wait,
+          'Retry-After': wait,
+        }),
+      };
     }
     times.push(now);
-    return { headers: { 'RateLimit-Limit': String(limit), 'RateLimit-Remaining': String(limit - times.length),
-                        'RateLimit-Reset': String(reset()) } };
+    return {
+      headers: {
+        'RateLimit-Limit': String(limit),
+        'RateLimit-Remaining': String(limit - times.length),
+        'RateLimit-Reset': String(reset()),
+      },
+    };
   }
 
   // -------------------------------------------------------------- tenants
   function tenantView(tenant) {
-    return { id: tenant.id, name: tenant.name, schemaName: tenant.schemaName, active: tenant.active, createdAt: tenant.createdAt };
+    return {
+      id: tenant.id,
+      name: tenant.name,
+      schemaName: tenant.schemaName,
+      active: tenant.active,
+      createdAt: tenant.createdAt,
+    };
   }
 
   function findTenant(id) {
     if (!UUID_RULE.test(id)) return { refusal: refuse(400, "'id' is not a valid UUID.") };
-    const tenant = state.tenants.filter(function (t) { return t.id === id; })[0];
+    const tenant = state.tenants.filter(function (t) {
+      return t.id === id;
+    })[0];
     return tenant ? { tenant: tenant } : { refusal: refuse(404, 'Tenant not found: ' + id) };
   }
 
@@ -143,16 +187,30 @@
     longest(errors, name, 'name', 100);
     const schemaName = required(errors, body, 'schemaName');
     if (schemaName !== null && !SCHEMA_RULE.test(schemaName)) {
-      errors.push('schemaName: schemaName must start with a lowercase letter and contain only lowercase letters, '
-        + 'digits, and underscores, between 2 and 63 characters');
+      errors.push(
+        'schemaName: schemaName must start with a lowercase letter and contain only lowercase letters, ' +
+          'digits, and underscores, between 2 and 63 characters',
+      );
     }
     const refusal = invalid(errors);
     if (refusal) return refusal;
-    const taken = state.tenants.some(function (t) { return t.schemaName === schemaName || t.name === name; });
+    const taken = state.tenants.some(function (t) {
+      return t.schemaName === schemaName || t.name === name;
+    });
     if (taken) return refuse(409, 'Record already exists with the given data.');
     const bytes = crypto.getRandomValues(new Uint8Array(32));
-    const tenant = { id: crypto.randomUUID(), name: name, schemaName: schemaName, active: true, createdAt: iso(Date.now()),
-                   apiKey: Array.prototype.map.call(bytes, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('') };
+    const tenant = {
+      id: crypto.randomUUID(),
+      name: name,
+      schemaName: schemaName,
+      active: true,
+      createdAt: iso(Date.now()),
+      apiKey: Array.prototype.map
+        .call(bytes, function (b) {
+          return ('0' + b.toString(16)).slice(-2);
+        })
+        .join(''),
+    };
     state.tenants.push(tenant);
     save();
     return answer(201, Object.assign(tenantView(tenant), { apiKey: tenant.apiKey }));
@@ -178,9 +236,17 @@
      for the time a real run queued, then rendering for the time it
      rendered. Derived, never scheduled, so a reload mid-run stays true. */
   function documentView(document, f) {
-    const view = { id: document.id, title: document.title, content: document.content, status: 'PENDING',
-                 createdAt: document.createdAt, queuedAt: null, startedAt: null, finishedAt: null,
-                 updatedAt: document.createdAt };
+    const view = {
+      id: document.id,
+      title: document.title,
+      content: document.content,
+      status: 'PENDING',
+      createdAt: document.createdAt,
+      queuedAt: null,
+      startedAt: null,
+      finishedAt: null,
+      updatedAt: document.createdAt,
+    };
     if (!document.requestedAt) return view;
     const requested = Date.parse(document.requestedAt);
     const started = requested + f.queuedMs;
@@ -201,8 +267,14 @@
     longest(errors, required(errors, body, 'content'), 'content', 50000);
     const refusal = invalid(errors);
     if (refusal) return refusal;
-    const document = { id: crypto.randomUUID(), tenantId: tenant.id, title: body.title, content: body.content,
-                     createdAt: iso(Date.now()), requestedAt: null };
+    const document = {
+      id: crypto.randomUUID(),
+      tenantId: tenant.id,
+      title: body.title,
+      content: body.content,
+      createdAt: iso(Date.now()),
+      requestedAt: null,
+    };
     state.documents.push(document);
     save();
     return answer(201, documentView(document, f));
@@ -211,14 +283,25 @@
   function listDocuments(tenant, query, f) {
     const page = Math.max(0, parseInt(query.get('page'), 10) || 0);
     const size = Math.max(1, parseInt(query.get('size'), 10) || 20);
-    const own = state.documents.filter(function (d) { return d.tenantId === tenant.id; }).reverse();
+    const own = state.documents
+      .filter(function (d) {
+        return d.tenantId === tenant.id;
+      })
+      .reverse();
     const content = own.slice(page * size, page * size + size).map(function (d) {
       const view = documentView(d, f);
       return { id: view.id, title: view.title, status: view.status, createdAt: view.createdAt };
     });
     const totalPages = Math.ceil(own.length / size);
-    return { page: page, content: content, size: size, totalElements: own.length, totalPages: totalPages,
-             first: page === 0, last: page >= totalPages - 1 };
+    return {
+      page: page,
+      content: content,
+      size: size,
+      totalElements: own.length,
+      totalPages: totalPages,
+      first: page === 0,
+      last: page >= totalPages - 1,
+    };
   }
 
   function documents(method, rest, tenant, query, body, f) {
@@ -226,12 +309,15 @@
     if (!rest && method === 'POST') return createDocument(tenant, body, f);
     const parts = rest.split('/');
     if (!UUID_RULE.test(parts[0])) return refuse(400, "'id' is not a valid UUID.");
-    const document = state.documents.filter(function (d) { return d.id === parts[0] && d.tenantId === tenant.id; })[0];
+    const document = state.documents.filter(function (d) {
+      return d.id === parts[0] && d.tenantId === tenant.id;
+    })[0];
     if (!document) return refuse(404, 'Document not found: ' + parts[0]);
     const view = documentView(document, f);
     if (parts.length === 1 && method === 'GET') return answer(200, view);
     if (parts[1] === 'generate' && method === 'POST') {
-      if (view.status !== 'PENDING') return refuse(409, 'Document must be PENDING but is ' + view.status + ': ' + document.id);
+      if (view.status !== 'PENDING')
+        return refuse(409, 'Document must be PENDING but is ' + view.status + ': ' + document.id);
       /* A second request while PENDING is accepted; the first one is what runs. */
       document.requestedAt = document.requestedAt || iso(Date.now());
       save();
@@ -239,10 +325,15 @@
     }
     if (parts[1] === 'pdf' && method === 'GET') {
       if (view.status !== 'DONE') return refuse(409, 'PDF not yet available for document: ' + document.id);
-      return networkFetch(ROOT + 'demo/sample.pdf').then(function (response) { return response.arrayBuffer(); })
+      return networkFetch(ROOT + 'demo/sample.pdf')
+        .then(function (response) {
+          return response.arrayBuffer();
+        })
         .then(function (bytes) {
-          return answer(200, bytes, { 'Content-Type': 'application/pdf',
-                                      'Content-Disposition': 'attachment; filename="document-' + document.id + '.pdf"' });
+          return answer(200, bytes, {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': 'attachment; filename="document-' + document.id + '.pdf"',
+          });
         });
     }
     return refuse(404, 'Not found.');
@@ -274,7 +365,9 @@
     const spent = budget(who.tenant, f.rateLimit);
     if (spent.refusal) return spent.refusal;
     return Promise.resolve(documents(method, match[2] || '', who.tenant, query, body, f)).then(function (response) {
-      Object.keys(spent.headers).forEach(function (name) { response.headers.set(name, spent.headers[name]); });
+      Object.keys(spent.headers).forEach(function (name) {
+        response.headers.set(name, spent.headers[name]);
+      });
       return response;
     });
   }
@@ -292,7 +385,11 @@
     if (!path) return networkFetch(input, init);
     return Promise.all([facts, request.text()]).then(function (ready) {
       let body = {};
-      try { body = ready[1] ? JSON.parse(ready[1]) : {}; } catch { body = {}; }
+      try {
+        body = ready[1] ? JSON.parse(ready[1]) : {};
+      } catch {
+        body = {};
+      }
       return route(request.method, path, url.searchParams, request.headers, body || {}, ready[0]);
     });
   };
@@ -305,8 +402,9 @@
     const mark = document.createElement('span');
     mark.className = 'emit-status__demo';
     mark.textContent = 'Demo · answered in this page';
-    mark.title = 'No server behind this page: it answers as the EMIT API does, with the timings and the PDF '
-      + 'of a real run. The README shows how to run the real one.';
+    mark.title =
+      'No server behind this page: it answers as the EMIT API does, with the timings and the PDF ' +
+      'of a real run. The README shows how to run the real one.';
     bar.insertBefore(mark, bar.querySelector('.emit-status__grow'));
     return true;
   }

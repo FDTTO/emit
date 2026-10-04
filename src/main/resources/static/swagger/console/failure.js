@@ -30,18 +30,26 @@ export function paintFailure() {
   const mark = card.appendChild(el('div', 'emit-failure__mark'));
   mark.appendChild(icon('alert'));
   card.appendChild(el('h2', null, 'The API description did not load'));
-  card.appendChild(el('p', null, 'The console draws every operation from it, so there is nothing to show until it loads.'));
+  card.appendChild(
+    el('p', null, 'The console draws every operation from it, so there is nothing to show until it loads.'),
+  );
   const call = card.appendChild(el('div', 'emit-failure__call'));
   const code = call.appendChild(el('b', null, '…'));
   call.appendChild(document.createTextNode('GET ' + url));
   /* Swagger keeps the failure's words, not its status: ask once more. */
   fetch(url, { credentials: 'same-origin' })
-    .then(function (response) { code.textContent = String(response.status); })
-    .catch(function () { code.textContent = 'No answer'; });
+    .then(function (response) {
+      code.textContent = String(response.status);
+    })
+    .catch(function () {
+      code.textContent = 'No answer';
+    });
   const actions = card.appendChild(el('div', 'emit-failure__actions'));
   const retry = actions.appendChild(el('button', 'emit-primary', 'Try again'));
   retry.type = 'button';
-  retry.addEventListener('click', function () { location.reload(); });
+  retry.addEventListener('click', function () {
+    location.reload();
+  });
   const raw = actions.appendChild(el('a', 'emit-quiet', 'Open the raw description'));
   raw.href = url;
   raw.target = '_blank';

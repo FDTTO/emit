@@ -15,17 +15,28 @@ import { runtime } from './state.js';
    alphabetical, methods in their HTTP order. */
 export function mapEntries() {
   const byTag = {};
-  Object.keys(runtime.spec.paths).sort().forEach(function (path) {
-    HTTP_METHODS.forEach(function (method) {
-      const operation = runtime.spec.paths[path][method];
-      if (!operation || !operation.operationId) return;
-      const tag = (operation.tags && operation.tags[0]) || 'default';
-      byTag[tag] ??= [];
-      byTag[tag].push({ tag: tag, id: operation.operationId, method: method, path: path,
-        name: operation.summary || operation.operationId });
+  Object.keys(runtime.spec.paths)
+    .sort()
+    .forEach(function (path) {
+      HTTP_METHODS.forEach(function (method) {
+        const operation = runtime.spec.paths[path][method];
+        if (!operation || !operation.operationId) return;
+        const tag = (operation.tags && operation.tags[0]) || 'default';
+        byTag[tag] ??= [];
+        byTag[tag].push({
+          tag: tag,
+          id: operation.operationId,
+          method: method,
+          path: path,
+          name: operation.summary || operation.operationId,
+        });
+      });
     });
-  });
-  return Object.keys(byTag).sort().map(function (tag) { return { tag: tag, operations: byTag[tag] }; });
+  return Object.keys(byTag)
+    .sort()
+    .map(function (tag) {
+      return { tag: tag, operations: byTag[tag] };
+    });
 }
 
 export function paintMap() {
@@ -105,7 +116,8 @@ export function spyScroll() {
   });
   /* The section starts where its heading's space does, above the heading. */
   const heading = document.querySelector('.emit-schemas__head');
-  if (heading && heading.getBoundingClientRect().top - parseFloat(getComputedStyle(heading).marginTop) <= line) current = 'emit-schemas';
+  if (heading && heading.getBoundingClientRect().top - parseFloat(getComputedStyle(heading).marginTop) <= line)
+    current = 'emit-schemas';
   map.querySelectorAll('.emit-map__item').forEach(function (link) {
     link.classList.toggle('is-current', link.dataset.target === current);
   });
@@ -125,8 +137,12 @@ function keepInView(scroller, item) {
   const view = scroller.getBoundingClientRect();
   const box = item.getBoundingClientRect();
   const margin = 3 * box.height;
-  const by = box.top < view.top + margin ? box.top - view.top - margin
-    : box.bottom > view.bottom - margin ? box.bottom - view.bottom + margin : 0;
+  const by =
+    box.top < view.top + margin
+      ? box.top - view.top - margin
+      : box.bottom > view.bottom - margin
+        ? box.bottom - view.bottom + margin
+        : 0;
   if (!by) return;
   const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   scroller.scrollBy({ top: by, behavior: still ? 'auto' : 'smooth' });
@@ -156,5 +172,7 @@ function paintCrumb(current) {
   const tagName = tag && tag.querySelector('h3.opblock-tag');
   crumb.appendChild(el('i', null, tagName ? tagName.getAttribute('data-tag') : ''));
   crumb.appendChild(el('i', null, '/'));
-  crumb.appendChild(el('b', null, (method ? method.textContent.trim() : '') + ' ' + (path ? path.getAttribute('data-path') : '')));
+  crumb.appendChild(
+    el('b', null, (method ? method.textContent.trim() : '') + ' ' + (path ? path.getAttribute('data-path') : '')),
+  );
 }

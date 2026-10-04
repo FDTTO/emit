@@ -7,7 +7,12 @@
    the nearest scrollable ancestor, so they still land.
    -------------------------------------------------------------------------- */
 @media (min-width: 901px) {
-  body#emit-swagger { height: 100vh; overflow: hidden; padding: var(--sp-4) var(--sp-5) var(--sp-5); box-sizing: border-box; }
+  body#emit-swagger {
+    height: 100vh;
+    overflow: hidden;
+    padding: var(--sp-4) var(--sp-5) var(--sp-5);
+    box-sizing: border-box;
+  }
   #emit-window {
     position: relative;
     height: 100%;
@@ -21,28 +26,63 @@
     backdrop-filter: blur(40px) saturate(150%);
     border-radius: var(--r-window);
     overflow: hidden;
-    font: 400 var(--t-lg)/1.55 var(--f-body);
+    font: 400 var(--t-lg) / 1.55 var(--f-body);
     color: var(--e-body);
-    box-shadow: 0 40px 100px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.15);
-    transition: grid-template-columns .3s var(--ease);
+    box-shadow:
+      0 40px 100px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(255, 255, 255, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transition: grid-template-columns 0.3s var(--ease);
   }
   /* Specular rim: light on the top-left edge, fading along the sides. */
   #emit-window::after {
-    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 30;
-    background: linear-gradient(150deg, rgba(255,255,255,0.36), rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.02) 60%, rgba(255,255,255,0.12));
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor; mask-composite: exclude;
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    z-index: 30;
+    background: linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.36),
+      rgba(255, 255, 255, 0.06) 30%,
+      rgba(255, 255, 255, 0.02) 60%,
+      rgba(255, 255, 255, 0.12)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
   }
   #emit-window #swagger-ui,
-  #emit-window .swagger-container { display: contents; }
-  #emit-window .swagger-container > .topbar { grid-area: top; }
-  #emit-window .swagger-container > .swagger-ui { grid-area: main; min-height: 0; overflow-y: auto; }
-  #emit-window .swagger-container > .wrapper { display: none; }
-  #emit-rail { grid-area: rail; }
-  #emit-statusbar { grid-area: status; }
+  #emit-window .swagger-container {
+    display: contents;
+  }
+  #emit-window .swagger-container > .topbar {
+    grid-area: top;
+  }
+  #emit-window .swagger-container > .swagger-ui {
+    grid-area: main;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  #emit-window .swagger-container > .wrapper {
+    display: none;
+  }
+  #emit-rail {
+    grid-area: rail;
+  }
+  #emit-statusbar {
+    grid-area: status;
+  }
 }
 @media (min-width: 901px) {
-  #emit-statusbar > .emit-status__grow { flex: 1 1 auto; padding: 0; }
+  #emit-statusbar > .emit-status__grow {
+    flex: 1 1 auto;
+    padding: 0;
+  }
 }
 
 /* Rail: quiet, it answers "where am I" and "what next" and steps back. */
@@ -51,18 +91,23 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  background: rgba(0,0,0,0.16);
+  background: rgba(0, 0, 0, 0.16);
   box-shadow: inset -1px 0 0 var(--e-hair);
 }
-.emit-map { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--sp-4) var(--sp-3); }
+.emit-map {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--sp-4) var(--sp-3);
+}
 .emit-map__tag {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
   padding: var(--sp-4) var(--sp-3) 0;
   margin-bottom: var(--sp-2);
-  font: 600 var(--t-xs)/1 var(--f-body);
-  letter-spacing: .14em;
+  font: 600 var(--t-xs) / 1 var(--f-body);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--e-dim);
 }
@@ -77,51 +122,127 @@
   font-size: var(--t-md);
   line-height: 1.55;
   white-space: nowrap;
-  transition: background .15s, color .15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
-.emit-map__item svg { width: 13px; height: 13px; flex: 0 0 auto; color: var(--e-faint); }
-.emit-map__name { overflow: hidden; text-overflow: ellipsis; }
-.emit-map__item svg.emit-map__scope { --c: currentColor; margin-left: auto; color: var(--c); opacity: .75; }
-.emit-map__item:hover { color: var(--e-body); background: var(--e-raised); }
+.emit-map__item svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  color: var(--e-faint);
+}
+.emit-map__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.emit-map__item svg.emit-map__scope {
+  --c: currentColor;
+  margin-left: auto;
+  color: var(--c);
+  opacity: 0.75;
+}
+.emit-map__item:hover {
+  color: var(--e-body);
+  background: var(--e-raised);
+}
 /* Where you are: a small pane of glass with a trace of the interaction cyan. */
 .emit-map__item.is-current {
   color: var(--e-text);
-  background: linear-gradient(150deg, rgba(143,220,255,0.10), rgba(255,255,255,0.03) 70%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 0 0 1px rgba(143,220,255,0.16), 0 4px 14px rgba(0,0,0,0.25);
+  background: linear-gradient(150deg, rgba(143, 220, 255, 0.1), rgba(255, 255, 255, 0.03) 70%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(143, 220, 255, 0.16),
+    0 4px 14px rgba(0, 0, 0, 0.25);
 }
-.emit-map__item.is-current svg:first-child { color: var(--ui-c); filter: drop-shadow(0 0 4px rgba(143,220,255,0.5)); }
+.emit-map__item.is-current svg:first-child {
+  color: var(--ui-c);
+  filter: drop-shadow(0 0 4px rgba(143, 220, 255, 0.5));
+}
 
 /* Statusbar: telemetry, grouped by space. The first item is as wide as the
    rail so its text starts on the rail's own inset. */
 #emit-statusbar {
   display: flex;
   align-items: center;
-  background: rgba(0,0,0,0.26);
+  background: rgba(0, 0, 0, 0.26);
   box-shadow: inset 0 1px 0 var(--e-hair);
-  font: 500 var(--t-xs)/1 var(--f-mono);
+  font: 500 var(--t-xs) / 1 var(--f-mono);
   color: var(--e-dim);
 }
 /* Wide only: on a phone the legend is the statusbar's one survivor, fixed in
    its corner, and a full-height item would stretch it down the screen. */
 @media (min-width: 901px) {
-  #emit-statusbar > * { display: flex; align-items: center; gap: var(--sp-2); height: 100%; padding: 0 var(--sp-4); white-space: nowrap; }
-  #emit-statusbar > .emit-status__server { width: var(--rail); padding-left: var(--sp-6); }
+  #emit-statusbar > * {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    height: 100%;
+    padding: 0 var(--sp-4);
+    white-space: nowrap;
+  }
+  #emit-statusbar > .emit-status__server {
+    width: var(--rail);
+    padding-left: var(--sp-6);
+  }
 }
-.emit-status__led { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: var(--s2-c); transition: background .3s var(--ease); }
+.emit-status__led {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--s2-c);
+  transition: background 0.3s var(--ease);
+}
 /* The server not answering, or answering unhealthy: wait, then retry. */
-#emit-status-server:is([data-state="down"], [data-state="unwell"]) .emit-status__led { background: var(--s5-c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s5-c) 16%, transparent); }
-.emit-status__health { color: var(--s5-c); }
-#emit-statusbar > [hidden] { display: none; }
-#emit-statusbar > button { height: 100%; padding: 0 var(--sp-4); border: 0; border-radius: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
-#emit-statusbar > button:hover { color: var(--e-body); background: var(--e-raised); }
+#emit-status-server:is([data-state="down"], [data-state="unwell"]) .emit-status__led {
+  background: var(--s5-c);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--s5-c) 16%, transparent);
+}
+.emit-status__health {
+  color: var(--s5-c);
+}
+#emit-statusbar > [hidden] {
+  display: none;
+}
+#emit-statusbar > button {
+  height: 100%;
+  padding: 0 var(--sp-4);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+#emit-statusbar > button:hover {
+  color: var(--e-body);
+  background: var(--e-raised);
+}
 /* The budget's number reads as the rest of the bar; a phone's drawer sets it
    apart on the right. */
-.emit-status__budget b { font-weight: inherit; }
-.emit-status__meter { width: 44px; height: 3px; border-radius: var(--r-pill); background: rgba(255,255,255,0.08); overflow: hidden; }
-.emit-status__meter i { display: block; height: 100%; background: var(--e-label); }
+.emit-status__budget b {
+  font-weight: inherit;
+}
+.emit-status__meter {
+  width: 44px;
+  height: 3px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.emit-status__meter i {
+  display: block;
+  height: 100%;
+  background: var(--e-label);
+}
 /* The run is in the rail; the statusbar takes it only when the rail is folded. */
-.emit-status__run { color: var(--run-c); }
-#emit-window:not([data-rail="closed"]) .emit-status__run { display: none; }
+.emit-status__run {
+  color: var(--run-c);
+}
+#emit-window:not([data-rail="closed"]) .emit-status__run {
+  display: none;
+}
 
 /* Rail labels: the one uppercase style. */
 .emit-rail__label {
@@ -129,20 +250,54 @@
   align-items: center;
   gap: var(--sp-3);
   margin: 0 0 var(--sp-2);
-  font: 600 var(--t-xs)/1 var(--f-body);
-  letter-spacing: .14em;
+  font: 600 var(--t-xs) / 1 var(--f-body);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--e-dim);
 }
-.emit-rail__label small { margin-left: auto; font: 500 var(--t-sm)/1 var(--f-mono); letter-spacing: 0; text-transform: none; color: var(--e-faint); }
+.emit-rail__label small {
+  margin-left: auto;
+  font: 500 var(--t-sm) / 1 var(--f-mono);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--e-faint);
+}
 
 /* Journey, compact: progress and the step that is next. */
-.emit-journey { flex: 0 0 auto; padding: var(--sp-5) var(--sp-6); box-shadow: inset 0 -1px 0 var(--e-hair); }
-.emit-journey__bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: var(--sp-4); }
-.emit-journey__bar i { position: relative; height: 3px; overflow: hidden; border-radius: var(--r-pill); background: rgba(255,255,255,0.07); }
-.emit-journey__bar i::after { content: ""; position: absolute; inset: 0; transform: scaleX(0); transform-origin: left; background: var(--e-label); transition: transform .6s var(--ease); }
-.emit-journey__bar i.is-done::after { transform: scaleX(1); }
-.emit-journey__bar i.is-next::after { transform: scaleX(1); background: var(--ui-c); }
+.emit-journey {
+  flex: 0 0 auto;
+  padding: var(--sp-5) var(--sp-6);
+  box-shadow: inset 0 -1px 0 var(--e-hair);
+}
+.emit-journey__bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-bottom: var(--sp-4);
+}
+.emit-journey__bar i {
+  position: relative;
+  height: 3px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.07);
+}
+.emit-journey__bar i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: var(--e-label);
+  transition: transform 0.6s var(--ease);
+}
+.emit-journey__bar i.is-done::after {
+  transform: scaleX(1);
+}
+.emit-journey__bar i.is-next::after {
+  transform: scaleX(1);
+  background: var(--ui-c);
+}
 .emit-journey__next {
   display: flex;
   align-items: center;
@@ -154,19 +309,42 @@
   background: var(--ui-bg);
   box-shadow: inset 0 0 0 1px var(--ui-b);
   color: var(--e-text);
-  font: 400 var(--t-lg)/1.55 var(--f-body);
+  font: 400 var(--t-lg) / 1.55 var(--f-body);
   text-align: left;
   cursor: pointer;
 }
-.emit-journey__next:hover { background: var(--ui-bg-hover); }
-.emit-journey__next[hidden] { display: none; }
-.emit-journey__words small { display: block; margin-bottom: 5px; font: 600 var(--t-xs)/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--ui-c); }
-.emit-journey__next svg { margin-left: auto; width: 14px; height: 14px; color: var(--ui-c); }
+.emit-journey__next:hover {
+  background: var(--ui-bg-hover);
+}
+.emit-journey__next[hidden] {
+  display: none;
+}
+.emit-journey__words small {
+  display: block;
+  margin-bottom: 5px;
+  font: 600 var(--t-xs) / 1 var(--f-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ui-c);
+}
+.emit-journey__next svg {
+  margin-left: auto;
+  width: 14px;
+  height: 14px;
+  color: var(--ui-c);
+}
 /* Run all steps or Stop, and while it runs, the camera: quiet tools under
    the next step, where the rail keeps them in view. */
-.emit-journey__tools { display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-3) calc(-1 * var(--sp-2)) 0; }
+.emit-journey__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: var(--sp-3) calc(-1 * var(--sp-2)) 0;
+}
 .emit-journey__tools[hidden],
-.emit-journey__tool[hidden] { display: none; }
+.emit-journey__tool[hidden] {
+  display: none;
+}
 .emit-journey__tool {
   display: inline-flex;
   align-items: center;
@@ -177,45 +355,147 @@
   border-radius: var(--r-sm);
   background: none;
   color: var(--ui-c);
-  font: 500 var(--t-sm)/1 var(--f-body);
+  font: 500 var(--t-sm) / 1 var(--f-body);
   cursor: pointer;
-  transition: background .15s, color .15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
-.emit-journey__tool:hover { background: var(--ui-bg); }
-.emit-journey__run svg { width: 10px; height: 10px; fill: currentColor; stroke: none; }
-.emit-journey__camera { margin-left: auto; color: var(--e-dim); }
-.emit-journey__camera svg { width: 13px; height: 13px; }
-.emit-journey__camera[aria-pressed="true"] { color: var(--ui-c); background: var(--ui-bg); box-shadow: inset 0 0 0 1px var(--ui-b); }
+.emit-journey__tool:hover {
+  background: var(--ui-bg);
+}
+.emit-journey__run svg {
+  width: 10px;
+  height: 10px;
+  fill: currentColor;
+  stroke: none;
+}
+.emit-journey__camera {
+  margin-left: auto;
+  color: var(--e-dim);
+}
+.emit-journey__camera svg {
+  width: 13px;
+  height: 13px;
+}
+.emit-journey__camera[aria-pressed="true"] {
+  color: var(--ui-c);
+  background: var(--ui-bg);
+  box-shadow: inset 0 0 0 1px var(--ui-b);
+}
 
 /* Live: the followed run, pinned at the rail's foot while it runs. */
 .emit-live {
   flex: 0 0 auto;
   padding: var(--sp-5) var(--sp-6);
   box-shadow: inset 0 1px 0 var(--e-hair);
-  background: linear-gradient(180deg, rgba(134,184,255,0.06), rgba(0,0,0,0.10));
-  animation: emit-rise .4s var(--ease);
+  background: linear-gradient(180deg, rgba(134, 184, 255, 0.06), rgba(0, 0, 0, 0.1));
+  animation: emit-rise 0.4s var(--ease);
 }
-.emit-live[hidden] { display: none; }
-.emit-live__head { display: flex; align-items: center; gap: var(--sp-2); font: 500 var(--t-md)/1 var(--f-mono); color: var(--e-text); }
-.emit-live__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--run-c); }
-.emit-live__dot.is-running { animation: emit-blink 1.4s ease-in-out infinite; }
-.emit-live__elapsed { margin-left: auto; font-size: var(--t-sm); color: var(--e-dim); }
-.emit-live__track { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); margin: var(--sp-5) 0 var(--sp-4); }
-.emit-live__track::before { content: ""; position: absolute; left: 16%; right: 16%; top: 5px; height: 1px; background: var(--e-hair); }
-.emit-live__stage { position: relative; display: grid; justify-items: center; gap: var(--sp-2); }
-.emit-live__stage i { width: 11px; height: 11px; border-radius: 50%; background: #10131a; box-shadow: inset 0 0 0 1.5px var(--e-faint); }
-.emit-live__stage b { font: 600 9px/1 var(--f-mono); letter-spacing: .08em; color: var(--e-faint); }
-.emit-live__stage.is-past i { background: var(--e-label); box-shadow: none; }
-.emit-live__stage.is-past b { color: var(--e-dim); }
-.emit-live__stage.is-current i { box-shadow: inset 0 0 0 1.5px var(--run-c), 0 0 0 4px rgba(134,184,255,.12); animation: emit-ring .7s var(--ease); }
-.emit-live__stage.is-current b { color: var(--run-c); }
-.emit-live__stage.is-good i { background: var(--s2-c); box-shadow: 0 0 0 4px rgba(142,224,164,.12); animation: emit-ring .7s var(--ease); }
-.emit-live__stage.is-good b { color: var(--s2-c); }
-.emit-live__stage.is-bad i { background: var(--s4-c); box-shadow: 0 0 0 4px rgba(255,143,132,.12); }
-.emit-live__stage.is-bad b { color: var(--s4-c); }
+.emit-live[hidden] {
+  display: none;
+}
+.emit-live__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font: 500 var(--t-md) / 1 var(--f-mono);
+  color: var(--e-text);
+}
+.emit-live__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--run-c);
+}
+.emit-live__dot.is-running {
+  animation: emit-blink 1.4s ease-in-out infinite;
+}
+.emit-live__elapsed {
+  margin-left: auto;
+  font-size: var(--t-sm);
+  color: var(--e-dim);
+}
+.emit-live__track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: var(--sp-5) 0 var(--sp-4);
+}
+.emit-live__track::before {
+  content: "";
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 5px;
+  height: 1px;
+  background: var(--e-hair);
+}
+.emit-live__stage {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-2);
+}
+.emit-live__stage i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #10131a;
+  box-shadow: inset 0 0 0 1.5px var(--e-faint);
+}
+.emit-live__stage b {
+  font: 600 9px / 1 var(--f-mono);
+  letter-spacing: 0.08em;
+  color: var(--e-faint);
+}
+.emit-live__stage.is-past i {
+  background: var(--e-label);
+  box-shadow: none;
+}
+.emit-live__stage.is-past b {
+  color: var(--e-dim);
+}
+.emit-live__stage.is-current i {
+  box-shadow:
+    inset 0 0 0 1.5px var(--run-c),
+    0 0 0 4px rgba(134, 184, 255, 0.12);
+  animation: emit-ring 0.7s var(--ease);
+}
+.emit-live__stage.is-current b {
+  color: var(--run-c);
+}
+.emit-live__stage.is-good i {
+  background: var(--s2-c);
+  box-shadow: 0 0 0 4px rgba(142, 224, 164, 0.12);
+  animation: emit-ring 0.7s var(--ease);
+}
+.emit-live__stage.is-good b {
+  color: var(--s2-c);
+}
+.emit-live__stage.is-bad i {
+  background: var(--s4-c);
+  box-shadow: 0 0 0 4px rgba(255, 143, 132, 0.12);
+}
+.emit-live__stage.is-bad b {
+  color: var(--s4-c);
+}
 /* How long the crossing took, over the line between two stages. */
-.emit-live__span { position: absolute; top: -14px; transform: translateX(-50%); font: 400 9px/1 var(--f-mono); color: var(--e-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.emit-live__foot { display: grid; gap: var(--sp-3); font-size: var(--t-sm); color: var(--e-dim); }
+.emit-live__span {
+  position: absolute;
+  top: -14px;
+  transform: translateX(-50%);
+  font: 400 9px / 1 var(--f-mono);
+  color: var(--e-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.emit-live__foot {
+  display: grid;
+  gap: var(--sp-3);
+  font-size: var(--t-sm);
+  color: var(--e-dim);
+}
 /* The result is what the run was for: a real button, in the rail's glass. */
 .emit-live__action {
   display: flex;
@@ -230,12 +510,18 @@
   background: var(--ui-bg);
   box-shadow: inset 0 0 0 1px var(--ui-b);
   color: var(--e-text);
-  font: 500 var(--t-lg)/1 var(--f-body);
+  font: 500 var(--t-lg) / 1 var(--f-body);
   cursor: pointer;
-  transition: background .15s;
+  transition: background 0.15s;
 }
-.emit-live__action:hover { background: var(--ui-bg-hover); }
-.emit-live__action svg { width: 14px; height: 14px; color: var(--ui-c); }
+.emit-live__action:hover {
+  background: var(--ui-bg-hover);
+}
+.emit-live__action svg {
+  width: 14px;
+  height: 14px;
+  color: var(--ui-c);
+}
 
 /* The last answer an operation gave, on its row and as a dot in the map. */
 #emit-swagger .swagger-ui .opblock-summary .emit-last {
@@ -243,44 +529,94 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font: 500 var(--t-sm)/1 var(--f-mono);
+  font: 500 var(--t-sm) / 1 var(--f-mono);
   white-space: nowrap;
 }
-#emit-swagger .swagger-ui .opblock-summary .emit-last::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-#emit-swagger .swagger-ui .opblock-summary .emit-last.is-ok { color: var(--s2-c); }
-#emit-swagger .swagger-ui .opblock-summary .emit-last.is-bad { color: var(--s4-c); }
-#emit-swagger .swagger-ui .opblock-summary .emit-last.is-wait { color: var(--s5-c); }
-#emit-swagger .swagger-ui .opblock-summary .emit-last__time { color: var(--e-faint); }
-#emit-swagger .swagger-ui .opblock-summary .emit-last + .emit-scopes { margin-left: var(--sp-3); }
+#emit-swagger .swagger-ui .opblock-summary .emit-last::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+#emit-swagger .swagger-ui .opblock-summary .emit-last.is-ok {
+  color: var(--s2-c);
+}
+#emit-swagger .swagger-ui .opblock-summary .emit-last.is-bad {
+  color: var(--s4-c);
+}
+#emit-swagger .swagger-ui .opblock-summary .emit-last.is-wait {
+  color: var(--s5-c);
+}
+#emit-swagger .swagger-ui .opblock-summary .emit-last__time {
+  color: var(--e-faint);
+}
+#emit-swagger .swagger-ui .opblock-summary .emit-last + .emit-scopes {
+  margin-left: var(--sp-3);
+}
 /* A narrow row keeps the code and lets the time go. */
 @media (max-width: 560px) {
-  #emit-swagger .swagger-ui .opblock-summary .emit-last__time { display: none; }
+  #emit-swagger .swagger-ui .opblock-summary .emit-last__time {
+    display: none;
+  }
 }
-.emit-map__ran { flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; }
-.emit-map__ran.is-ok { background: var(--s2-c); }
-.emit-map__ran.is-bad { background: var(--s4-c); }
-.emit-map__ran.is-wait { background: var(--s5-c); }
+.emit-map__ran {
+  flex: 0 0 auto;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.emit-map__ran.is-ok {
+  background: var(--s2-c);
+}
+.emit-map__ran.is-bad {
+  background: var(--s4-c);
+}
+.emit-map__ran.is-wait {
+  background: var(--s5-c);
+}
 
-@keyframes emit-rise { from { opacity: 0; transform: translateY(4px); } }
-@keyframes emit-blink { 50% { opacity: .35; } }
-@keyframes emit-ring { from { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 45%, transparent); } }
+@keyframes emit-rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+@keyframes emit-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes emit-ring {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 45%, transparent);
+  }
+}
 
 #emit-swagger .swagger-ui,
-#emit-swagger .swagger-ui * { box-sizing: border-box; }
+#emit-swagger .swagger-ui * {
+  box-sizing: border-box;
+}
 
 /* Set on body and inherited, not on `*`: a universal selector matches the
    children of mono elements directly and they lose the mono face. */
-#emit-swagger .swagger-ui { font-family: var(--f-body); }
+#emit-swagger .swagger-ui {
+  font-family: var(--f-body);
+}
 /* Stock declares its own families on these; they are the only places where
    inheritance is not enough. */
 #emit-swagger .swagger-ui input,
 #emit-swagger .swagger-ui select,
 #emit-swagger .swagger-ui textarea,
-#emit-swagger .swagger-ui button { font-family: inherit; }
+#emit-swagger .swagger-ui button {
+  font-family: inherit;
+}
 
 #emit-swagger .swagger-ui,
 #emit-swagger .swagger-ui .opblock-tag-section,
-#emit-swagger .swagger-ui .no-margin { background: transparent; }
+#emit-swagger .swagger-ui .no-margin {
+  background: transparent;
+}
 
 /* Counter: .wrapper{max-width:1460px;padding:0 20px} */
 #emit-swagger .swagger-ui .wrapper {
@@ -302,7 +638,9 @@
   border-radius: var(--r-sm);
 }
 /* Stock shows `outline: auto` on mouse click too; hide it for pointer focus only. */
-#emit-swagger .swagger-ui .opblock-summary-control:focus:not(:focus-visible) { outline: none; }
+#emit-swagger .swagger-ui .opblock-summary-control:focus:not(:focus-visible) {
+  outline: none;
+}
 /* Stock `all: inherit` pins its radius to 0, which :where() above cannot outrank. */
 #emit-swagger .swagger-ui .opblock-summary-control:focus-visible {
   border-radius: var(--r-sm);
@@ -311,6 +649,13 @@
 /* The cockpit's own parts live outside .swagger-ui, so they are listed. */
 @media (prefers-reduced-motion: reduce) {
   #emit-swagger .swagger-ui *,
-  #emit-window, #emit-rail, #emit-rail *, #emit-statusbar *, .emit-palette *, .emit-rail-toggle { transition: none; animation: none; }
+  #emit-window,
+  #emit-rail,
+  #emit-rail *,
+  #emit-statusbar *,
+  .emit-palette *,
+  .emit-rail-toggle {
+    transition: none;
+    animation: none;
+  }
 }
-

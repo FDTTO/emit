@@ -22,13 +22,20 @@ export function buildShell() {
 
   const scene = el('div', 'emit-scene');
   scene.setAttribute('aria-hidden', 'true');
-  ['emit-scene__glow emit-scene__glow--a', 'emit-scene__glow emit-scene__glow--b',
-   'emit-scene__streak', 'emit-scene__streak emit-scene__streak--thin'].forEach(function (cls) {
+  [
+    'emit-scene__glow emit-scene__glow--a',
+    'emit-scene__glow emit-scene__glow--b',
+    'emit-scene__streak',
+    'emit-scene__streak emit-scene__streak--thin',
+  ].forEach(function (cls) {
     scene.appendChild(el('i', cls));
   });
-  scene.insertAdjacentHTML('beforeend', '<svg class="emit-scene__grain"><filter id="emit-grain">'
-    + '<feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" stitchTiles="stitch"/></filter>'
-    + '<rect width="100%" height="100%" filter="url(#emit-grain)"/></svg>');
+  scene.insertAdjacentHTML(
+    'beforeend',
+    '<svg class="emit-scene__grain"><filter id="emit-grain">' +
+      '<feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" stitchTiles="stitch"/></filter>' +
+      '<rect width="100%" height="100%" filter="url(#emit-grain)"/></svg>',
+  );
   document.body.insertBefore(scene, document.body.firstChild);
 
   const win = el('div');
@@ -92,7 +99,10 @@ export function buildShell() {
     navigator.clipboard.writeText(value).then(function () {
       requestId.dataset.copied = 'true';
       requestId.textContent = 'Request id copied';
-      setTimeout(function () { delete requestId.dataset.copied; paintStatusTelemetry(); }, 1400);
+      setTimeout(function () {
+        delete requestId.dataset.copied;
+        paintStatusTelemetry();
+      }, 1400);
     });
   });
   status.appendChild(requestId);
@@ -103,7 +113,9 @@ export function buildShell() {
   status.appendChild(density);
   buildLegend(win, status);
   const scrim = el('div', 'emit-drawer-scrim');
-  scrim.addEventListener('click', function () { setDrawer(false); });
+  scrim.addEventListener('click', function () {
+    setDrawer(false);
+  });
   win.appendChild(scrim);
   /* On a phone, choosing where to go closes the drawer. */
   rail.addEventListener('click', function (event) {
@@ -123,12 +135,37 @@ export function buildShell() {
 }
 
 /* Each entry is one placeholder: a class for its shape and a width. */
-const RAIL_SKELETON = [['label', 48], ['bar', 100], ['card', 100], ['gap'], ['item', 42], ['label', 44],
-  ['item', 34], ['label', 48], ['item', 58], ['item', 64], ['item', 54], ['item', 72], ['item', 50],
-  ['label', 36], ['item', 46], ['item', 52], ['item', 56]];
+const RAIL_SKELETON = [
+  ['label', 48],
+  ['bar', 100],
+  ['card', 100],
+  ['gap'],
+  ['item', 42],
+  ['label', 44],
+  ['item', 34],
+  ['label', 48],
+  ['item', 58],
+  ['item', 64],
+  ['item', 54],
+  ['item', 72],
+  ['item', 50],
+  ['label', 36],
+  ['item', 46],
+  ['item', 52],
+  ['item', 56],
+];
 
-const MAIN_SKELETON = [['title', 36], ['line', 88], ['line', 92], ['line', 58], ['label', 22], ['figure', 100],
-  ['label', 20], ['line', 100], ['line', 100]];
+const MAIN_SKELETON = [
+  ['title', 36],
+  ['line', 88],
+  ['line', 92],
+  ['line', 58],
+  ['label', 22],
+  ['figure', 100],
+  ['label', 20],
+  ['line', 100],
+  ['line', 100],
+];
 
 function skeleton(className, shapes) {
   const node = el('div', className);
@@ -138,7 +175,9 @@ function skeleton(className, shapes) {
     const bone = column.appendChild(el('i', 'emit-skel__' + shape[0]));
     if (shape[1]) bone.style.width = shape[1] + '%';
     if (shape[0] === 'figure') {
-      ['node', 'edge', 'node', 'edge', 'node'].forEach(function (part) { bone.appendChild(el('span', 'emit-skel__' + part)); });
+      ['node', 'edge', 'node', 'edge', 'node'].forEach(function (part) {
+        bone.appendChild(el('span', 'emit-skel__' + part));
+      });
     }
   });
   return node;
@@ -157,18 +196,25 @@ export function watchLoading() {
     loadingExpired = true;
     schedule();
   }, LOADING_CEILING_MS);
-  const faces = document.fonts && document.fonts.load
-    ? Promise.all(['400 13px Inter', '600 13px Inter', '400 12px "JetBrains Mono"'].map(function (face) {
-        return document.fonts.load(face);
-      }))
-    : Promise.resolve();
+  const faces =
+    document.fonts && document.fonts.load
+      ? Promise.all(
+          ['400 13px Inter', '600 13px Inter', '400 12px "JetBrains Mono"'].map(function (face) {
+            return document.fonts.load(face);
+          }),
+        )
+      : Promise.resolve();
   /* A font host that never answers must not hold the page: the fallback
      faces are better than a skeleton that never ends. */
-  const ceiling = new Promise(function (resolve) { setTimeout(resolve, 2500); });
-  Promise.race([faces, ceiling]).catch(function () {}).then(function () {
-    facesReady = true;
-    schedule();
+  const ceiling = new Promise(function (resolve) {
+    setTimeout(resolve, 2500);
   });
+  Promise.race([faces, ceiling])
+    .catch(function () {})
+    .then(function () {
+      facesReady = true;
+      schedule();
+    });
 }
 
 export function settleLoading() {
@@ -177,13 +223,16 @@ export function settleLoading() {
   /* What arrives with the description, not what a reader opens: with
      every section folded no operation is ever in the DOM. */
   const map = document.getElementById('emit-map');
-  const drawn = runtime.spec && facesReady && map && map.dataset.built && document.querySelector('.information-container .info');
+  const drawn =
+    runtime.spec && facesReady && map && map.dataset.built && document.querySelector('.information-container .info');
   if (!drawn && !specFailed() && !loadingExpired) return;
   win.removeAttribute('data-loading');
   win.setAttribute('data-revealing', '');
   setTimeout(function () {
     win.removeAttribute('data-revealing');
-    document.querySelectorAll('.emit-skel').forEach(function (node) { node.remove(); });
+    document.querySelectorAll('.emit-skel').forEach(function (node) {
+      node.remove();
+    });
   }, 1200);
 }
 
@@ -201,12 +250,20 @@ export function toggleRail() {
   if (!win) return;
   const folded = win.dataset.rail !== 'closed';
   win.dataset.rail = folded ? 'closed' : 'open';
-  try { localStorage.setItem(RAIL_KEY, win.dataset.rail); } catch { /* private mode */ }
+  try {
+    localStorage.setItem(RAIL_KEY, win.dataset.rail);
+  } catch {
+    /* private mode */
+  }
 }
 
 export function restoreRail() {
   const win = document.getElementById('emit-window');
   let saved = null;
-  try { saved = localStorage.getItem(RAIL_KEY); } catch { /* private mode */ }
+  try {
+    saved = localStorage.getItem(RAIL_KEY);
+  } catch {
+    /* private mode */
+  }
   if (win) win.dataset.rail = saved === 'closed' ? 'closed' : 'open';
 }

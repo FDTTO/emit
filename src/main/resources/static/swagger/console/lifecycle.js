@@ -19,7 +19,10 @@ export function paintLifecycleCurrent() {
     let tag = node.querySelector('.emit-flow-id');
     if (lit && !tag) tag = node.insertBefore(el('span', 'emit-flow-id'), node.firstChild);
     if (!tag) return;
-    if (!lit && !tag.hasAttribute('data-reserved')) { tag.remove(); return; }
+    if (!lit && !tag.hasAttribute('data-reserved')) {
+      tag.remove();
+      return;
+    }
     tag.textContent = lit ? current.id.slice(0, 8) : '\u00a0';
   });
   /* While it runs, light travels the edge the run is crossing: out of the
@@ -46,11 +49,18 @@ function lifecycleStatesMatchSpec() {
   const declared = field && field.enum;
   if (!declared) return false;
 
-  const named = config.lifecycle.run.concat(config.lifecycle.outcomes)
-    .filter(function (step) { return step.state; })
-    .map(function (step) { return step.state; });
+  const named = config.lifecycle.run
+    .concat(config.lifecycle.outcomes)
+    .filter(function (step) {
+      return step.state;
+    })
+    .map(function (step) {
+      return step.state;
+    });
 
-  return named.every(function (state) { return declared.indexOf(state) !== -1; });
+  return named.every(function (state) {
+    return declared.indexOf(state) !== -1;
+  });
 }
 
 /* A node keeps a line above its dot for the followed run's id, so
@@ -71,17 +81,17 @@ function lifecycleNode(step, reserve) {
  * restore it.
  */
 function lifecycleAnchor() {
-  const markdown = document.querySelector(
-    '.information-container .info .description .renderedMarkdown');
+  const markdown = document.querySelector('.information-container .info .description .renderedMarkdown');
   if (!markdown) return null;
   const lede = markdown.querySelector(':scope > p');
   return { parent: markdown, before: lede ? lede.nextSibling : markdown.firstChild };
 }
 
 export function paintLifecycle() {
-  const anchor = lifecycleAnchor()
+  const anchor =
+    lifecycleAnchor() ||
     /* No description rendered: fall back to the panel itself. */
-    || (function () {
+    (function () {
       const info = document.querySelector('.information-container .info');
       return info ? { parent: info, before: null } : null;
     })();

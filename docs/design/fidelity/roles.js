@@ -107,23 +107,67 @@ window.__fidelityRoles = [
   ['op-scope', '#op-generate .chip.round', '#operations-Documents-requestDocumentGeneration .emit-scope'],
   ['op-chevron', '#op-generate .chev', '#operations-Documents-requestDocumentGeneration .opblock-control-arrow'],
   ['op-lede', '#op-generate .lede', '#operations-Documents-requestDocumentGeneration .opblock-description p'],
-  ['op-label-params', '#op-generate .block .label', '#operations-Documents-requestDocumentGeneration .opblock-section-header h4'],
+  [
+    'op-label-params',
+    '#op-generate .block .label',
+    '#operations-Documents-requestDocumentGeneration .opblock-section-header h4',
+  ],
   ['param-name', '#op-generate .param-name b', '#operations-Documents-requestDocumentGeneration .parameter__name'],
-  ['param-type', '#op-generate .chip.type', '#operations-Documents-requestDocumentGeneration .parameter__type .emit-type'],
-  ['param-format', '#op-generate .chip.format', '#operations-Documents-requestDocumentGeneration .parameter__type .prop-format'],
-  ['param-field', '#op-generate .field', '#operations-Documents-requestDocumentGeneration .parameters-col_description input'],
+  [
+    'param-type',
+    '#op-generate .chip.type',
+    '#operations-Documents-requestDocumentGeneration .parameter__type .emit-type',
+  ],
+  [
+    'param-format',
+    '#op-generate .chip.format',
+    '#operations-Documents-requestDocumentGeneration .parameter__type .prop-format',
+  ],
+  [
+    'param-field',
+    '#op-generate .field',
+    '#operations-Documents-requestDocumentGeneration .parameters-col_description input',
+  ],
   ['param-carry', '#op-generate .carry', '#operations-Documents-requestDocumentGeneration .emit-carried'],
   ['execute', '#execute', '#operations-Documents-requestDocumentGeneration .btn.execute'],
-  ['op-label-responses', '#op-generate .block:nth-of-type(2) .label', '#operations-Documents-requestDocumentGeneration .responses-wrapper h4'],
+  [
+    'op-label-responses',
+    '#op-generate .block:nth-of-type(2) .label',
+    '#operations-Documents-requestDocumentGeneration .responses-wrapper h4',
+  ],
   ['row-1', '#op-generate .row-head', '#operations-Documents-requestDocumentGeneration tr.response'],
-  ['row-1-code', '#op-generate .row-head .c', '#operations-Documents-requestDocumentGeneration tr.response .response-col_status'],
-  ['row-1-title', '#op-generate .row-head .t', '#operations-Documents-requestDocumentGeneration tr.response .response-col_description p'],
-  ['row-1-note', '#op-generate .row-head .n', '#operations-Documents-requestDocumentGeneration tr.response .emit-row-meta'],
-  ['row-1-chevron', '#op-generate .row-head .x', '#operations-Documents-requestDocumentGeneration tr.response .emit-row-chevron'],
+  [
+    'row-1-code',
+    '#op-generate .row-head .c',
+    '#operations-Documents-requestDocumentGeneration tr.response .response-col_status',
+  ],
+  [
+    'row-1-title',
+    '#op-generate .row-head .t',
+    '#operations-Documents-requestDocumentGeneration tr.response .response-col_description p',
+  ],
+  [
+    'row-1-note',
+    '#op-generate .row-head .n',
+    '#operations-Documents-requestDocumentGeneration tr.response .emit-row-meta',
+  ],
+  [
+    'row-1-chevron',
+    '#op-generate .row-head .x',
+    '#operations-Documents-requestDocumentGeneration tr.response .emit-row-chevron',
+  ],
   ['row-2', '#op-generate .row-head|1', '#operations-Documents-requestDocumentGeneration tr.response|1'],
-  ['refusals', '#op-generate [data-shared] .row-head', '#operations-Documents-requestDocumentGeneration .emit-refusals__head'],
+  [
+    'refusals',
+    '#op-generate [data-shared] .row-head',
+    '#operations-Documents-requestDocumentGeneration .emit-refusals__head',
+  ],
   ['headers-once', '#op-generate .headers-once', '#operations-Documents-requestDocumentGeneration .emit-headers-once'],
-  ['headers-once-code', '#op-generate .headers-once code', '#operations-Documents-requestDocumentGeneration .emit-headers-once code'],
+  [
+    'headers-once-code',
+    '#op-generate .headers-once code',
+    '#operations-Documents-requestDocumentGeneration .emit-headers-once code',
+  ],
 
   ['login-open', '.op.open', '#operations-Authentication-login'],
   ['login-path', '.op.open .path', '#operations-Authentication-login .opblock-summary-path'],
@@ -147,7 +191,11 @@ window.__fidelityRoles = [
   ['result-body', '.tab-panel.is-shown pre', '.emit-result__panel pre'],
   ['result-tools', '.tab-panel.is-shown .tools', '.emit-result__tools'],
   ['result-tool', '.tab-panel.is-shown .tool', '.emit-result__tools .emit-tool'],
-  ['result-rows-label', '.op.open .op-inner > .block:last-child .label', '#operations-Authentication-login .responses-wrapper h4'],
+  [
+    'result-rows-label',
+    '.op.open .op-inner > .block:last-child .label',
+    '#operations-Authentication-login .responses-wrapper h4',
+  ],
 
   ['tenant-open', '.op.open', '#operations-Tenants-createTenant'],
   ['tenant-lede', '.op.open .lede', '#operations-Tenants-createTenant .opblock-description p'],
@@ -163,7 +211,11 @@ window.__fidelityRoles = [
   ['body-code', '.editor-well .code', '#operations-Tenants-createTenant textarea.body-param__text'],
   ['body-validity', '.validity', '#operations-Tenants-createTenant .emit-validity'],
   ['body-execute', '.op.open .btn-primary', '#operations-Tenants-createTenant .btn.execute'],
-  ['body-rows-label', '.op.open .op-inner > .block:last-child .label', '#operations-Tenants-createTenant .responses-wrapper h4'],
+  [
+    'body-rows-label',
+    '.op.open .op-inner > .block:last-child .label',
+    '#operations-Tenants-createTenant .responses-wrapper h4',
+  ],
   ['body-row', '.op.open .row-head', '#operations-Tenants-createTenant tr.response'],
 
   ['auth-scrim', '.scrim', '#emit-auth'],
@@ -227,5 +279,5 @@ window.__fidelityRoles = [
 
   ['statusbar', '.statusbar', '#emit-statusbar'],
   ['status-server', '.statusbar > div', '#emit-status-server'],
-  ['status-led', '.statusbar .led', '.emit-status__led']
+  ['status-led', '.statusbar .led', '.emit-status__led'],
 ];

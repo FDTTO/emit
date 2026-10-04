@@ -40,7 +40,9 @@ function jsonNode(value, key, depth, last) {
   head.insertBefore(toggle, head.firstChild);
   head.appendChild(document.createTextNode(list ? '[' : '{'));
   const kids = el('div', 'emit-json__kids');
-  keys.forEach(function (at, index) { kids.appendChild(jsonNode(value[at], list ? null : at, depth + 1, index === keys.length - 1)); });
+  keys.forEach(function (at, index) {
+    kids.appendChild(jsonNode(value[at], list ? null : at, depth + 1, index === keys.length - 1));
+  });
   node.appendChild(head);
   node.appendChild(kids);
   node.appendChild(el('div', 'emit-json__line emit-json__close', close));
@@ -49,7 +51,10 @@ function jsonNode(value, key, depth, last) {
   toggle.addEventListener('click', function (event) {
     const folded = !node.classList.contains('is-folded');
     foldJson(node, folded);
-    if (event.altKey) node.querySelectorAll('.emit-json__node').forEach(function (inner) { foldJson(inner, folded); });
+    if (event.altKey)
+      node.querySelectorAll('.emit-json__node').forEach(function (inner) {
+        foldJson(inner, folded);
+      });
   });
   foldJson(node, depth >= FOLD_FROM_DEPTH);
   return node;

@@ -3,34 +3,100 @@
    -------------------------------------------------------------------------- */
 /* No parameters, no block: the body is the request. The request body's own
    section is nested in this one, so only the header and the empty list go. */
-#emit-swagger .swagger-ui .opblock-section:has(> .parameters-container):not(:has(table.parameters)) > .opblock-section-header,
-#emit-swagger .swagger-ui .opblock-section:has(> .parameters-container):not(:has(table.parameters)) > .parameters-container { display: none; }
+#emit-swagger
+  .swagger-ui
+  .opblock-section:has(> .parameters-container):not(:has(table.parameters))
+  > .opblock-section-header,
+#emit-swagger
+  .swagger-ui
+  .opblock-section:has(> .parameters-container):not(:has(table.parameters))
+  > .parameters-container {
+  display: none;
+}
 
 /* The label row: the label, required, the media type, and the tools. */
-#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header { gap: var(--sp-3); }
+#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header {
+  gap: var(--sp-3);
+}
 /* Label and chip centred on one axis, as the row centres everything else. */
-#emit-swagger .swagger-ui .opblock .opblock-section-request-body > .opblock-section-header h4 { flex: 0 0 auto; display: inline-flex; align-items: center; }
+#emit-swagger .swagger-ui .opblock .opblock-section-request-body > .opblock-section-header h4 {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
 /* One media type is named beside the label; the select only offers a choice. */
-#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header > label:not(:has(option + option)) { display: none; }
-.emit-body-type { margin-left: var(--sp-1); font: 400 var(--t-sm)/1 var(--f-mono); color: var(--e-faint); }
-.emit-body-type::before, .emit-constraint::before { content: "\2022"; margin-right: 6px; }
-.emit-body-tools { margin-left: auto; display: flex; align-items: center; gap: 6px; }
-#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-description-wrapper { padding: 0 var(--gutter); }
+#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header > label:not(:has(option + option)) {
+  display: none;
+}
+.emit-body-type {
+  margin-left: var(--sp-1);
+  font: 400 var(--t-sm) / 1 var(--f-mono);
+  color: var(--e-faint);
+}
+.emit-body-type::before,
+.emit-constraint::before {
+  content: "\2022";
+  margin-right: 6px;
+}
+.emit-body-tools {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-description-wrapper {
+  padding: 0 var(--gutter);
+}
 
 /* One family of small controls: a segmented pair of tabs and quiet tools. */
-.emit-tabs { display: inline-flex; padding: 3px; border-radius: var(--r-code); background: var(--e-raised); box-shadow: inset 0 0 0 1px var(--e-hair); }
-.emit-tabs button { padding: 6px var(--sp-3); border: 0; border-radius: 7px; background: none; color: var(--e-dim); font: 500 var(--t-md)/1 var(--f-body); cursor: pointer; }
-.emit-tabs button small { margin-left: 5px; font: 500 var(--t-xs)/1 var(--f-mono); color: var(--e-faint); }
-.emit-tabs button[aria-selected="true"] { background: rgba(255,255,255,0.07); color: var(--e-text); box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
-.emit-tool {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 26px; padding: 0 10px;
-  border: 0; border-radius: var(--r-sm);
-  background: rgba(255,255,255,0.05); box-shadow: inset 0 0 0 1px var(--e-hair);
-  color: var(--e-dim); font: 500 var(--t-sm)/1 var(--f-body); cursor: pointer;
+.emit-tabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--r-code);
+  background: var(--e-raised);
+  box-shadow: inset 0 0 0 1px var(--e-hair);
 }
-.emit-tool:hover { color: var(--e-body); background: rgba(255,255,255,0.08); }
-.emit-tool svg { width: 12px; height: 12px; }
+.emit-tabs button {
+  padding: 6px var(--sp-3);
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--e-dim);
+  font: 500 var(--t-md) / 1 var(--f-body);
+  cursor: pointer;
+}
+.emit-tabs button small {
+  margin-left: 5px;
+  font: 500 var(--t-xs) / 1 var(--f-mono);
+  color: var(--e-faint);
+}
+.emit-tabs button[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--e-text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.emit-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px var(--e-hair);
+  color: var(--e-dim);
+  font: 500 var(--t-sm) / 1 var(--f-body);
+  cursor: pointer;
+}
+.emit-tool:hover {
+  color: var(--e-body);
+  background: rgba(255, 255, 255, 0.08);
+}
+.emit-tool svg {
+  width: 12px;
+  height: 12px;
+}
 
 /* The editor: numbered lines beside Swagger's own textarea, one well. */
 #emit-swagger .swagger-ui .opblock-section-request-body .body-param {
@@ -45,9 +111,9 @@
   padding: var(--sp-3) var(--sp-3) var(--sp-3) 0;
   text-align: right;
   white-space: pre;
-  font: 400 var(--t-md)/1.75 var(--f-mono);
+  font: 400 var(--t-md) / 1.75 var(--f-mono);
   color: var(--e-faint);
-  background: rgba(0,0,0,0.18);
+  background: rgba(0, 0, 0, 0.18);
   box-shadow: inset -1px 0 0 var(--e-hair);
   user-select: none;
 }
@@ -64,13 +130,16 @@
   background: none;
   box-shadow: none;
   outline: none;
-  font: 400 var(--t-md)/1.75 var(--f-mono);
+  font: 400 var(--t-md) / 1.75 var(--f-mono);
   color: #c9d4de;
   white-space: pre;
 }
 /* The painted copy shares the textarea's cell, box and metrics exactly. */
 #emit-swagger .swagger-ui .opblock-section-request-body .body-param > .emit-paint,
-#emit-swagger .swagger-ui .opblock-section-request-body .body-param > textarea.body-param__text { grid-column: 2; grid-row: 1; }
+#emit-swagger .swagger-ui .opblock-section-request-body .body-param > textarea.body-param__text {
+  grid-column: 2;
+  grid-row: 1;
+}
 #emit-swagger .swagger-ui .opblock-section-request-body .body-param > .emit-paint {
   margin: 0;
   padding: var(--sp-3) var(--sp-4);
@@ -78,7 +147,7 @@
   border: 0;
   border-radius: 0;
   background: none;
-  font: 400 var(--t-md)/1.75 var(--f-mono);
+  font: 400 var(--t-md) / 1.75 var(--f-mono);
   color: #c9d4de;
   white-space: pre;
   pointer-events: none;
@@ -88,56 +157,166 @@
   color: transparent;
   caret-color: var(--e-text);
 }
-#emit-swagger .swagger-ui .opblock-section-request-body .body-param:has(> .emit-paint) > textarea.body-param__text::selection { color: transparent; background: rgba(143,220,255,0.22); }
-.emit-validity { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--sp-2); margin-top: var(--sp-3); font: 500 var(--t-sm)/1 var(--f-mono); color: var(--s2-c); }
-.emit-validity::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.emit-validity.is-bad { color: var(--s4-c); }
-.emit-validity span { color: var(--e-faint); }
-#emit-swagger .swagger-ui .opblock-body > .btn-group .btn-clear { display: none; }
+#emit-swagger
+  .swagger-ui
+  .opblock-section-request-body
+  .body-param:has(> .emit-paint)
+  > textarea.body-param__text::selection {
+  color: transparent;
+  background: rgba(143, 220, 255, 0.22);
+}
+.emit-validity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px var(--sp-2);
+  margin-top: var(--sp-3);
+  font: 500 var(--t-sm) / 1 var(--f-mono);
+  color: var(--s2-c);
+}
+.emit-validity::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.emit-validity.is-bad {
+  color: var(--s4-c);
+}
+.emit-validity span {
+  color: var(--e-faint);
+}
+#emit-swagger .swagger-ui .opblock-body > .btn-group .btn-clear {
+  display: none;
+}
 
 /* The Schema tab: the body's fields as rows, the way Schemas draws a model. */
-.emit-body-schema { display: none; padding: 0 var(--gutter) var(--sp-4); }
-#emit-swagger .swagger-ui .opblock-section-request-body[data-view="schema"] > .opblock-description-wrapper { display: none; }
-#emit-swagger .swagger-ui .opblock-section-request-body[data-view="schema"] .emit-body-schema { display: block; }
-.emit-field { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: var(--sp-4); padding: var(--sp-3) 0; box-shadow: inset 0 1px 0 var(--e-hair); }
-.emit-field:first-child { box-shadow: none; }
-.emit-field__name { font: 600 var(--t-lg)/1.4 var(--f-mono); color: var(--e-text); }
-.emit-field__name i { font-style: normal; color: var(--s4-c); margin-left: 2px; }
-.emit-field__type { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.emit-constraint { font: 400 var(--t-sm)/1 var(--f-mono); color: var(--e-faint); }
-.emit-field__about { margin: 6px 0 0; font-size: var(--t-md); color: var(--e-body); }
-.emit-field__example { margin-top: 5px; font: 400 var(--t-sm)/1 var(--f-mono); color: var(--e-dim); }
-.emit-field__example b { margin-right: var(--sp-2); font: 600 var(--t-xs)/1 var(--f-body); letter-spacing: .14em; color: var(--e-faint); }
+.emit-body-schema {
+  display: none;
+  padding: 0 var(--gutter) var(--sp-4);
+}
+#emit-swagger .swagger-ui .opblock-section-request-body[data-view="schema"] > .opblock-description-wrapper {
+  display: none;
+}
+#emit-swagger .swagger-ui .opblock-section-request-body[data-view="schema"] .emit-body-schema {
+  display: block;
+}
+.emit-field {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: var(--sp-4);
+  padding: var(--sp-3) 0;
+  box-shadow: inset 0 1px 0 var(--e-hair);
+}
+.emit-field:first-child {
+  box-shadow: none;
+}
+.emit-field__name {
+  font: 600 var(--t-lg) / 1.4 var(--f-mono);
+  color: var(--e-text);
+}
+.emit-field__name i {
+  font-style: normal;
+  color: var(--s4-c);
+  margin-left: 2px;
+}
+.emit-field__type {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.emit-constraint {
+  font: 400 var(--t-sm) / 1 var(--f-mono);
+  color: var(--e-faint);
+}
+.emit-field__about {
+  margin: 6px 0 0;
+  font-size: var(--t-md);
+  color: var(--e-body);
+}
+.emit-field__example {
+  margin-top: 5px;
+  font: 400 var(--t-sm) / 1 var(--f-mono);
+  color: var(--e-dim);
+}
+.emit-field__example b {
+  margin-right: var(--sp-2);
+  font: 600 var(--t-xs) / 1 var(--f-body);
+  letter-spacing: 0.14em;
+  color: var(--e-faint);
+}
 .emit-chip {
   --c: var(--e-label);
-  display: inline-flex; align-items: center; height: 20px; padding: 0 var(--sp-2);
-  border-radius: var(--r-sm); font: 500 var(--t-xs)/1 var(--f-mono); color: var(--c);
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-sm);
+  font: 500 var(--t-xs) / 1 var(--f-mono);
+  color: var(--c);
   background: color-mix(in srgb, var(--c) 10%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent);
 }
-.emit-chip--type { --c: var(--pt-c); }
-.emit-chip--format { --c: var(--pf-c); padding: 0 10px; border-radius: var(--r-pill); }
+.emit-chip--type {
+  --c: var(--pt-c);
+}
+.emit-chip--format {
+  --c: var(--pf-c);
+  padding: 0 10px;
+  border-radius: var(--r-pill);
+}
 
 /* After Execute: the request as it went, then the result. Edit brings the
    editor back; a new answer sends the page back to the result. */
-.emit-well.emit-sent { display: none; margin: 0 var(--gutter); }
+.emit-well.emit-sent {
+  display: none;
+  margin: 0 var(--gutter);
+}
 /* Edit floats at the row's end, so the row keeps the label's height. */
-#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header { position: relative; }
-.emit-tool--edit { display: none; position: absolute; right: var(--gutter); top: calc(var(--sp-6) - 8px); }
-#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) > .no-margin > .opblock-body > .opblock-description-wrapper,
-#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-section-request-body > .opblock-description-wrapper,
+#emit-swagger .swagger-ui .opblock-section-request-body > .opblock-section-header {
+  position: relative;
+}
+.emit-tool--edit {
+  display: none;
+  position: absolute;
+  right: var(--gutter);
+  top: calc(var(--sp-6) - 8px);
+}
+#emit-swagger
+  .swagger-ui
+  .opblock.emit-has-result:not(.emit-editing)
+  > .no-margin
+  > .opblock-body
+  > .opblock-description-wrapper,
+#emit-swagger
+  .swagger-ui
+  .opblock.emit-has-result:not(.emit-editing)
+  .opblock-section-request-body
+  > .opblock-description-wrapper,
 #emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-section-request-body .emit-body-schema,
 #emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-body-tools > :not(.emit-tool--edit),
-#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-body-type { display: none; }
-#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-section-request-body h4.required::after { content: none; }
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-body-type {
+  display: none;
+}
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .opblock-section-request-body h4.required::after {
+  content: none;
+}
 #emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-sent,
-#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-tool--edit { display: block; }
-#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-tool--edit { display: inline-flex; }
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-tool--edit {
+  display: block;
+}
+#emit-swagger .swagger-ui .opblock.emit-has-result:not(.emit-editing) .emit-tool--edit {
+  display: inline-flex;
+}
 
 /* Swagger's own live blocks stay mounted, as the source of the curl, and
    out of sight. */
 #emit-swagger .swagger-ui .responses-inner > div:has(.live-responses-table),
-#emit-swagger .swagger-ui .responses-inner > h4 { display: none; }
+#emit-swagger .swagger-ui .responses-inner > h4 {
+  display: none;
+}
 
 /* Code in a well, wherever the page draws it. */
 .emit-well {
@@ -146,63 +325,207 @@
   border-radius: var(--r-code);
   background: var(--e-well);
   box-shadow: var(--e-well-edge);
-  font: 400 var(--t-md)/1.7 var(--f-mono);
+  font: 400 var(--t-md) / 1.7 var(--f-mono);
   color: #c9d4de;
   overflow-x: auto;
 }
 /* A JSON answer as a tree: each level indented, a fold control in the
    gutter to the left of its opening bracket. */
-.emit-json .emit-json__line { position: relative; white-space: pre; }
-.emit-json .emit-json__kids { padding-left: 2ch; }
+.emit-json .emit-json__line {
+  position: relative;
+  white-space: pre;
+}
+.emit-json .emit-json__kids {
+  padding-left: 2ch;
+}
 .emit-json .emit-json__node.is-folded > .emit-json__kids,
-.emit-json .emit-json__node.is-folded > .emit-json__close { display: none; }
-.emit-json .emit-json__toggle { position: absolute; left: -14px; top: 0; width: 12px; height: 1.7em; padding: 0; border: 0; background: none; cursor: pointer; }
-.emit-json .emit-json__toggle::before { content: ""; position: absolute; left: 3px; top: calc(50% - 4px); width: 5px; height: 5px; border: solid var(--e-faint); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); transition: transform .15s var(--ease); }
-.emit-json .emit-json__toggle:hover::before { border-color: var(--e-body); }
-.emit-json .is-folded > .emit-json__line > .emit-json__toggle::before { transform: rotate(-45deg); }
-.emit-json .emit-json__summary small { font-size: inherit; color: var(--e-faint); }
-.emit-json .emit-json__summary small::before { content: "\2026"; margin-right: 4px; }
+.emit-json .emit-json__node.is-folded > .emit-json__close {
+  display: none;
+}
+.emit-json .emit-json__toggle {
+  position: absolute;
+  left: -14px;
+  top: 0;
+  width: 12px;
+  height: 1.7em;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.emit-json .emit-json__toggle::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: calc(50% - 4px);
+  width: 5px;
+  height: 5px;
+  border: solid var(--e-faint);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+  transition: transform 0.15s var(--ease);
+}
+.emit-json .emit-json__toggle:hover::before {
+  border-color: var(--e-body);
+}
+.emit-json .is-folded > .emit-json__line > .emit-json__toggle::before {
+  transform: rotate(-45deg);
+}
+.emit-json .emit-json__summary small {
+  font-size: inherit;
+  color: var(--e-faint);
+}
+.emit-json .emit-json__summary small::before {
+  content: "\2026";
+  margin-right: 4px;
+}
 /* Words written for the reader inside a well, not machine output. */
-.emit-well.emit-well--words { font-family: var(--f-body); white-space: normal; color: var(--e-body); }
-.emit-well .k, .emit-paint .k { color: #8fbcbb; }
-.emit-well .s, .emit-paint .s { color: #a3be8c; }
-.emit-well .n, .emit-paint .n { color: #b48ead; }
+.emit-well.emit-well--words {
+  font-family: var(--f-body);
+  white-space: normal;
+  color: var(--e-body);
+}
+.emit-well .k,
+.emit-paint .k {
+  color: #8fbcbb;
+}
+.emit-well .s,
+.emit-paint .s {
+  color: #a3be8c;
+}
+.emit-well .n,
+.emit-paint .n {
+  color: #b48ead;
+}
 
 /* The result: one bar that says how it went, tabs for what came back. */
 /* Ids outrank section 8's transparent .opblock-body > div. */
-#emit-swagger .swagger-ui .opblock-body > .emit-result { margin: 0 var(--gutter) var(--sp-6); overflow: hidden; border-radius: var(--r-code); background: rgba(0,0,0,0.16); box-shadow: inset 0 0 0 1px var(--e-hair); }
-.emit-result__head { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-3) var(--sp-4); box-shadow: inset 0 -1px 0 var(--e-hair); }
+#emit-swagger .swagger-ui .opblock-body > .emit-result {
+  margin: 0 var(--gutter) var(--sp-6);
+  overflow: hidden;
+  border-radius: var(--r-code);
+  background: rgba(0, 0, 0, 0.16);
+  box-shadow: inset 0 0 0 1px var(--e-hair);
+}
+.emit-result__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  box-shadow: inset 0 -1px 0 var(--e-hair);
+}
 .emit-result__status {
   --c: var(--s2-c);
-  display: inline-flex; align-items: center; gap: var(--sp-2);
-  height: 26px; padding: 0 var(--sp-3); border-radius: var(--r-pill);
-  font: 600 var(--t-md)/1 var(--f-mono); color: var(--c);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 26px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-pill);
+  font: 600 var(--t-md) / 1 var(--f-mono);
+  color: var(--c);
   background: color-mix(in srgb, var(--c) 10%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent);
 }
-.emit-result__status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.emit-result__status--bad { --c: var(--s4-c); }
-.emit-result__status--wait { --c: var(--s5-c); }
-.emit-result__meta { display: flex; align-items: center; gap: var(--sp-4); font: 500 var(--t-sm)/1 var(--f-mono); color: var(--e-dim); }
-.emit-result__meta b { font-weight: 500; color: var(--e-body); }
-#emit-swagger .swagger-ui .emit-result__rid {
-  display: inline-flex; align-items: center; gap: 6px; padding: 5px var(--sp-2);
-  border: 0; border-radius: var(--r-sm); background: var(--e-raised);
-  color: var(--e-dim); font: 500 var(--t-sm)/1 var(--f-mono); cursor: pointer;
+.emit-result__status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
 }
-.emit-result__rid:hover { color: var(--e-body); }
-.emit-result__rid svg { width: 14px; height: 14px; }
-.emit-result__head .emit-tabs { margin-left: auto; }
-.emit-result__panel { position: relative; padding: var(--sp-4); }
-.emit-result__panel[hidden] { display: none; }
-.emit-result__panel > .emit-well { white-space: pre-wrap; overflow-wrap: anywhere; padding-right: 160px; }
-.emit-result__tools { position: absolute; top: calc(var(--sp-4) + 8px); right: calc(var(--sp-4) + 8px); display: flex; gap: 6px; }
-.emit-kv { display: grid; grid-template-columns: 220px minmax(0, 1fr); font: 400 var(--t-md)/1.5 var(--f-mono); }
-.emit-kv > div { padding: 7px var(--sp-3); box-shadow: inset 0 1px 0 var(--e-hair); }
-.emit-kv > div:nth-child(-n+2) { box-shadow: none; }
-.emit-kv__key { color: var(--e-dim); }
-.emit-kv__value { color: var(--e-body); overflow-wrap: anywhere; }
-.emit-kv .is-hot { color: var(--e-text); }
-.emit-kv__key.is-hot::before { content: ""; display: inline-block; width: 5px; height: 5px; margin-right: var(--sp-2); border-radius: 50%; background: var(--ui-c); vertical-align: middle; }
-.emit-result__explain { margin: var(--sp-3) 0 0; font-size: var(--t-sm); color: var(--e-faint); }
-
+.emit-result__status--bad {
+  --c: var(--s4-c);
+}
+.emit-result__status--wait {
+  --c: var(--s5-c);
+}
+.emit-result__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  font: 500 var(--t-sm) / 1 var(--f-mono);
+  color: var(--e-dim);
+}
+.emit-result__meta b {
+  font-weight: 500;
+  color: var(--e-body);
+}
+#emit-swagger .swagger-ui .emit-result__rid {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px var(--sp-2);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--e-raised);
+  color: var(--e-dim);
+  font: 500 var(--t-sm) / 1 var(--f-mono);
+  cursor: pointer;
+}
+.emit-result__rid:hover {
+  color: var(--e-body);
+}
+.emit-result__rid svg {
+  width: 14px;
+  height: 14px;
+}
+.emit-result__head .emit-tabs {
+  margin-left: auto;
+}
+.emit-result__panel {
+  position: relative;
+  padding: var(--sp-4);
+}
+.emit-result__panel[hidden] {
+  display: none;
+}
+.emit-result__panel > .emit-well {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-right: 160px;
+}
+.emit-result__tools {
+  position: absolute;
+  top: calc(var(--sp-4) + 8px);
+  right: calc(var(--sp-4) + 8px);
+  display: flex;
+  gap: 6px;
+}
+.emit-kv {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  font: 400 var(--t-md) / 1.5 var(--f-mono);
+}
+.emit-kv > div {
+  padding: 7px var(--sp-3);
+  box-shadow: inset 0 1px 0 var(--e-hair);
+}
+.emit-kv > div:nth-child(-n + 2) {
+  box-shadow: none;
+}
+.emit-kv__key {
+  color: var(--e-dim);
+}
+.emit-kv__value {
+  color: var(--e-body);
+  overflow-wrap: anywhere;
+}
+.emit-kv .is-hot {
+  color: var(--e-text);
+}
+.emit-kv__key.is-hot::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: var(--sp-2);
+  border-radius: 50%;
+  background: var(--ui-c);
+  vertical-align: middle;
+}
+.emit-result__explain {
+  margin: var(--sp-3) 0 0;
+  font-size: var(--t-sm);
+  color: var(--e-faint);
+}

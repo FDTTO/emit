@@ -18,9 +18,13 @@ export function paintResponseIndex() {
       const code = row.getAttribute('data-code');
       const response = operation.responses[code] || {};
       const examples = examplesOf(response);
-      row.classList.toggle('emit-shared-member', examples.length > 0 && examples.every(function (e) {
-        return config.sharedRefusals.indexOf(e.name) !== -1;
-      }));
+      row.classList.toggle(
+        'emit-shared-member',
+        examples.length > 0 &&
+          examples.every(function (e) {
+            return config.sharedRefusals.indexOf(e.name) !== -1;
+          }),
+      );
 
       const inner = row.querySelector('.response-col_description__inner');
       if (inner && !inner.querySelector('.emit-row-meta')) {
@@ -39,7 +43,8 @@ export function paintResponseIndex() {
       if (!row.dataset.emitIndexed) {
         row.dataset.emitIndexed = 'true';
         row.addEventListener('click', function (event) {
-          if (event.target.closest('.response-col_status, .response-col_description__inner')) row.classList.toggle('emit-open');
+          if (event.target.closest('.response-col_status, .response-col_description__inner'))
+            row.classList.toggle('emit-open');
         });
       }
     });
@@ -82,13 +87,15 @@ function isFollowStart(block) {
 function paintSharedRefusals(block, table, operation) {
   if (block.querySelector('.emit-refusals')) return;
   const causes = [];
-  Object.keys(operation.responses).sort().forEach(function (code) {
-    examplesOf(operation.responses[code]).forEach(function (example) {
-      if (config.sharedRefusals.indexOf(example.name) !== -1) {
-        causes.push({ code: code, summary: example.summary, message: example.value.message || '' });
-      }
+  Object.keys(operation.responses)
+    .sort()
+    .forEach(function (code) {
+      examplesOf(operation.responses[code]).forEach(function (example) {
+        if (config.sharedRefusals.indexOf(example.name) !== -1) {
+          causes.push({ code: code, summary: example.summary, message: example.value.message || '' });
+        }
+      });
     });
-  });
   if (!causes.length) return;
 
   const tag = (operation.tags && operation.tags[0]) || '';
@@ -97,11 +104,14 @@ function paintSharedRefusals(block, table, operation) {
   head.type = 'button';
   head.appendChild(el('span', 'emit-refusals__dot'));
   head.appendChild(el('span', 'emit-refusals__code', '4XX'));
-  head.appendChild(el('span', 'emit-refusals__title',
-    'Refusals every ' + tag.toLowerCase().replace(/s$/, '') + ' route shares'));
+  head.appendChild(
+    el('span', 'emit-refusals__title', 'Refusals every ' + tag.toLowerCase().replace(/s$/, '') + ' route shares'),
+  );
   head.appendChild(el('span', 'emit-row-meta', causes.length + ' causes'));
   head.appendChild(el('span', 'emit-row-chevron'));
-  head.addEventListener('click', function () { group.classList.toggle('emit-open'); });
+  head.addEventListener('click', function () {
+    group.classList.toggle('emit-open');
+  });
   group.appendChild(head);
 
   const list = el('table', 'emit-refusals__table');
@@ -121,19 +131,30 @@ function paintSharedRefusals(block, table, operation) {
 function paintHeadersOnce(block, table, operation) {
   if (block.querySelector('.emit-headers-once')) return;
   const codes = Object.keys(operation.responses);
-  const withHeaders = codes.filter(function (code) { return operation.responses[code].headers; });
+  const withHeaders = codes.filter(function (code) {
+    return operation.responses[code].headers;
+  });
   if (!withHeaders.length) return;
   const shared = Object.keys(operation.responses[withHeaders[0]].headers).filter(function (name) {
-    return withHeaders.every(function (code) { return operation.responses[code].headers[name]; });
+    return withHeaders.every(function (code) {
+      return operation.responses[code].headers[name];
+    });
   });
-  const without = codes.filter(function (code) { return withHeaders.indexOf(code) === -1; });
+  const without = codes.filter(function (code) {
+    return withHeaders.indexOf(code) === -1;
+  });
 
   const line = el('div', 'emit-headers-once');
-  line.appendChild(document.createTextNode((without.length ? 'Every response but ' + without.join(' and ') : 'Every response') + ' carries'));
+  line.appendChild(
+    document.createTextNode(
+      (without.length ? 'Every response but ' + without.join(' and ') : 'Every response') + ' carries',
+    ),
+  );
   shared.forEach(function (name) {
     const header = operation.responses[withHeaders[0]].headers[name];
     const chip = el('code', null, name);
-    chip.title = (header.description || '') + (header.schema && header.schema.type ? ' (' + header.schema.type + ')' : '');
+    chip.title =
+      (header.description || '') + (header.schema && header.schema.type ? ' (' + header.schema.type + ')' : '');
     line.appendChild(chip);
   });
   /* A header only some answers add goes with them: on a shared refusal's
@@ -143,7 +164,9 @@ function paintHeadersOnce(block, table, operation) {
       if (shared.indexOf(name) !== -1) return;
       const chip = el('code', null, name);
       chip.title = operation.responses[code].headers[name].description || '';
-      const refusal = block.querySelector('.emit-refusals__table tr[data-code="' + code + '"] .emit-refusals__row-message');
+      const refusal = block.querySelector(
+        '.emit-refusals__table tr[data-code="' + code + '"] .emit-refusals__row-message',
+      );
       if (refusal) {
         refusal.appendChild(chip);
         return;

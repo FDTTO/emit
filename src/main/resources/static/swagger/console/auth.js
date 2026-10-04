@@ -61,7 +61,9 @@ export function authorizedScopes() {
   const held = selectors.authorized();
   if (!held || typeof held.entrySeq !== 'function') return [];
 
-  return held.entrySeq().toArray()
+  return held
+    .entrySeq()
+    .toArray()
     .map(function (entry) {
       const scope = config.scopes[entry[0]];
       if (!scope) return null;
@@ -110,7 +112,11 @@ export function armExpiry(held, now) {
 }
 
 export function credentialSourceFor(scheme) {
-  return config.credentialSources.filter(function (source) { return source.scheme === scheme; })[0] || null;
+  return (
+    config.credentialSources.filter(function (source) {
+      return source.scheme === scheme;
+    })[0] || null
+  );
 }
 
 /* Where a credential comes from: the operation whose answer hands it
@@ -160,7 +166,13 @@ export function authorizeScheme(scheme, value) {
    lives. */
 export function schemeKind(definition) {
   const type = definition.get('type');
-  if (type === 'http') return 'HTTP ' + (definition.get('scheme') || '').replace(/^\w/, function (c) { return c.toUpperCase(); });
+  if (type === 'http')
+    return (
+      'HTTP ' +
+      (definition.get('scheme') || '').replace(/^\w/, function (c) {
+        return c.toUpperCase();
+      })
+    );
   if (type === 'apiKey') return definition.get('name') + ' ' + definition.get('in');
   return type;
 }
@@ -176,6 +188,7 @@ export function heldFrom(scheme, value) {
 }
 
 export function masked(value) {
-  return value.length > 40 ? value.slice(0, 20) + ' ··· ' + value.slice(-15)
+  return value.length > 40
+    ? value.slice(0, 20) + ' ··· ' + value.slice(-15)
     : value.slice(0, 6) + ' ··· ' + value.slice(-4);
 }

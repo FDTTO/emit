@@ -229,6 +229,27 @@
                         </importOrder>
                         <removeUnusedImports />
                     </java>
+                    <javascript>
+                        <includes>
+                            <include>src/main/resources/static/**/*.js</include>
+                            <include>docs/design/**/*.js</include>
+                            <include>demo/**/*.js</include>
+                        </includes>
+                        <biome>
+                            <version>2.5.15</version>
+                            <configPath>${project.basedir}</configPath>
+                        </biome>
+                    </javascript>
+                    <css>
+                        <includes>
+                            <include>src/main/resources/static/**/*.css</include>
+                            <include>docs/design/**/*.css</include>
+                        </includes>
+                        <biome>
+                            <version>2.5.15</version>
+                            <configPath>${project.basedir}</configPath>
+                        </biome>
+                    </css>
                 </configuration>
                 <executions>
                     <execution>

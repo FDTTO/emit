@@ -38,9 +38,13 @@ function paletteOperations() {
   mapEntries().forEach(function (group) {
     group.operations.forEach(function (operation) {
       entries.push({
-        group: 'Operations', name: operation.name, icon: iconFor(operation.method, operation.path),
+        group: 'Operations',
+        name: operation.name,
+        icon: iconFor(operation.method, operation.path),
         detail: operation.method.toUpperCase() + ' ' + operation.path,
-        run: function () { openOperation({ tag: operation.tag, id: operation.id }); }
+        run: function () {
+          openOperation({ tag: operation.tag, id: operation.id });
+        },
       });
     });
   });
@@ -52,29 +56,78 @@ function paletteActions() {
   const compact = document.documentElement.dataset.density === 'compact';
   const folded = win && win.dataset.rail === 'closed';
   const actions = [];
-  const login = config.credentialSources[0] && operationIndex()[config.credentialSources[0].method.toUpperCase() + ' ' + config.credentialSources[0].path];
-  if (login) actions.push({ name: config.credentialSources[0].action, icon: 'lockClosed', detail: config.scopes[config.credentialSources[0].scheme].missing, run: function () { openOperation(login); } });
+  const login =
+    config.credentialSources[0] &&
+    operationIndex()[config.credentialSources[0].method.toUpperCase() + ' ' + config.credentialSources[0].path];
+  if (login)
+    actions.push({
+      name: config.credentialSources[0].action,
+      icon: 'lockClosed',
+      detail: config.scopes[config.credentialSources[0].scheme].missing,
+      run: function () {
+        openOperation(login);
+      },
+    });
   actions.push({ name: 'Credentials', icon: 'shield', detail: 'Authorize', run: openCredentials });
-  if (runtime.autopilot) actions.push({ name: 'Stop running the steps', icon: 'stop', detail: 'Getting started', run: stopJourney });
-  else if (journeyState().next >= 0) actions.push({ name: 'Run all steps', icon: 'play', detail: 'Getting started', run: runJourney });
-  actions.push({ name: compact ? 'Comfortable layout' : 'Compact layout', icon: compact ? 'comfortable' : 'compact', detail: 'density', run: toggleDensity });
-  if (!PHONE.matches) actions.push({ name: folded ? 'Unfold the rail' : 'Fold the rail', icon: 'chevronLeft', detail: 'Ctrl B', run: toggleRail });
-  actions.push({ name: 'Legend', icon: 'braces', detail: 'reading this page', run: function () { document.getElementById('emit-legend-btn').click(); } });
+  if (runtime.autopilot)
+    actions.push({ name: 'Stop running the steps', icon: 'stop', detail: 'Getting started', run: stopJourney });
+  else if (journeyState().next >= 0)
+    actions.push({ name: 'Run all steps', icon: 'play', detail: 'Getting started', run: runJourney });
+  actions.push({
+    name: compact ? 'Comfortable layout' : 'Compact layout',
+    icon: compact ? 'comfortable' : 'compact',
+    detail: 'density',
+    run: toggleDensity,
+  });
+  if (!PHONE.matches)
+    actions.push({
+      name: folded ? 'Unfold the rail' : 'Fold the rail',
+      icon: 'chevronLeft',
+      detail: 'Ctrl B',
+      run: toggleRail,
+    });
+  actions.push({
+    name: 'Legend',
+    icon: 'braces',
+    detail: 'reading this page',
+    run: function () {
+      document.getElementById('emit-legend-btn').click();
+    },
+  });
   mapEntries().forEach(function (group) {
     const open = allShown(group.tag);
-    actions.push({ name: (open ? 'Close all in ' : 'Open all in ') + group.tag, icon: open ? 'fold' : 'unfold',
-                   detail: plural(group.operations.length, 'operation'), run: function () { showAllOf(group.tag, !open); } });
+    actions.push({
+      name: (open ? 'Close all in ' : 'Open all in ') + group.tag,
+      icon: open ? 'fold' : 'unfold',
+      detail: plural(group.operations.length, 'operation'),
+      run: function () {
+        showAllOf(group.tag, !open);
+      },
+    });
   });
-  actions.push({ name: 'Go to the overview', icon: 'home', detail: 'top', run: function () {
-    const info = document.querySelector('.information-container');
-    if (info) info.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } });
+  actions.push({
+    name: 'Go to the overview',
+    icon: 'home',
+    detail: 'top',
+    run: function () {
+      const info = document.querySelector('.information-container');
+      if (info) info.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+  });
   if (document.getElementById('emit-schemas')) {
-    actions.push({ name: 'Go to the schemas', icon: 'braces', detail: 'models', run: function () {
-      document.getElementById('emit-schemas').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } });
+    actions.push({
+      name: 'Go to the schemas',
+      icon: 'braces',
+      detail: 'models',
+      run: function () {
+        document.getElementById('emit-schemas').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+    });
   }
-  return actions.map(function (action) { action.group = 'Actions'; return action; });
+  return actions.map(function (action) {
+    action.group = 'Actions';
+    return action;
+  });
 }
 
 function buildPalette() {
@@ -90,7 +143,9 @@ function buildPalette() {
   const list = el('ul', 'emit-palette__list');
   list.setAttribute('role', 'listbox');
   const foot = el('div', 'emit-palette__foot');
-  ['↑↓ choose', 'Enter run', 'Esc close'].forEach(function (hint) { foot.appendChild(el('span', null, hint)); });
+  ['↑↓ choose', 'Enter run', 'Esc close'].forEach(function (hint) {
+    foot.appendChild(el('span', null, hint));
+  });
   box.appendChild(input);
   box.appendChild(list);
   box.appendChild(foot);
@@ -99,11 +154,24 @@ function buildPalette() {
 
   const state = { back: back, input: input, list: list, entries: [], shown: [], selected: 0 };
 
-  back.addEventListener('click', function (event) { if (event.target === back) closePalette(); });
-  input.addEventListener('input', function () { state.selected = 0; renderPalette(); });
+  back.addEventListener('click', function (event) {
+    if (event.target === back) closePalette();
+  });
+  input.addEventListener('input', function () {
+    state.selected = 0;
+    renderPalette();
+  });
   input.addEventListener('keydown', function (event) {
-    if (event.key === 'ArrowDown') { state.selected = Math.min(state.selected + 1, state.shown.length - 1); renderPalette(); event.preventDefault(); }
-    if (event.key === 'ArrowUp') { state.selected = Math.max(state.selected - 1, 0); renderPalette(); event.preventDefault(); }
+    if (event.key === 'ArrowDown') {
+      state.selected = Math.min(state.selected + 1, state.shown.length - 1);
+      renderPalette();
+      event.preventDefault();
+    }
+    if (event.key === 'ArrowUp') {
+      state.selected = Math.max(state.selected - 1, 0);
+      renderPalette();
+      event.preventDefault();
+    }
     if (event.key === 'Enter' && state.shown[state.selected]) choose(state.shown[state.selected]);
     if (event.key === 'Escape') closePalette();
   });

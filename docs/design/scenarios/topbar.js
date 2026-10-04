@@ -3,20 +3,39 @@
 // so the bar never twitches, inside the bar, and a click that opens a dialog
 // the reader can actually see. Each step waits for the state it checks, not
 // for a clock.
-const tag = function () { return document.getElementById('emit-topbar-auth'); };
-const state = function () { return tag().dataset.state; };
-const height = function () { return V.box('#emit-topbar-auth').height; };
-const isOpen = function (id) { const b = document.getElementById(id); return !!b && b.classList.contains('is-open'); };
-const reaches = function (expected) { return function () { return state() === expected; }; };
+const tag = function () {
+  return document.getElementById('emit-topbar-auth');
+};
+const state = function () {
+  return tag().dataset.state;
+};
+const height = function () {
+  return V.box('#emit-topbar-auth').height;
+};
+const isOpen = function (id) {
+  const b = document.getElementById(id);
+  return !!b && b.classList.contains('is-open');
+};
+const reaches = function (expected) {
+  return function () {
+    return state() === expected;
+  };
+};
 let emptyHeight;
 
-V.until(function () { return !!tag() && !!V.definition('bearerAuth'); }, function () {
-  check('empty: an invitation to authorize', state() === '' && /Authorize/.test(tag().textContent), state());
-  emptyHeight = height();
-  check('empty: a real control, not a sliver', emptyHeight >= 24, emptyHeight);
-  V.authorize('bearerAuth', V.jwt(3600));
-  V.until(reaches('ADMIN'), admin);
-}, 20000);
+V.until(
+  function () {
+    return !!tag() && !!V.definition('bearerAuth');
+  },
+  function () {
+    check('empty: an invitation to authorize', state() === '' && /Authorize/.test(tag().textContent), state());
+    emptyHeight = height();
+    check('empty: a real control, not a sliver', emptyHeight >= 24, emptyHeight);
+    V.authorize('bearerAuth', V.jwt(3600));
+    V.until(reaches('ADMIN'), admin);
+  },
+  20000,
+);
 
 function admin() {
   check('admin token: ADMIN', state() === 'ADMIN', state());
@@ -25,10 +44,14 @@ function admin() {
 }
 
 function both() {
-  const bar = V.box('.topbar'), box = V.box('#emit-topbar-auth');
+  const bar = V.box('.topbar'),
+    box = V.box('#emit-topbar-auth');
   check('both: ADMIN,TENANT', state() === 'ADMIN,TENANT', state());
   check('both: same height as empty', height() === emptyHeight, { empty: emptyHeight, both: height() });
-  check('tag sits inside the bar', box.top >= bar.top && box.top + box.height <= bar.top + bar.height, { bar: bar, tag: box });
+  check('tag sits inside the bar', box.top >= bar.top && box.top + box.height <= bar.top + bar.height, {
+    bar: bar,
+    tag: box,
+  });
   V.logoutHeld();
   V.authorize('bearerAuth', V.jwt(-60));
   V.until(reaches('EXPIRED'), expired);
@@ -37,11 +60,16 @@ function both() {
 function expired() {
   check('expired token: EXPIRED, flagged', state() === 'EXPIRED' && /expired/i.test(tag().textContent), state());
   tag().click();
-  V.until(function () { return isOpen('operations-Authentication-login'); }, function () {
-    check('holding only an expired token, the click leads to login', isOpen('operations-Authentication-login'));
-    V.logoutHeld();
-    V.until(reaches(''), dialog);
-  });
+  V.until(
+    function () {
+      return isOpen('operations-Authentication-login');
+    },
+    function () {
+      check('holding only an expired token, the click leads to login', isOpen('operations-Authentication-login'));
+      V.logoutHeld();
+      V.until(reaches(''), dialog);
+    },
+  );
 }
 
 function dialog() {
@@ -53,9 +81,14 @@ function dialog() {
   };
   V.until(visible, function () {
     const found = visible();
-    const hit = found && document.elementFromPoint(found.r.left + found.r.width / 2, found.r.top + Math.min(40, found.r.height / 2));
-    check('click opens a visible dialog', !!found && found.box.contains(hit),
-          found ? { width: Math.round(found.r.width), height: Math.round(found.r.height) } : 'no dialog');
+    const hit =
+      found &&
+      document.elementFromPoint(found.r.left + found.r.width / 2, found.r.top + Math.min(40, found.r.height / 2));
+    check(
+      'click opens a visible dialog',
+      !!found && found.box.contains(hit),
+      found ? { width: Math.round(found.r.width), height: Math.round(found.r.height) } : 'no dialog',
+    );
     done();
   });
 }

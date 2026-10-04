@@ -8,15 +8,41 @@
 // shows :focus-visible only after trusted keyboard input.
 V.execute('Authentication', 'login', '{"username":"admin","password":"admin123"}', 4000);
 
-const PROPS = ['borderTopLeftRadius', 'outlineStyle', 'outlineWidth', 'boxShadow', 'borderTopColor', 'backgroundColor', 'color'];
-const snap = function (e) { const cs = getComputedStyle(e), o = {}; PROPS.forEach(function (p) { o[p] = cs[p]; }); return o; };
+const PROPS = [
+  'borderTopLeftRadius',
+  'outlineStyle',
+  'outlineWidth',
+  'boxShadow',
+  'borderTopColor',
+  'backgroundColor',
+  'color',
+];
+const snap = function (e) {
+  const cs = getComputedStyle(e),
+    o = {};
+  PROPS.forEach(function (p) {
+    o[p] = cs[p];
+  });
+  return o;
+};
 const label = function (e) {
-  return e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + (typeof e.className === 'string' && e.className ? '.' + e.className.split(' ')[0] : '')
-    + ' "' + (e.textContent || e.value || '').trim().replace(/\s+/g, ' ').slice(0, 20) + '"';
+  return (
+    e.tagName.toLowerCase() +
+    (e.id ? '#' + e.id : '') +
+    (typeof e.className === 'string' && e.className ? '.' + e.className.split(' ')[0] : '') +
+    ' "' +
+    (e.textContent || e.value || '').trim().replace(/\s+/g, ' ').slice(0, 20) +
+    '"'
+  );
 };
 
 const resting = new Map();
-let reached = [], silent = [], reshaped = [], notVisible = [], compared = 0, indicators = {};
+let reached = [],
+  silent = [],
+  reshaped = [],
+  notVisible = [],
+  compared = 0,
+  indicators = {};
 let steps = 0;
 
 let last = null;
@@ -30,7 +56,10 @@ function step() {
 }
 
 function settle(tries) {
-  if (document.activeElement === last && tries < 10) return setTimeout(function () { settle(tries + 1); }, 100);
+  if (document.activeElement === last && tries < 10)
+    return setTimeout(function () {
+      settle(tries + 1);
+    }, 100);
   inspect();
 }
 
@@ -49,24 +78,30 @@ function inspect() {
     const outlined = after.outlineStyle !== 'none' && after.outlineWidth !== '0px';
     // Only what reads as a focus indicator counts: a ring, a shadow, an edge
     // or a fill. A text colour shift alone is too faint to find focus by.
-    const moved = ['boxShadow', 'borderTopColor', 'backgroundColor'].filter(function (p) { return before[p] !== after[p]; });
+    const moved = ['boxShadow', 'borderTopColor', 'backgroundColor'].filter(function (p) {
+      return before[p] !== after[p];
+    });
     const changed = moved.length > 0;
     compared++;
     const how = outlined ? 'outline' : moved.join('+') || 'nothing';
     indicators[how] = (indicators[how] || 0) + 1;
     if (!outlined && !changed) silent.push(label(e));
     const cs = getComputedStyle(e);
-    const edge = cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.borderTopWidth !== '0px' || cs.borderBottomWidth !== '0px';
+    const edge =
+      cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.borderTopWidth !== '0px' || cs.borderBottomWidth !== '0px';
     if (edge && before.borderTopLeftRadius !== after.borderTopLeftRadius) reshaped.push(label(e));
   }
   step();
 }
 
 function finish() {
-  check('the keyboard reaches the page\'s controls', reached.length >= 30, reached.length);
+  check("the keyboard reaches the page's controls", reached.length >= 30, reached.length);
   // Without this the checks below could pass by comparing nothing: a control
   // React re-rendered after the resting snapshot has no snapshot to compare.
-  check('almost every control reached was compared', compared >= reached.length * 0.9, { compared: compared, reached: reached.length });
+  check('almost every control reached was compared', compared >= reached.length * 0.9, {
+    compared: compared,
+    reached: reached.length,
+  });
   L('indicators', indicators);
   check('every control reached is in :focus-visible', notVisible.length === 0, notVisible.slice(0, 6));
   check('every control reached shows focus', silent.length === 0, silent.slice(0, 6));
@@ -77,9 +112,17 @@ function finish() {
 
 // The walk starts once the login's result is drawn: its controls are part
 // of what the keyboard reaches.
-V.until(function () { return !!document.querySelector('#operations-Authentication-login .emit-result'); }, function () {
-  document.querySelectorAll('a[href],button,input,select,textarea,[tabindex]').forEach(function (e) { resting.set(e, snap(e)); });
-  if (document.activeElement) document.activeElement.blur();
-  last = document.activeElement;
-  step();
-}, 20000);
+V.until(
+  function () {
+    return !!document.querySelector('#operations-Authentication-login .emit-result');
+  },
+  function () {
+    document.querySelectorAll('a[href],button,input,select,textarea,[tabindex]').forEach(function (e) {
+      resting.set(e, snap(e));
+    });
+    if (document.activeElement) document.activeElement.blur();
+    last = document.activeElement;
+    step();
+  },
+  20000,
+);

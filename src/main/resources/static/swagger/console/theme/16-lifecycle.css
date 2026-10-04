@@ -4,18 +4,26 @@
    flow, so the axis stays put whatever the label length.
    -------------------------------------------------------------------------- */
 /* Container query: the figure reflows on its own width. */
-#emit-swagger .swagger-ui #emit-lifecycle { margin: 0; container: emit-lifecycle / inline-size; }
+#emit-swagger .swagger-ui #emit-lifecycle {
+  margin: 0;
+  container: emit-lifecycle / inline-size;
+}
 #emit-swagger .swagger-ui .emit-section-label {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
   margin: 0 0 var(--sp-3);
-  font: 600 var(--t-xs)/1 var(--f-body);
+  font: 600 var(--t-xs) / 1 var(--f-body);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--e-dim);
 }
-#emit-swagger .swagger-ui .emit-section-label::after { content: ""; flex: 1; height: 1px; background: var(--e-hair); }
+#emit-swagger .swagger-ui .emit-section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--e-hair);
+}
 
 #emit-swagger .swagger-ui .emit-flow {
   display: flex;
@@ -27,34 +35,61 @@
   box-shadow: var(--e-well-edge);
 }
 /* A stage: the id it holds, its dot, its name and what it means. */
-#emit-swagger .swagger-ui .emit-flow-node { display: grid; justify-items: center; gap: 7px; min-width: 110px; }
-#emit-swagger .swagger-ui .emit-flow-dot {
-  width: 12px; height: 12px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1.5px currentColor, 0 0 14px -3px currentColor;
+#emit-swagger .swagger-ui .emit-flow-node {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  min-width: 110px;
 }
-#emit-swagger .swagger-ui .emit-flow-state { font: 600 var(--t-sm)/1 var(--f-mono); letter-spacing: .1em; }
-#emit-swagger .swagger-ui .emit-flow-caption { font-size: var(--t-xs); color: var(--e-faint); }
-#emit-swagger .swagger-ui .emit-flow-node--pending    { color: var(--s5-c); }
-#emit-swagger .swagger-ui .emit-flow-node--processing { color: var(--run-c); }
-#emit-swagger .swagger-ui .emit-flow-node--done       { color: var(--s2-c); }
-#emit-swagger .swagger-ui .emit-flow-node--failed     { color: var(--s4-c); }
+#emit-swagger .swagger-ui .emit-flow-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1.5px currentColor,
+    0 0 14px -3px currentColor;
+}
+#emit-swagger .swagger-ui .emit-flow-state {
+  font: 600 var(--t-sm) / 1 var(--f-mono);
+  letter-spacing: 0.1em;
+}
+#emit-swagger .swagger-ui .emit-flow-caption {
+  font-size: var(--t-xs);
+  color: var(--e-faint);
+}
+#emit-swagger .swagger-ui .emit-flow-node--pending {
+  color: var(--s5-c);
+}
+#emit-swagger .swagger-ui .emit-flow-node--processing {
+  color: var(--run-c);
+}
+#emit-swagger .swagger-ui .emit-flow-node--done {
+  color: var(--s2-c);
+}
+#emit-swagger .swagger-ui .emit-flow-node--failed {
+  color: var(--s4-c);
+}
 /* The figure is the andon: the followed run's id rides on the stage it
    is in, and light travels the edge it is crossing. */
 #emit-swagger .swagger-ui .emit-flow-id {
   visibility: hidden;
   padding: 3px 7px;
   border-radius: var(--r-pill);
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--e-text);
-  font: 500 var(--t-3xs)/1 var(--f-mono);
+  font: 500 var(--t-3xs) / 1 var(--f-mono);
   white-space: nowrap;
 }
-#emit-swagger .swagger-ui .emit-flow-node.is-current .emit-flow-id { visibility: visible; animation: emit-rise .35s var(--ease); }
+#emit-swagger .swagger-ui .emit-flow-node.is-current .emit-flow-id {
+  visibility: visible;
+  animation: emit-rise 0.35s var(--ease);
+}
 #emit-swagger .swagger-ui .emit-flow-node.is-current .emit-flow-dot {
   background: currentColor;
-  box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 14%, transparent), 0 0 20px currentColor;
-  animation: emit-ring .7s var(--ease);
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, currentColor 14%, transparent),
+    0 0 20px currentColor;
+  animation: emit-ring 0.7s var(--ease);
 }
 #emit-swagger .swagger-ui .emit-flow-link {
   position: relative;
@@ -64,35 +99,69 @@
   justify-items: center;
   gap: 5px;
   color: var(--e-faint);
-  font: 400 var(--t-xs)/1 var(--f-mono);
+  font: 400 var(--t-xs) / 1 var(--f-mono);
 }
-#emit-swagger .swagger-ui .emit-flow-link::before { content: ""; width: 100%; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.13)); }
-#emit-swagger .swagger-ui .emit-flow-link.is-active { color: var(--run-c); }
-#emit-swagger .swagger-ui .emit-flow-time { margin-left: var(--sp-2); color: var(--e-dim); font-variant-numeric: tabular-nums; }
-#emit-swagger .swagger-ui .emit-flow-link.is-active::before { background: linear-gradient(90deg, rgba(134,184,255,0.15), rgba(134,184,255,0.5)); }
+#emit-swagger .swagger-ui .emit-flow-link::before {
+  content: "";
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.13));
+}
+#emit-swagger .swagger-ui .emit-flow-link.is-active {
+  color: var(--run-c);
+}
+#emit-swagger .swagger-ui .emit-flow-time {
+  margin-left: var(--sp-2);
+  color: var(--e-dim);
+  font-variant-numeric: tabular-nums;
+}
+#emit-swagger .swagger-ui .emit-flow-link.is-active::before {
+  background: linear-gradient(90deg, rgba(134, 184, 255, 0.15), rgba(134, 184, 255, 0.5));
+}
 #emit-swagger .swagger-ui .emit-flow-link.is-active::after {
   content: "";
   position: absolute;
-  top: -3px; left: 0;
-  width: 7px; height: 7px;
+  top: -3px;
+  left: 0;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #d6e6ff;
   box-shadow: 0 0 10px 2px var(--run-c);
-  animation: emit-travel 1.3s cubic-bezier(.5,0,.5,1) infinite;
+  animation: emit-travel 1.3s cubic-bezier(0.5, 0, 0.5, 1) infinite;
 }
-@keyframes emit-travel { from { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } to { left: calc(100% - 7px); opacity: 0; } }
+@keyframes emit-travel {
+  from {
+    left: 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  to {
+    left: calc(100% - 7px);
+    opacity: 0;
+  }
+}
 /* The run ends in one of two outcomes, stacked on a thread of their own. */
 #emit-swagger .swagger-ui .emit-flow-outcomes {
   display: grid;
   gap: var(--sp-5);
   margin-left: var(--sp-2);
   padding-left: var(--sp-4);
-  box-shadow: inset 1px 0 0 rgba(255,255,255,0.12);
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.12);
 }
 
 /* Narrow: a vertical timeline, each stage a row with its dot on the thread. */
 @container emit-lifecycle (max-width: 560px) {
-  #emit-swagger .swagger-ui .emit-flow { flex-direction: column; align-items: stretch; padding: var(--sp-5); }
+  #emit-swagger .swagger-ui .emit-flow {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--sp-5);
+  }
   #emit-swagger .swagger-ui .emit-flow-node {
     grid-template-columns: 12px auto 1fr;
     grid-template-areas: "dot state id" ". caption caption";
@@ -102,13 +171,38 @@
     row-gap: var(--sp-1);
     min-width: 0;
   }
-  #emit-swagger .swagger-ui .emit-flow-dot { grid-area: dot; }
-  #emit-swagger .swagger-ui .emit-flow-state { grid-area: state; }
-  #emit-swagger .swagger-ui .emit-flow-caption { grid-area: caption; }
-  #emit-swagger .swagger-ui .emit-flow-id { grid-area: id; }
-  #emit-swagger .swagger-ui .emit-flow-link { max-width: none; justify-items: start; padding: var(--sp-2) 0 var(--sp-2) 24px; }
-  #emit-swagger .swagger-ui .emit-flow-link::before { position: absolute; left: 5.5px; top: 0; bottom: 0; width: 1px; height: auto; }
-  #emit-swagger .swagger-ui .emit-flow-link.is-active::after { display: none; }
-  #emit-swagger .swagger-ui .emit-flow-outcomes { margin: var(--sp-2) 0 0; padding: 0; box-shadow: none; gap: var(--sp-4); }
+  #emit-swagger .swagger-ui .emit-flow-dot {
+    grid-area: dot;
+  }
+  #emit-swagger .swagger-ui .emit-flow-state {
+    grid-area: state;
+  }
+  #emit-swagger .swagger-ui .emit-flow-caption {
+    grid-area: caption;
+  }
+  #emit-swagger .swagger-ui .emit-flow-id {
+    grid-area: id;
+  }
+  #emit-swagger .swagger-ui .emit-flow-link {
+    max-width: none;
+    justify-items: start;
+    padding: var(--sp-2) 0 var(--sp-2) 24px;
+  }
+  #emit-swagger .swagger-ui .emit-flow-link::before {
+    position: absolute;
+    left: 5.5px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    height: auto;
+  }
+  #emit-swagger .swagger-ui .emit-flow-link.is-active::after {
+    display: none;
+  }
+  #emit-swagger .swagger-ui .emit-flow-outcomes {
+    margin: var(--sp-2) 0 0;
+    padding: 0;
+    box-shadow: none;
+    gap: var(--sp-4);
+  }
 }
-

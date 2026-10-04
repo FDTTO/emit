@@ -61,7 +61,8 @@ export function bindCamera() {
     document.addEventListener(type, releaseCamera, { passive: true });
   });
   document.addEventListener('keydown', function (event) {
-    if (/^(PageUp|PageDown|Home|End|ArrowUp|ArrowDown| )$/.test(event.key) && !typing(event.target)) releaseCamera(event);
+    if (/^(PageUp|PageDown|Home|End|ArrowUp|ArrowDown| )$/.test(event.key) && !typing(event.target))
+      releaseCamera(event);
   });
 }
 
@@ -95,25 +96,46 @@ function nextJourneyStep(run) {
   if (!target) return stopJourney();
   openOperation(target, { scroll: run.camera === 'follow' });
   const before = lastAnswers[key];
-  whileRunning(run, function () {
-    const block = document.getElementById('operations-' + target.tag + '-' + target.id);
-    const button = block && block.querySelector('.opblock-body button.execute');
-    return button && !button.disabled && button.getBoundingClientRect().height > 0 ? block : null;
-  }, function (block) {
-    setTimeout(function () {
-      if (runtime.autopilot !== run) return;
-      if (step.body) fillBody(block, step.body(Date.now().toString(36)));
-      block.querySelector('.opblock-body button.execute').click();
-      whileRunning(run, function () { return lastAnswers[key] !== before ? lastAnswers[key] : null; }, function (answer) {
-        if (!answer.status || answer.status >= 300) return stopJourney();
-        whileRunning(run, function () {
-          const follow = step.done.run ? currentFollow() : null;
-          if (follow && kindOf(follow.state) === 'failed') { stopJourney(); return null; }
-          return stepDone(step);
-        }, function () { setTimeout(function () { nextJourneyStep(run); }, STEP_PAUSE_MS); });
-      });
-    }, STEP_PAUSE_MS);
-  });
+  whileRunning(
+    run,
+    function () {
+      const block = document.getElementById('operations-' + target.tag + '-' + target.id);
+      const button = block && block.querySelector('.opblock-body button.execute');
+      return button && !button.disabled && button.getBoundingClientRect().height > 0 ? block : null;
+    },
+    function (block) {
+      setTimeout(function () {
+        if (runtime.autopilot !== run) return;
+        if (step.body) fillBody(block, step.body(Date.now().toString(36)));
+        block.querySelector('.opblock-body button.execute').click();
+        whileRunning(
+          run,
+          function () {
+            return lastAnswers[key] !== before ? lastAnswers[key] : null;
+          },
+          function (answer) {
+            if (!answer.status || answer.status >= 300) return stopJourney();
+            whileRunning(
+              run,
+              function () {
+                const follow = step.done.run ? currentFollow() : null;
+                if (follow && kindOf(follow.state) === 'failed') {
+                  stopJourney();
+                  return null;
+                }
+                return stepDone(step);
+              },
+              function () {
+                setTimeout(function () {
+                  nextJourneyStep(run);
+                }, STEP_PAUSE_MS);
+              },
+            );
+          },
+        );
+      }, STEP_PAUSE_MS);
+    },
+  );
 }
 
 /* A step's own body, from the configuration's body(stamp): a run that must
@@ -144,7 +166,10 @@ export function paintJourneyRun() {
   button.textContent = '';
   button.appendChild(icon(runtime.autopilot ? 'stop' : 'play'));
   button.appendChild(document.createTextNode(runtime.autopilot ? 'Stop' : 'Run all steps'));
-  button.setAttribute('aria-label', runtime.autopilot ? 'Stop running the steps' : 'Run the remaining steps, one after another');
+  button.setAttribute(
+    'aria-label',
+    runtime.autopilot ? 'Stop running the steps' : 'Run the remaining steps, one after another',
+  );
 }
 
 function stepDone(step) {
@@ -176,7 +201,9 @@ export function paintJourney() {
     label.appendChild(el('small', 'emit-journey__count'));
     journey.appendChild(label);
     const bar = el('div', 'emit-journey__bar');
-    config.journey.forEach(function () { bar.appendChild(el('i')); });
+    config.journey.forEach(function () {
+      bar.appendChild(el('i'));
+    });
     journey.appendChild(bar);
     const next = el('button', 'emit-journey__next');
     next.type = 'button';
@@ -204,7 +231,8 @@ export function paintJourney() {
   const state = journeyState();
   paintStrip(state);
   const count = state.done.filter(Boolean).length;
-  const key = state.done.join() + state.next + !!runtime.autopilot + (runtime.autopilot ? runtime.autopilot.camera : '');
+  const key =
+    state.done.join() + state.next + !!runtime.autopilot + (runtime.autopilot ? runtime.autopilot.camera : '');
   if (journey.dataset.key === key) return;
   journey.dataset.key = key;
   journey.querySelector('.emit-journey__count').textContent = count + ' / ' + config.journey.length;
@@ -226,7 +254,8 @@ export function paintJourney() {
   const cameraButton = journey.querySelector('.emit-journey__camera');
   cameraButton.hidden = !runtime.autopilot;
   cameraButton.setAttribute('aria-pressed', String(following));
-  cameraButton.title = following ? 'The page follows the run. Scroll to look around on your own.'
+  cameraButton.title = following
+    ? 'The page follows the run. Scroll to look around on your own.'
     : 'Bring the page back to the step being run, and follow it';
   cameraButton.textContent = '';
   cameraButton.appendChild(icon('eye'));

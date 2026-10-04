@@ -32,9 +32,11 @@ export function captureHistory() {
     callHistory[key] ??= [];
     const calls = callHistory[key];
     calls.unshift({
-      at: new Date(), status: response.get('status'), duration: response.get('duration'),
+      at: new Date(),
+      status: response.get('status'),
+      duration: response.get('duration'),
       url: request ? String(request.get('url') || '').replace(/^https?:\/\/[^/]+/, '') : path,
-      body: typeof body === 'string' && body ? body : null
+      body: typeof body === 'string' && body ? body : null,
     });
     calls.length = Math.min(calls.length, HISTORY_SIZE);
   });
@@ -48,7 +50,10 @@ function historyKeyOf(block) {
 export function paintHistoryTool(block, bar, button) {
   const calls = callHistory[historyKeyOf(block)] || [];
   let tool = bar.querySelector('.emit-history');
-  if (!calls.length) { if (tool) tool.hidden = true; return; }
+  if (!calls.length) {
+    if (tool) tool.hidden = true;
+    return;
+  }
   if (!tool) {
     tool = el('button', 'emit-history');
     tool.type = 'button';

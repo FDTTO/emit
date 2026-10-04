@@ -1,9 +1,13 @@
 /* --------------------------------------------------------------------------
    8. OPERATION BODY
    -------------------------------------------------------------------------- */
-#emit-swagger .swagger-ui .opblock-body { background: transparent; }
+#emit-swagger .swagger-ui .opblock-body {
+  background: transparent;
+}
 #emit-swagger .swagger-ui .opblock .opblock-section,
-#emit-swagger .swagger-ui .opblock-body > div { background: transparent; }
+#emit-swagger .swagger-ui .opblock-body > div {
+  background: transparent;
+}
 
 /* Counter: .opblock-description-wrapper{padding:15px 20px;margin:0 0 5px} */
 #emit-swagger .swagger-ui .opblock-description-wrapper,
@@ -44,7 +48,7 @@
 #emit-swagger .swagger-ui .opblock-description-wrapper code:not([class*="language-"]),
 #emit-swagger .swagger-ui .opblock-body .renderedMarkdown code:not([class*="language-"]),
 #emit-swagger .swagger-ui .opblock-body .markdown code:not([class*="language-"]) {
-  font: 500 var(--t-md)/1 var(--f-mono);
+  font: 500 var(--t-md) / 1 var(--f-mono);
   background: color-mix(in srgb, var(--pt-c) 8%, transparent) !important;
   color: var(--pt-c) !important;
   border: 0;
@@ -67,19 +71,25 @@
   padding: var(--sp-6) var(--gutter) var(--sp-3);
 }
 /* Right under the description, the parameters need no rule of their own. */
-#emit-swagger .swagger-ui .opblock-description-wrapper + .opblock-section .opblock-section-header { box-shadow: none; }
+#emit-swagger .swagger-ui .opblock-description-wrapper + .opblock-section .opblock-section-header {
+  box-shadow: none;
+}
 #emit-swagger .swagger-ui .opblock .opblock-section-header h4,
 #emit-swagger .swagger-ui .opblock .opblock-section-header h4 > span,
 #emit-swagger .swagger-ui .opblock .opblock-section-header > label {
   flex: 0 0 auto;
   margin: 0;
-  font: 600 var(--t-xs)/1 var(--f-body);
+  font: 600 var(--t-xs) / 1 var(--f-body);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--e-dim);
 }
-#emit-swagger .swagger-ui .opblock .opblock-section-header h4 { flex: 1 1 auto; }
-#emit-swagger .swagger-ui .opblock .opblock-section-header > label { margin-left: auto; }
+#emit-swagger .swagger-ui .opblock .opblock-section-header h4 {
+  flex: 1 1 auto;
+}
+#emit-swagger .swagger-ui .opblock .opblock-section-header > label {
+  margin-left: auto;
+}
 #emit-swagger .swagger-ui .opblock-section-header .required {
   color: var(--e-dim);
   font-size: var(--t-3xs);
@@ -110,5 +120,6 @@
   background: var(--ui-bg);
   box-shadow: none;
 }
-#emit-swagger .swagger-ui .try-out { margin-left: auto; }
-
+#emit-swagger .swagger-ui .try-out {
+  margin-left: auto;
+}

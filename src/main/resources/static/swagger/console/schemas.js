@@ -42,7 +42,9 @@ function modelRow(name, schema) {
       link.type = 'button';
       link.appendChild(icon(iconFor(user.method, user.path)));
       link.appendChild(document.createTextNode(user.method.toUpperCase() + ' ' + user.path));
-      link.addEventListener('click', function () { openOperation(user); });
+      link.addEventListener('click', function () {
+        openOperation(user);
+      });
       used.appendChild(link);
     });
     body.appendChild(used);
@@ -62,6 +64,8 @@ export function paintSchemas() {
   const head = el('h3', 'emit-schemas__head', 'Schemas');
   head.appendChild(el('small', null, plural(Object.keys(schemas).length, 'model')));
   section.appendChild(head);
-  Object.keys(schemas).forEach(function (name) { section.appendChild(modelRow(name, schemas[name])); });
+  Object.keys(schemas).forEach(function (name) {
+    section.appendChild(modelRow(name, schemas[name]));
+  });
   holder.parentNode.insertBefore(section, holder);
 }

@@ -13,8 +13,11 @@ export function paintStatusbar() {
   if (!first) return;
   server.dataset.built = 'true';
   server.appendChild(el('i', 'emit-status__led'));
-  server.appendChild(document.createTextNode(first.url.replace(/^https?:\/\//, '')
-    + (first.description ? ' · ' + first.description : '')));
+  server.appendChild(
+    document.createTextNode(
+      first.url.replace(/^https?:\/\//, '') + (first.description ? ' · ' + first.description : ''),
+    ),
+  );
   server.appendChild(el('span', 'emit-status__health'));
   checkHealth();
 }
@@ -31,18 +34,34 @@ const HEALTH_WAIT_MS = 4000;
 export function checkHealth() {
   if (!config.healthPath || !runtime.spec || document.hidden) return;
   const controller = typeof AbortController === 'function' ? new AbortController() : null;
-  const abort = setTimeout(function () { if (controller) controller.abort(); }, HEALTH_WAIT_MS);
-  fetch(apiAddress().replace(/\/$/, '') + config.healthPath, { cache: 'no-store', signal: controller ? controller.signal : undefined })
+  const abort = setTimeout(function () {
+    if (controller) controller.abort();
+  }, HEALTH_WAIT_MS);
+  fetch(apiAddress().replace(/\/$/, '') + config.healthPath, {
+    cache: 'no-store',
+    signal: controller ? controller.signal : undefined,
+  })
     .then(function (response) {
-      return response.json().catch(function () { return {}; }).then(function (body) {
-        const components = body.components || {};
-        const down = Object.keys(components).filter(function (name) { return components[name].status !== 'UP'; });
-        if (!body.status || body.status === 'UP') paintHealth('up', '');
-        else paintHealth('unwell', down.length ? down.join(', ') + ' down' : 'reports ' + body.status);
-      });
+      return response
+        .json()
+        .catch(function () {
+          return {};
+        })
+        .then(function (body) {
+          const components = body.components || {};
+          const down = Object.keys(components).filter(function (name) {
+            return components[name].status !== 'UP';
+          });
+          if (!body.status || body.status === 'UP') paintHealth('up', '');
+          else paintHealth('unwell', down.length ? down.join(', ') + ' down' : 'reports ' + body.status);
+        });
     })
-    .catch(function () { paintHealth('down', 'no answer at ' + apiAddress()); })
-    .then(function () { clearTimeout(abort); });
+    .catch(function () {
+      paintHealth('down', 'no answer at ' + apiAddress());
+    })
+    .then(function () {
+      clearTimeout(abort);
+    });
 }
 
 function paintHealth(state, detail) {
@@ -70,18 +89,23 @@ export function paintStatusTelemetry() {
     budget.appendChild(el('b', null, runtime.latestBudget.remaining + ' / ' + runtime.latestBudget.limit));
     const meter = el('span', 'emit-status__meter');
     const fill = el('i');
-    fill.style.width = Math.round(100 * runtime.latestBudget.remaining / Math.max(1, runtime.latestBudget.limit)) + '%';
+    fill.style.width =
+      Math.round((100 * runtime.latestBudget.remaining) / Math.max(1, runtime.latestBudget.limit)) + '%';
     meter.appendChild(fill);
     budget.appendChild(meter);
   }
   last.hidden = false;
-  last.textContent = 'Last ' + statusWords(answer.status).toLowerCase() + (typeof answer.duration === 'number' ? ' · ' + answer.duration + ' ms' : '');
+  last.textContent =
+    'Last ' +
+    statusWords(answer.status).toLowerCase() +
+    (typeof answer.duration === 'number' ? ' · ' + answer.duration + ' ms' : '');
   last.className = 'emit-status__last is-' + toneOf(answer.status);
   if (request.dataset.copied) return;
   request.hidden = !runtime.latestRequestId;
   if (runtime.latestRequestId) {
     request.dataset.value = runtime.latestRequestId;
-    request.textContent = 'X-Request-Id ' + runtime.latestRequestId.slice(0, 4) + '…' + runtime.latestRequestId.slice(-2);
+    request.textContent =
+      'X-Request-Id ' + runtime.latestRequestId.slice(0, 4) + '…' + runtime.latestRequestId.slice(-2);
   }
 }
 
@@ -94,9 +118,13 @@ export const SHORT_SCREEN = window.matchMedia('(max-height: 820px)');
 
 export function applyDensity() {
   let chosen = null;
-  try { chosen = localStorage.getItem(DENSITY_KEY); } catch { /* private mode */ }
-  const density = chosen === 'compact' || chosen === 'comfortable' ? chosen
-    : SHORT_SCREEN.matches ? 'compact' : 'comfortable';
+  try {
+    chosen = localStorage.getItem(DENSITY_KEY);
+  } catch {
+    /* private mode */
+  }
+  const density =
+    chosen === 'compact' || chosen === 'comfortable' ? chosen : SHORT_SCREEN.matches ? 'compact' : 'comfortable';
   document.documentElement.dataset.density = density;
   const button = document.getElementById('emit-density');
   if (!button || button.dataset.density === density) return;
@@ -109,6 +137,10 @@ export function applyDensity() {
 
 export function toggleDensity() {
   const next = document.documentElement.dataset.density === 'compact' ? 'comfortable' : 'compact';
-  try { localStorage.setItem(DENSITY_KEY, next); } catch { /* private mode */ }
+  try {
+    localStorage.setItem(DENSITY_KEY, next);
+  } catch {
+    /* private mode */
+  }
   applyDensity();
 }

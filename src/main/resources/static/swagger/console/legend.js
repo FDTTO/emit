@@ -43,9 +43,24 @@ export function buildLegend(win, status) {
   const outcomes = legendSection(panel, 'Outcomes');
   legendRow(outcomes, outcome('2xx', 'ok'), 'it worked');
   legendRow(outcomes, outcome('4xx', 'bad'), 'the call was refused', 'fix the request');
-  const waiting = config.lifecycle ? config.lifecycle.run.filter(function (step) { return step.kind === 'pending'; }) : [];
-  legendRow(outcomes, outcome('429', 'wait'), 'wait, then retry',
-    'also ' + ['5xx'].concat(waiting.map(function (step) { return step.state; })).join(' and '));
+  const waiting = config.lifecycle
+    ? config.lifecycle.run.filter(function (step) {
+        return step.kind === 'pending';
+      })
+    : [];
+  legendRow(
+    outcomes,
+    outcome('429', 'wait'),
+    'wait, then retry',
+    'also ' +
+      ['5xx']
+        .concat(
+          waiting.map(function (step) {
+            return step.state;
+          }),
+        )
+        .join(' and '),
+  );
   legendRow(outcomes, outcome('RUN', 'run'), 'work in progress');
 
   const who = legendSection(panel, 'Who may call');
@@ -73,9 +88,14 @@ export function buildLegend(win, status) {
     button.setAttribute('aria-expanded', String(open));
     button.classList.toggle('is-on', open);
   };
-  button.addEventListener('click', function () { toggle(panel.hidden); });
+  button.addEventListener('click', function () {
+    toggle(panel.hidden);
+  });
   panel.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') { toggle(false); button.focus(); }
+    if (event.key === 'Escape') {
+      toggle(false);
+      button.focus();
+    }
   });
   document.addEventListener('click', function (event) {
     if (!panel.hidden && !panel.contains(event.target) && event.target !== button) toggle(false);

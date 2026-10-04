@@ -9,6 +9,6 @@
    Overrides of stock rules name the rule they counter.
    Fonts are loaded in SwaggerUiController.
    ========================================================================== */
-@import url('/swagger-ui/swagger-ui.css') layer(stock);
-@import url('/swagger-ui/index.css') layer(stock);
-@import url('console/theme.css');
+@import url("/swagger-ui/swagger-ui.css") layer(stock);
+@import url("/swagger-ui/index.css") layer(stock);
+@import url("console/theme.css");

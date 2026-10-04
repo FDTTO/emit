@@ -2,7 +2,17 @@
  * The credentials dialog: a card per security scheme, its state first and
  * the way to a credential when it is missing, over Swagger's auth actions.
  */
-import { authorizeScheme, credentialSourceFor, expiryOf, heldCredential, heldFrom, masked, openCredentialSource, schemeKind, scopeBadge } from './auth.js';
+import {
+  authorizeScheme,
+  credentialSourceFor,
+  expiryOf,
+  heldCredential,
+  heldFrom,
+  masked,
+  openCredentialSource,
+  schemeKind,
+  scopeBadge,
+} from './auth.js';
 import { el, icon } from './dom.js';
 import { config, runtime } from './state.js';
 
@@ -19,18 +29,26 @@ function credentialCard(scheme, scope, definition) {
 
   const state = el('div', 'emit-auth__state' + (!value ? ' is-empty' : expired ? ' is-expired' : ''));
   const from = value && heldFrom(scheme, value);
-  state.appendChild(document.createTextNode(!value ? 'Not held' : expired ? 'Expired' : from ? 'Held, filled from ' + from : 'Held'));
-  const detail = !value ? scope.missing
-    : expiresAt === null ? null
-    : expired ? 'Execute would be refused'
-    : 'expires in ' + Math.max(1, Math.round((expiresAt - Date.now()) / 60000)) + ' min';
+  state.appendChild(
+    document.createTextNode(!value ? 'Not held' : expired ? 'Expired' : from ? 'Held, filled from ' + from : 'Held'),
+  );
+  const detail = !value
+    ? scope.missing
+    : expiresAt === null
+      ? null
+      : expired
+        ? 'Execute would be refused'
+        : 'expires in ' + Math.max(1, Math.round((expiresAt - Date.now()) / 60000)) + ' min';
   if (detail) state.appendChild(el('small', null, detail));
   const source = credentialSourceFor(scheme);
   if ((!value || expired) && source) {
     const link = el('button', 'emit-auth__source', (expired ? source.action + ' again' : source.action) + ' ');
     link.type = 'button';
     link.appendChild(icon('goTo'));
-    link.addEventListener('click', function () { closeCredentials(); openCredentialSource(scheme); });
+    link.addEventListener('click', function () {
+      closeCredentials();
+      openCredentialSource(scheme);
+    });
     state.appendChild(link);
   }
   card.appendChild(state);
@@ -53,21 +71,28 @@ function credentialCard(scheme, scope, definition) {
     row.appendChild(field);
     const logout = el('button', 'emit-quiet', 'Log out');
     logout.type = 'button';
-    logout.addEventListener('click', function () { window.ui.authActions.logout([scheme]); });
+    logout.addEventListener('click', function () {
+      window.ui.authActions.logout([scheme]);
+    });
     row.appendChild(logout);
   } else {
     const input = el('input', 'emit-auth__input');
     input.type = 'text';
     input.spellcheck = false;
-    input.placeholder = 'Paste ' + (source && source.noun === 'key' ? 'an API key' : 'a ' + (source ? source.noun : 'value'));
+    input.placeholder =
+      'Paste ' + (source && source.noun === 'key' ? 'an API key' : 'a ' + (source ? source.noun : 'value'));
     input.setAttribute('aria-label', scheme);
     field.appendChild(input);
     row.appendChild(field);
     const authorize = el('button', 'emit-primary', 'Authorize');
     authorize.type = 'button';
-    const submit = function () { if (input.value.trim()) authorizeScheme(scheme, input.value.trim()); };
+    const submit = function () {
+      if (input.value.trim()) authorizeScheme(scheme, input.value.trim());
+    };
     authorize.addEventListener('click', submit);
-    input.addEventListener('keydown', function (event) { if (event.key === 'Enter') submit(); });
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') submit();
+    });
     row.appendChild(authorize);
   }
   card.appendChild(row);
@@ -75,11 +100,13 @@ function credentialCard(scheme, scope, definition) {
 }
 
 function credentialsSignature() {
-  return Object.keys(config.scopes).map(function (scheme) {
-    const value = heldCredential(scheme);
-    const expiresAt = expiryOf(value);
-    return (value || '') + ':' + (expiresAt === null ? '' : Math.round((expiresAt - Date.now()) / 60000));
-  }).join('|');
+  return Object.keys(config.scopes)
+    .map(function (scheme) {
+      const value = heldCredential(scheme);
+      const expiresAt = expiryOf(value);
+      return (value || '') + ':' + (expiresAt === null ? '' : Math.round((expiresAt - Date.now()) / 60000));
+    })
+    .join('|');
 }
 
 export function paintCredentials() {
@@ -131,22 +158,32 @@ export function openCredentials() {
     box.appendChild(el('div', 'emit-auth__list'));
     const foot = el('div', 'emit-auth__foot');
     const persisted = window.ui.getConfigs && window.ui.getConfigs().persistAuthorization;
-    foot.appendChild(el('span', null, persisted ? 'Kept in this browser until you log out' : 'Kept on this page until it reloads'));
+    foot.appendChild(
+      el('span', null, persisted ? 'Kept in this browser until you log out' : 'Kept on this page until it reloads'),
+    );
     const doneButton = el('button', 'emit-quiet', 'Done');
     doneButton.type = 'button';
     doneButton.addEventListener('click', closeCredentials);
     foot.appendChild(doneButton);
     box.appendChild(foot);
     scrim.appendChild(box);
-    scrim.addEventListener('click', function (event) { if (event.target === scrim) closeCredentials(); });
+    scrim.addEventListener('click', function (event) {
+      if (event.target === scrim) closeCredentials();
+    });
     scrim.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') closeCredentials();
       /* A modal keeps Tab inside it: past the last control, back to the first. */
       if (event.key !== 'Tab') return;
       const stops = scrim.querySelectorAll('button, input');
-      const first = stops[0], last = stops[stops.length - 1];
-      if (event.shiftKey && document.activeElement === first) { last.focus(); event.preventDefault(); }
-      else if (!event.shiftKey && document.activeElement === last) { first.focus(); event.preventDefault(); }
+      const first = stops[0],
+        last = stops[stops.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        last.focus();
+        event.preventDefault();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        first.focus();
+        event.preventDefault();
+      }
     });
     host.appendChild(scrim);
   }
