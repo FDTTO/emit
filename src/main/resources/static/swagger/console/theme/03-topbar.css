@@ -288,8 +288,10 @@
   font-size: var(--t-sm);
   color: var(--e-faint);
 }
+/* The console is dark either way: Swagger's own dark mode toggle is not drawn. */
 #emit-swagger .swagger-ui .topbar img,
-#emit-swagger .swagger-ui .topbar .download-url-wrapper {
+#emit-swagger .swagger-ui .topbar .download-url-wrapper,
+#emit-swagger .swagger-ui .topbar .dark-mode-toggle {
   display: none;
 }
 #emit-swagger .swagger-ui .topbar a {

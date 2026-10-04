@@ -188,6 +188,8 @@
 #emit-swagger .swagger-ui .expand-operation svg,
 #emit-swagger .swagger-ui .opblock .arrow {
   fill: var(--e-faint);
+  /* Swagger 5.32 paints the paths with fill="currentColor". */
+  color: var(--e-faint);
 }
 /* Laid out as a block: an inline box adds the font's descender to the row. */
 #emit-swagger .swagger-ui .opblock-tag .expand-operation {
