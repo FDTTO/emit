@@ -132,7 +132,7 @@ The API documents itself in a console: Swagger UI redrawn as a cockpit, drawn to
 | Testcontainers | via Spring | PostgreSQL, Kafka, Redis for integration tests |
 | springdoc-openapi | 3.1.1 | OpenAPI 3.0 spec + Swagger UI at `/swagger-ui` |
 | Swagger UI | 5 | Redrawn as the console by a kit of ES modules, no build step |
-| Prumo | 0.1.0 | The console checked in a real browser: suite, coverage, mutation, fidelity |
+| Prumo | 0.1.2 | The console checked in a real browser: suite, coverage, mutation, fidelity |
 | Lombok | via Spring | Compile-time code generation, excluded from fat JAR |
 
 ---
@@ -270,7 +270,7 @@ Kafka retry policy: 3 attempts · 1s + 2s backoff · exhausted → document.gene
 
 ## Testing
 
-**235 tests**, run with `mvn test` (Docker must be running). No mocks for infrastructure: PostgreSQL, Kafka and Redis are real containers. The build also refuses Java sources out of format (palantir-java-format, checked by Spotless); `mvn spotless:apply` formats them.
+**235 tests**, run with `mvn test` (Docker must be running). No mocks for infrastructure: PostgreSQL, Kafka and Redis are real containers. The build also refuses a source out of format in any language: the Java by palantir-java-format, the console's JavaScript and CSS by Biome, both checked by Spotless; `mvn spotless:apply` formats them. CI lints the scripts with Biome and the demo exporter with ruff.
 
 - **Unit** (JUnit 6, Mockito): the document's state machine, the services, the filters, the consumer and its tenant context, the PDF renderer's refusal to fetch anything a document references.
 - **Slice** (`@WebMvcTest`): every controller's validation and status codes.
