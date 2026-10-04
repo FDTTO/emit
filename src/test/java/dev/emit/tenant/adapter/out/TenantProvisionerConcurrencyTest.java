@@ -25,7 +25,6 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @Testcontainers
 class TenantProvisionerConcurrencyTest {
 
-    @SuppressWarnings("resource")
     @Container
     static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16");
 
