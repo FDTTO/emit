@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- The unique constraint on schema_name already indexes it. -->
+    <changeSet id="002-drop-redundant-schema-name-index" author="emit">
+        <preConditions onFail="MARK_RAN">
+            <indexExists schemaName="public" tableName="tenants" indexName="idx_tenants_schema_name"/>
+        </preConditions>
+        <dropIndex schemaName="public" tableName="tenants" indexName="idx_tenants_schema_name"/>
+    </changeSet>
+
+</databaseChangeLog>

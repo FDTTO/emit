@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- A key resolves to one tenant: refused at insert, not discovered at lookup. -->
+    <changeSet id="003-make-api-key-hash-unique" author="emit">
+        <preConditions onFail="MARK_RAN">
+            <indexExists schemaName="public" tableName="tenants" indexName="idx_tenants_api_key_hash"/>
+        </preConditions>
+        <dropIndex schemaName="public" tableName="tenants" indexName="idx_tenants_api_key_hash"/>
+        <addUniqueConstraint schemaName="public" tableName="tenants" columnNames="api_key_hash"
+            constraintName="tenants_api_key_hash_key"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -6,5 +6,7 @@
 
     <!-- The public schema only. Each tenant's schema runs tenant/master.xml from TenantProvisioner. -->
     <include file="db/changelog/changes/001-create-tenants-table.xml" />
+    <include file="db/changelog/changes/002-drop-redundant-schema-name-index.xml" />
+    <include file="db/changelog/changes/003-make-api-key-hash-unique.xml" />
 
 </databaseChangeLog>
