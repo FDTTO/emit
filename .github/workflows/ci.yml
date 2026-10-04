@@ -94,6 +94,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Lint and format check the exporter
+        run: pipx run ruff==0.16.10 check && pipx run ruff==0.16.10 format --check
+
       - uses: ./.github/actions/start-app
 
       - name: Record the application as the demo site
