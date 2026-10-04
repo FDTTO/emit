@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    tenantSchema and requestId come from the MDC (TenantFilter, RequestIdFilter).
+    tenantSchema, requestId and adminUser come from the MDC (TenantFilter,
+    RequestIdFilter, JwtAuthenticationFilter); admin= prints only when one is set.
     Each pattern stays on one line: a line break inside the element is printed,
     splitting every entry in two for any collector that reads line by line.
 -->
@@ -9,7 +10,7 @@
     <springProfile name="dev">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
-                <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) [%cyan(%X{tenantSchema:-system})] [%magenta(%X{requestId:-no-req})] %logger{36} - %msg%n</pattern>
+                <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) [%cyan(%X{tenantSchema:-system})] [%magenta(%X{requestId:-no-req})]%replace( admin=%X{adminUser}){' admin=$', ''} %logger{36} - %msg%n</pattern>
             </encoder>
         </appender>
 
@@ -21,7 +22,7 @@
     <springProfile name="!dev">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
-                <pattern>%d{ISO8601} %-5level [%X{tenantSchema:-system}] [%X{requestId:-no-req}] %logger{36} - %msg%n</pattern>
+                <pattern>%d{ISO8601} %-5level [%X{tenantSchema:-system}] [%X{requestId:-no-req}]%replace( admin=%X{adminUser}){' admin=$', ''} %logger{36} - %msg%n</pattern>
             </encoder>
         </appender>
 

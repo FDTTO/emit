@@ -77,6 +77,25 @@ class JwtAuthenticationFilterTest {
         verify(chain).doFilter(any(), any());
     }
 
+    // Tomcat reuses the thread: a name left behind would be logged against the
+    // next request it serves, a tenant's included.
+    @Test
+    void shouldNameTheAdminInTheLogForItsOwnRequestOnly() throws Exception {
+        String token = "valid.jwt.token";
+        when(jwtService.isValid(token)).thenReturn(true);
+        when(jwtService.extractSubject(token)).thenReturn("admin");
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + token);
+        String[] duringRequest = new String[1];
+        FilterChain chain = (req, res) -> duringRequest[0] = MDC.get("adminUser");
+
+        jwtAuthenticationFilter.doFilterInternal(request, new MockHttpServletResponse(), chain);
+
+        assertThat(duringRequest[0]).isEqualTo("admin");
+        assertThat(MDC.get("adminUser")).isNull();
+    }
+
     /*
      * The tenant filter runs first. A request that carries both a tenant key
      * and an admin token keeps the tenant role alongside the admin one,

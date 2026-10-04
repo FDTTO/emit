@@ -24,6 +24,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    public static final String MDC_KEY = "adminUser";
+
     private final JwtService jwtService;
     private final ApiErrorWriter errorWriter;
 
@@ -33,29 +35,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-
-            if (!jwtService.isValid(token)) {
-                errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, RefusalMessages.INVALID_TOKEN);
-                return;
-            }
-
-            String subject = jwtService.extractSubject(token);
-            // Adds to whatever the tenant filter, which runs first, already
-            // granted: a request carrying both credentials holds both roles,
-            // rather than the token silently replacing the tenant key.
-            List<GrantedAuthority> authorities = new ArrayList<>();
-            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-            Authentication existing = SecurityContextHolder.getContext().getAuthentication();
-            if (existing != null) {
-                authorities.addAll(existing.getAuthorities());
-            }
-            SecurityContextHolder.getContext()
-                    .setAuthentication(new UsernamePasswordAuthenticationToken(subject, null, authorities));
-            MDC.put("adminUser", subject);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        filterChain.doFilter(request, response);
+        String token = authHeader.substring(7);
+        if (!jwtService.isValid(token)) {
+            errorWriter.write(response, HttpServletResponse.SC_UNAUTHORIZED, RefusalMessages.INVALID_TOKEN);
+            return;
+        }
+
+        String subject = jwtService.extractSubject(token);
+        // Adds to whatever the tenant filter, which runs first, already
+        // granted: a request carrying both credentials holds both roles,
+        // rather than the token silently replacing the tenant key.
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        Authentication existing = SecurityContextHolder.getContext().getAuthentication();
+        if (existing != null) {
+            authorities.addAll(existing.getAuthorities());
+        }
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(subject, null, authorities));
+
+        MDC.put(MDC_KEY, subject);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            MDC.remove(MDC_KEY);
+        }
     }
 }
