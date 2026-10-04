@@ -4,18 +4,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <!--
-        changeSet id="001": creates the tenants table in the public schema.
-
-        Each changeSet is executed EXACTLY ONCE per database.
-        Liquibase records the changeSet hash in DATABASECHANGELOG.
-        If a changeSet is modified after execution, Liquibase fails at
-        startup with "checksum mismatch" - protecting against retroactive
-        edits to already-applied migrations.
-
-        To alter the table: create a NEW changeSet (002, 003...).
-        Never modify a changeSet that has already been executed in production.
-    -->
+    <!-- Applied changeSets are never edited: Liquibase refuses to start on a changed checksum. -->
     <changeSet id="001" author="emit-dev">
         <createTable tableName="tenants" schemaName="public">
             <column name="id" type="UUID">
@@ -24,11 +13,11 @@
             <column name="name" type="VARCHAR(255)">
                 <constraints nullable="false" unique="true" />
             </column>
-            <!-- schema_name must be a valid PostgreSQL identifier: lowercase, no spaces -->
+            <!-- 63: PostgreSQL's identifier limit; longer names are truncated. -->
             <column name="schema_name" type="VARCHAR(63)">
                 <constraints nullable="false" unique="true" />
             </column>
-            <!-- Store the HASH of the API key, never the plaintext value -->
+            <!-- Only the hash: a leaked table exposes no usable key. -->
             <column name="api_key_hash" type="VARCHAR(255)">
                 <constraints nullable="false" />
             </column>
@@ -40,12 +29,11 @@
             </column>
         </createTable>
 
-        <!-- Index for schema_name lookup - critical path on every authenticated request -->
         <createIndex indexName="idx_tenants_schema_name" tableName="tenants" schemaName="public">
             <column name="schema_name" />
         </createIndex>
 
-        <!-- Index for api_key_hash lookup - executed on EVERY authenticated request -->
+        <!-- Every authenticated tenant request looks its key up by hash. -->
         <createIndex indexName="idx_tenants_api_key_hash" tableName="tenants" schemaName="public">
             <column name="api_key_hash" />
         </createIndex>
